@@ -1,8 +1,9 @@
 import { configureStore, ReducersMapObject } from '@reduxjs/toolkit'
-import { reducerUI } from 'entities/ui';
+import { uiReducer } from 'entities/ui';
 import { StateSchema } from './state';
 import { createReducerManager } from './reducer-manager';
 import { api } from 'shared/api';
+import { articleReducer } from 'entities/article';
 
 
 export function createReduxStore(
@@ -14,7 +15,8 @@ export function createReduxStore(
       ...asyncReducers,
 
       // Entities
-      ui           : reducerUI,
+      ui           : uiReducer,
+      article      : articleReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {

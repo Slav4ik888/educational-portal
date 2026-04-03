@@ -2,18 +2,18 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { StateSchemaArticle } from './state-schema';
 import { getPayloadError as getError } from 'shared/lib/errors';
 import { Errors } from 'shared/lib/validators';
-import { Article } from 'entities/article';
+import { Article } from '../../types';
+import { mockArticles } from 'shared/mocks/article/mock-articles';
 
 
 
 const initialState: StateSchemaArticle = {
   loading        : false,
   errors         : {},
-  articles       : Article[]
-  currentArticle : Article | null
-  isLoading      : boolean
+  articles       : mockArticles,
+  currentArticle : null,
+  isLoading      : false
 };
-
 
 export const slice = createSlice({
   name: 'entities/article',
@@ -24,6 +24,15 @@ export const slice = createSlice({
     },
     clearErrors: (state) => {
       state.errors = {};
+    },
+    setArticles: (state, action: PayloadAction<Article[]>) => {
+      state.articles = action.payload;
+    },
+    setCurrentArticle: (state, action: PayloadAction<Article | null>) => {
+      state.currentArticle = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
     },
   }
 })
