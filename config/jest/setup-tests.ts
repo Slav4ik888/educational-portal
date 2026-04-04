@@ -1,2 +1,4 @@
-import '@testing-library/jest-dom'
-import 'regenerator-runtime/runtime'
+// import '@testing-library/jest-dom';
+// import 'regenerator-runtime/runtime';
+// @ts-ignore
+import 'core-js/stable';

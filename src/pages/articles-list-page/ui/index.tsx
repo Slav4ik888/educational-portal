@@ -9,6 +9,8 @@ import { Loader } from 'shared/ui/loader';
 // import { FilterBar } from 'features/filterArticles';
 import styles from './articles-list-page.module.scss';
 
+console.log('styles: ', styles);
+
 
 
 /** Компонент списка статей */

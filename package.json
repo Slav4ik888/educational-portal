@@ -29,6 +29,9 @@
   "bugs": {
     "url": "https://github.com/Slav4ik888/educational-portal/issues"
   },
+  "imports": {
+    "#*": "./src/*"
+  },
   "homepage": "https://github.com/Slav4ik888/educational-portal#readme",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
@@ -47,9 +50,15 @@
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/core-js": "^2.5.8",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/regenerator-runtime": "^0.13.8",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "@types/testing-library__user-event": "^4.1.1",
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/webpack-dev-server": "^4.7.1",
@@ -59,6 +68,7 @@
     "babel-loader": "^10.1.1",
     "concurrently": "^9.2.1",
     "copy-webpack-plugin": "^14.0.0",
+    "core-js": "^3.49.0",
     "css-loader": "^7.1.4",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-plugin-import": "^2.32.0",
@@ -69,6 +79,7 @@
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.6.6",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "mini-css-extract-plugin": "^2.10.2",
     "sass": "^1.99.0",
     "sass-loader": "^16.0.7",

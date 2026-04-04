@@ -4,7 +4,7 @@ import { ErrorBoundary } from 'app/providers/error-boundary';
 import { App } from './app';
 import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
-import 'regenerator-runtime/runtime';
+// import 'regenerator-runtime/runtime';
 import './index.module.scss';
 
 
@@ -33,4 +33,4 @@ root.render(
 
 
 
-// git add . && git commit -m "ended first edition" && git push -u origin main
+// git add . && git commit -m "fixed first started" && git push -u origin main

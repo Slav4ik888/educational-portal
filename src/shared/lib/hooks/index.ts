@@ -9,6 +9,5 @@ export * from './use-group';
 export * from './use-hover';
 export * from './use-initial-effect';
 export * from './use-keypress';
-export { usePages } from './use-pages';
 export * from './use-value';
 export * from './types';

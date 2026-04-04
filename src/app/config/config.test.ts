@@ -1,6 +1,6 @@
 import { formatDate } from 'shared/helpers/dates';
 import { __devLog } from 'shared/lib/tests/__dev-log';
-import cfg from '.';
+import { cfg } from '.';
 
 
 describe('config.js', () => {

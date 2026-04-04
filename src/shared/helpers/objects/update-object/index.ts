@@ -34,11 +34,10 @@ export function updateObject<T extends object | undefined, O extends Partial<T &
       && ! Array.isArray(value) // Arrays are replaced entirely (modify if needed)
     ) {
       // @ts-ignore
-      result?.[key] = updateObject(original?.[key], value);
+      (result as any)[key] = updateObject(original?.[key], value);
     } else {
       // Otherwise, assign the new value
-      // @ts-ignore
-      result?.[key] = value;
+      (result as Record<string, any>)[key] = value;
     }
   });
 

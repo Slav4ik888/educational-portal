@@ -1,11 +1,10 @@
-import { RuleSetRule } from 'webpack';
 import { BuildOptions } from './types';
 import { buildSvgLoader, buildCssLoaders } from './loaders';
 import { buildBabelLoader } from './loaders/build-babel-loader';
 
 
 
-export function buildLoaders({ isDev }: BuildOptions): RuleSetRule[] {
+export function buildLoaders({ isDev }: BuildOptions) {
   const typescriptLoader = {
     test    : /\.tsx?$/,
     use     : 'ts-loader',

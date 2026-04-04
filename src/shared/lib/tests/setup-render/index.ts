@@ -1,6 +1,7 @@
 import userEvent from '@testing-library/user-event';
 import { render, RenderResult } from '@testing-library/react';
 import { ReactElement } from 'react';
+// @ts-ignore
 import { UserEvent } from '@testing-library/user-event/dist/types/index'
 
 

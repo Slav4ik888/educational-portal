@@ -9,6 +9,10 @@ declare global {
     const classNames: IClassNames
     export = classNames
   }
+  declare module '*.module.scss' {
+    const classes: { [key: string]: string };
+    export default classes;
+  }
 
 
   declare const __IS_DEV__: boolean
@@ -61,5 +65,10 @@ declare global {
 
     const SVG: React.VFC<React.SVGProps<SVGSVGElement>>
     export default SVG
+  }
+
+  declare module 'regenerator-runtime/runtime' {
+    const content: any;
+    export default content;
   }
 }

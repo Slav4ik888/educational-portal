@@ -1,24 +1,19 @@
-import { configureStore, Reducer, ReducersMapObject } from '@reduxjs/toolkit'
-import { reducerUI } from 'entities/ui';
+import { configureStore, ReducersMapObject } from '@reduxjs/toolkit'
+import { uiReducer } from 'entities/ui';
 import { api } from 'shared/api';
-import { StateSchema } from 'app/providers/store1';
+import { StateSchema } from 'app/providers/store';
 import { createReducerManager } from 'app/providers/store/config/reducer-manager';
-import { reducerCompany } from 'entities/company';
-import { reducerUser } from 'entities/user';
-import { reducerDashboardView } from 'entities/dashboard-view';
+import { articleReducer } from 'entities/article';
+import { userProgressReducer } from 'entities/user-progress';
 
 
 
 export function createReduxStore(initialState: DeepPartial<StateSchema>) {
   const
     rootReducers: ReducersMapObject<StateSchema> = {
-      // Entities
-      ui           : reducerUI,
-      user         : reducerUser,
-      company      : reducerCompany,
-
-      // @ts-ignore
-      dashboardView : reducerDashboardView,
+      ui           : uiReducer,
+      article      : articleReducer,
+      userProgress : userProgressReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {

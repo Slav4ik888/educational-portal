@@ -1,7 +1,7 @@
 import { AsyncThunkAction } from '@reduxjs/toolkit';
 import axios, { AxiosStatic } from 'axios';
 import { Errors } from '../../validators';
-import { StateSchema } from 'app/providers/store1';
+import { StateSchema } from 'app/providers/store';
 
 
 type ActionCreator<Return, Arg, RejectedValue> = (arg: Arg) =>
