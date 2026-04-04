@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import { StoreProvider } from 'app/providers/store';
 import { ErrorBoundary } from 'app/providers/error-boundary';
 import { App } from './app';
 import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
 import 'regenerator-runtime/runtime';
+import './index.module.scss';
+
+
 
 /* eslint-disable-next-line no-console */
 console.log(`Version: ${cfg.VERSION}\nRelease: ${cfg.ASSEMBLY_DATE}`);
@@ -22,15 +24,13 @@ const root = createRoot(container);
 
 
 root.render(
-  <BrowserRouter>
-    <StoreProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </StoreProvider>
-  </BrowserRouter>
+  <StoreProvider>
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </StoreProvider>
 );
 
 
 
-// git add . && git commit -m "started ArticlesListPage" && git push -u origin main
+// git add . && git commit -m "ended first edition" && git push -u origin main

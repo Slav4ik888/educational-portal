@@ -1,4 +1,4 @@
-import { TestQuestion } from 'entities/test-block';
+import { TestQuestionType } from 'entities/test-block';
 
 
 
@@ -6,7 +6,7 @@ export interface ContentBlock {
   id         : string
   type       : 'theory' | 'test'
   content    : string // для теории
-  questions? : TestQuestion[] // для тестовых блоков
+  questions? : TestQuestionType[] // для тестовых блоков
 }
 
 export interface Article {
@@ -14,7 +14,7 @@ export interface Article {
   title       : string
   description : string
   blocks      : ContentBlock[]
-  finalTest   : TestQuestion[]
+  finalTest   : TestQuestionType[]
   coverImage? : string
   duration    : number // в минутах
   difficulty  : 'beginner' | 'intermediate' | 'advanced'

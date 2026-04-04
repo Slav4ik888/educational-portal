@@ -1,1 +1,1 @@
-export type { TestQuestion } from './types'
+export type { TestQuestionType } from './types'

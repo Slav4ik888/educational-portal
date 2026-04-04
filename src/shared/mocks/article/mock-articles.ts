@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Article } from 'entities/article';
 
 export const mockArticles: Article[] = [

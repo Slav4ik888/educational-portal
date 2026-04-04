@@ -1,4 +1,4 @@
-export interface TestQuestion {
+export interface TestQuestionType {
   id            : string
   text          : string
   options       : string[]

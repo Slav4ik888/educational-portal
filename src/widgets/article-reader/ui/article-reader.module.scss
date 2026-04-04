@@ -1,0 +1,155 @@
+.articleReader {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.progressSection {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-right: 1px solid #e9ecef;
+
+  @media (max-width: 768px) {
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+
+  h3 {
+    font-size: 1rem;
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  span {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+  }
+}
+
+.blockNavigation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.navButton {
+  padding: 0.75rem;
+  text-align: left;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+
+  &:hover:not(:disabled) {
+    background: #e9ecef;
+    transform: translateX(4px);
+  }
+
+  &.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+  }
+
+  &.completed {
+    background: #d5f4e6;
+    border-color: #27ae60;
+    color: #27ae60;
+  }
+
+  &.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.contentSection {
+  padding: 1.5rem;
+}
+
+.blockContainer {
+  min-height: 400px;
+}
+
+.blockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.blockType {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3498db;
+}
+
+.blockNumber {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.prevButton,
+.nextButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.prevButton {
+  background: #6c757d;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #5a6268;
+  }
+}
+
+.nextButton {
+  background: #3498db;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #2980b9;
+  }
+}

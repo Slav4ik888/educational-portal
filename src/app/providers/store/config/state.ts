@@ -3,13 +3,16 @@ import { NavigateOptions, To } from 'react-router-dom';
 import { Action, EnhancedStore, Reducer, ReducersMapObject } from '@reduxjs/toolkit';
 import { StateSchemaUI } from 'entities/ui';
 import { StateSchemaArticle } from 'entities/article';
+import { StateSchemaUserProgress } from 'entities/user-progress';
 
 
 
 export interface StateSchema {
   // Entities
-  ui                  : StateSchemaUI
-  article             : StateSchemaArticle
+  ui           : StateSchemaUI
+  article      : StateSchemaArticle
+  userProgress : StateSchemaUserProgress
+
   // Async reducer
   // dashboardData?      : StateSchemaDashboardData
 }
