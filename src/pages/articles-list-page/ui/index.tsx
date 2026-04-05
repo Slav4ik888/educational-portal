@@ -2,14 +2,12 @@ import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
-import { articleActions } from 'entities/article';
+import { articleActions, ArticlePreview } from 'entities/article';
 import { mockArticles } from 'shared/mocks/article/mock-articles';
 import { Loader } from 'shared/ui/loader';
 // import { SearchBar } from 'features/searchArticle';
 // import { FilterBar } from 'features/filterArticles';
 import styles from './articles-list-page.module.scss';
-
-console.log('styles: ', styles);
 
 
 
@@ -82,14 +80,11 @@ export const ArticlesListPage: FC = () => {
 
       <div className={styles.articlesGrid}>
         {filteredArticles.map(article => (
-          <button
+          <ArticlePreview
             key     = {article.id}
-            type    = 'button'
-            onClick = {() => handleArticleClick(article.id)}
-            className={styles.articleItem}
-          >
-            {article.title}
-          </button>
+            article = {article}
+            onClick = {(id) => handleArticleClick(id)}
+          />
         ))}
       </div>
 

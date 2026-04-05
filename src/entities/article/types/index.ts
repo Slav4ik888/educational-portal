@@ -9,6 +9,8 @@ export interface ContentBlock {
   questions? : TestQuestionType[] // для тестовых блоков
 }
 
+export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
+
 export interface Article {
   id          : string
   title       : string
@@ -17,7 +19,7 @@ export interface Article {
   finalTest   : TestQuestionType[]
   coverImage? : string
   duration    : number // в минутах
-  difficulty  : 'beginner' | 'intermediate' | 'advanced'
+  difficulty  : Difficulty
   tags        : string[]
   createdAt   : string
 }

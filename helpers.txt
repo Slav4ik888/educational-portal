@@ -1,0 +1,19 @@
+React-приложение "Образовательный портал", на TypeScript, архитектура на FSD, главная страница ArticlesListPage.
+Есть блок, который отрисовывает список статей, при нажатии на которые происходит переход на страницу статьи: 
+<div className={styles.articlesGrid}>
+  {filteredArticles.map(article => (
+    <button
+      key     = {article.id}
+      type    = 'button'
+      onClick = {() => handleArticleClick(article.id)}
+      className={styles.articleItem}
+    >
+      {article.title}
+    </button>
+  ))}
+</div>
+
+Задача: сделать компонент, который выводит список имеющихся статей в виде небольших превьюшек, которые должны содержать: title, description (до 3х строк), tags, difficulty, duration, coverImage.
+Ограничение: 
+ - не переписывать весь компонент ArticlesListPage.
+ - названия файлов с маленькой буквы, а отделение слов через дефис: article-preview.module.scss
