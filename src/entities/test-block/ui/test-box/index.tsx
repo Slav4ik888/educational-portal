@@ -1,0 +1,87 @@
+/* eslint-disable */
+import { FC, useState, useEffect } from 'react';
+import { TestQuestionType } from '../../types';
+import styles from './test-box.module.scss';
+
+
+
+interface TestBoxProps {
+  isRetry            : boolean // Если нажали для повторного прохождения теста
+  isSubmitted        : boolean
+  question           : TestQuestionType
+  initialAnswerIndex : number | undefined
+  onAnswerChange     : (questionId: string, answerIndex: number) => void
+}
+
+export const TestBox: FC<TestBoxProps> = ({ isRetry, isSubmitted, question, initialAnswerIndex, onAnswerChange }) => {
+  const [answer, setAnswer] = useState<number | undefined>(initialAnswerIndex);
+  const handleAnswerChange = (questionId: string, answerIndex: number) => {
+    onAnswerChange(questionId, answerIndex);
+    setAnswer(answerIndex);
+  };
+
+
+  const getExplanation = (question: TestQuestionType, userAnswer: number | undefined): string | null => {
+    // Показываем подсказку только после submit и если ответ неверный
+    if (! isSubmitted) return null;
+    if (userAnswer === undefined) return null;
+    if (userAnswer !== question.correctAnswer) {
+      const correctOption = question.options[question.correctAnswer];
+      return `💡 Подсказка: Правильный ответ - "${correctOption}"`;
+    }
+    return null;
+  };
+
+
+  const explanation = getExplanation(question, answer);
+  
+  // Показываем вопрос с подсказкой если был неверный ответ
+  // const userAnswer = answers[question.id];
+  const isAnswerWrong = isSubmitted && answer !== undefined && answer !== question.correctAnswer;
+  const isAnswerCorrect = isSubmitted && answer !== undefined && answer === question.correctAnswer;
+
+  return (
+    <>
+      <div className={styles.options}>
+        {question.options.map((option, optIndex) => {
+          let optionClassName = styles.option;
+          
+          // Подсвечиваем правильные и неправильные ответы после submit
+          if (isSubmitted) {
+            if (isAnswerCorrect && optIndex === question.correctAnswer) {
+              optionClassName += ` ${styles.correctOption}`;
+            }
+            if (answer === optIndex && optIndex !== question.correctAnswer) {
+              optionClassName += ` ${styles.wrongOption}`;
+            }
+          }
+
+          return (
+            <label key={optIndex} className={optionClassName}>
+              <input
+                type     = 'radio'
+                name     = {`question-${question.id}`}
+                value    = {optIndex}
+                checked  = {answer === optIndex}
+                onChange = {() => handleAnswerChange(question.id, optIndex)}
+                disabled = {isSubmitted && ! isRetry}
+              />
+              <span>{option}</span>
+              {isAnswerCorrect && (isSubmitted || isRetry) && optIndex === question.correctAnswer && (
+                <span className={styles.correctMark}>✓</span>
+              )}
+              {isSubmitted && answer === optIndex && optIndex !== question.correctAnswer && (
+                <span className={styles.wrongMark}>✗</span>
+              )}
+            </label>
+          );
+        })}
+      </div>
+      {explanation && (
+        <div className={styles.explanation}>
+          {explanation}
+        </div>
+      )}
+    </>
+  );
+};

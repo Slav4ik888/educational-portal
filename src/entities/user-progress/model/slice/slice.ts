@@ -44,8 +44,10 @@ export const slice = createSlice({
 
       state.articlesProgress[articleId].blockResults[blockId] = { completed, score };
 
-      const completedBlockIds = [...state.articlesProgress[articleId].completedBlockIds];
-      state.articlesProgress[articleId].completedBlockIds = [...completedBlockIds, blockId];
+      if (completed) {
+        const completedBlockIds = [...state.articlesProgress[articleId].completedBlockIds];
+        state.articlesProgress[articleId].completedBlockIds = [...completedBlockIds, blockId];
+      }
 
       // Сохраняем в localStorage
       localStorage.setItem('userProgress', JSON.stringify(state));

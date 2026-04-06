@@ -1,5 +1,6 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { TestQuestionType } from '../../types';
+import { TestBox } from '../test-box';
 import styles from './test-block.module.scss';
 
 
@@ -15,6 +16,7 @@ export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedSco
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
+  const [retry, setRetry] = useState<boolean>(false);
 
   // Восстанавливаем сохраненные ответы
   useEffect(() => {
@@ -25,10 +27,11 @@ export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedSco
   }, [savedScore, isCompleted]);
 
   const handleAnswerChange = (questionId: string, answerIndex: number) => {
-    if (!submitted) {
+    if (! submitted) {
       setAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
     }
   };
+
 
   const handleSubmit = () => {
     let correctCount = 0;
@@ -42,75 +45,81 @@ export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedSco
     setScore(calculatedScore);
     setSubmitted(true);
     onComplete(calculatedScore);
+    setRetry(false);
   };
 
-  if (submitted && score !== null) {
-    const isPassed = score >= 70;
+  const handleRetry = () => {
+    setSubmitted(false);
+    // setScore(null);
+    setRetry(true);
+  };
 
-    return (
-      <div className={styles.testResult}>
-        <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
-          {isPassed ? '🎉' : '📚'}
-        </div>
-        <h4>Результат теста: {score.toFixed(0)}%</h4>
-        <p>
-          {isPassed
-            ? 'Отлично! Вы успешно прошли тест.'
-            : 'Рекомендуем повторить материал и попробовать снова.'}
-        </p>
-        {!isPassed && (
-          <button
-            type='button'
-            className={styles.retryButton}
-            onClick={() => {
-              setAnswers({});
-              setSubmitted(false);
-              setScore(null);
-            }}
-          >
-            Пройти заново
-          </button>
-        )}
-      </div>
-    );
-  }
+  // Определяем, есть ли неверные ответы
+  const hasWrongAnswers = submitted && score !== null && score < 100;
+
+  const isPassed = score ? score >= 70 : false;
 
   return (
     <div className={styles.testBlock}>
-      <div className={styles.questionsList}>
-        {questions.map((question, index) => (
-          <div key={question.id} className={styles.question}>
-            <div className={styles.questionText}>
-              {index + 1}. {question.text}
-            </div>
-            <div className={styles.options}>
-              {question.options.map((option, optIndex) => (
-                // eslint-disable-next-line jsx-a11y/label-has-associated-control
-                <label key={optIndex} className={styles.option}>
-                  <input
-                    type     = 'radio'
-                    name     = {`question-${question.id}`}
-                    value    = {optIndex}
-                    checked  = {answers[question.id] === optIndex}
-                    onChange = {() => handleAnswerChange(question.id, optIndex)}
-                    disabled = {submitted}
-                  />
-                  <span>{option}</span>
-                </label>
-              ))}
-            </div>
+      {submitted && score !== null && (
+        <div className={styles.testResult}>
+          <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
+            {isPassed ? '🎉' : '📚'}
           </div>
-        ))}
-      </div>
+          <h4>Результат теста: {score.toFixed(0)}%</h4>
+          <p>
+            {isPassed
+              ? 'Отлично! Вы успешно прошли тест.'
+              : 'Некоторые ответы неверные. Нажмите "Пройти заново", чтобы исправить ошибки.'}
+          </p>
+        </div>
+      )}
 
-      <button
-        type      = 'button'
-        className = {styles.submitButton}
-        onClick   = {handleSubmit}
-        disabled  = {Object.keys(answers).length !== questions.length}
-      >
-        Проверить тест
-      </button>
+      {
+        ! isPassed && (
+          <div className={styles.questionsList}>
+            {questions.map((question, index) => (
+              <div
+                key={question.id}
+                className={styles.question}
+              >
+                <div className={styles.questionText}>
+                  {index + 1}. {question.text}
+                </div>
+                <TestBox
+                  isRetry            = {retry}
+                  isSubmitted        = {submitted}
+                  question           = {question}
+                  initialAnswerIndex = {answers[question.id]}
+                  onAnswerChange     = {handleAnswerChange}
+                />
+              </div>
+            ))}
+          </div>
+        )
+      }
+
+      {/* Если уже был submit, показываем кнопку для повторной попытки */}
+      {submitted && hasWrongAnswers && (
+        <button
+          type      = 'button'
+          className = {styles.retryButtonBottom}
+          onClick   = {handleRetry}
+        >
+          🔄 Пройти тест заново
+        </button>
+      )}
+
+      {! submitted && (
+        <button
+          type      = 'button'
+          className = {styles.submitButton}
+          onClick   = {handleSubmit}
+          disabled  = {Object.keys(answers).length !== questions.length}
+        >
+          Проверить тест
+        </button>
+      )}
     </div>
   );
 };

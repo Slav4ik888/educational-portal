@@ -59,9 +59,12 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   };
 
   const handleTestComplete = (blockId: string, score: number) => {
-    const newCompleted = new Set(completedBlocks);
-    newCompleted.add(blockId);
-    setCompletedBlocks(newCompleted);
+    const isCompleted = score === 100;
+    if (isCompleted) {
+      const newCompleted = new Set(completedBlocks);
+      newCompleted.add(blockId);
+      setCompletedBlocks(newCompleted);
+    }
 
     setTestResults(prev => ({
       ...prev,
@@ -71,7 +74,7 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
     dispatch(userProgressActions.updateBlockProgress({
       articleId,
       blockId,
-      completed: true,
+      completed: isCompleted,
       score,
     }));
   };
