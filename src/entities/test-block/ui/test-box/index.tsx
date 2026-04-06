@@ -1,11 +1,12 @@
-/* eslint-disable */
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { TestQuestionType } from '../../types';
-import styles from './test-box.module.scss';
+import { Explanation } from './explanation';
+import { isAnswerCorrect as isAnswerCorrectFunc } from './util';
+import styles from './index.module.scss';
 
 
 
-interface TestBoxProps {
+interface Props {
   isRetry            : boolean // Если нажали для повторного прохождения теста
   isSubmitted        : boolean
   question           : TestQuestionType
@@ -13,39 +14,26 @@ interface TestBoxProps {
   onAnswerChange     : (questionId: string, answerIndex: number) => void
 }
 
-export const TestBox: FC<TestBoxProps> = ({ isRetry, isSubmitted, question, initialAnswerIndex, onAnswerChange }) => {
+export const TestBox: FC<Props> = ({ isRetry, isSubmitted, question, initialAnswerIndex, onAnswerChange }) => {
   const [answer, setAnswer] = useState<number | undefined>(initialAnswerIndex);
+
   const handleAnswerChange = (questionId: string, answerIndex: number) => {
     onAnswerChange(questionId, answerIndex);
     setAnswer(answerIndex);
   };
 
 
-  const getExplanation = (question: TestQuestionType, userAnswer: number | undefined): string | null => {
-    // Показываем подсказку только после submit и если ответ неверный
-    if (! isSubmitted) return null;
-    if (userAnswer === undefined) return null;
-    if (userAnswer !== question.correctAnswer) {
-      const correctOption = question.options[question.correctAnswer];
-      return `💡 Подсказка: Правильный ответ - "${correctOption}"`;
-    }
-    return null;
-  };
-
-
-  const explanation = getExplanation(question, answer);
-  
   // Показываем вопрос с подсказкой если был неверный ответ
   // const userAnswer = answers[question.id];
   const isAnswerWrong = isSubmitted && answer !== undefined && answer !== question.correctAnswer;
-  const isAnswerCorrect = isSubmitted && answer !== undefined && answer === question.correctAnswer;
+  const isAnswerCorrect = isSubmitted && isAnswerCorrectFunc(question, answer);
 
   return (
     <>
       <div className={styles.options}>
         {question.options.map((option, optIndex) => {
           let optionClassName = styles.option;
-          
+
           // Подсвечиваем правильные и неправильные ответы после submit
           if (isSubmitted) {
             if (isAnswerCorrect && optIndex === question.correctAnswer) {
@@ -57,6 +45,7 @@ export const TestBox: FC<TestBoxProps> = ({ isRetry, isSubmitted, question, init
           }
 
           return (
+            // eslint-disable-next-line jsx-a11y/label-has-associated-control
             <label key={optIndex} className={optionClassName}>
               <input
                 type     = 'radio'
@@ -77,11 +66,12 @@ export const TestBox: FC<TestBoxProps> = ({ isRetry, isSubmitted, question, init
           );
         })}
       </div>
-      {explanation && (
-        <div className={styles.explanation}>
-          {explanation}
-        </div>
-      )}
+
+      <Explanation
+        question        = {question}
+        isAnswerCorrect = {isAnswerCorrect}
+        isSubmitted     = {isSubmitted}
+      />
     </>
   );
 };
