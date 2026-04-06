@@ -5,7 +5,11 @@ export interface BlockProgress {
 }
 
 export interface ArticleProgress {
-  lastBlockIndex : number
-  blockResults   : Record<string, BlockProgress>
-  completedAt?   : string
+  completedBlockIds  : string[] // Пройденные тесты по блокам
+  testResults        : Record<string, number>
+  finalTestCompleted : boolean
+  finalTestScore     : number | null
+  lastBlockIndex     : number
+  blockResults       : Record<string, BlockProgress>
+  completedAt?       : string
 }

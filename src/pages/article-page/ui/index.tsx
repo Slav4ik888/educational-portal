@@ -1,10 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { articleActions } from 'entities/article';
 import { ArticleReader } from 'widgets/article-reader';
-import { FinalTest } from 'widgets/final-test';
 import { Loader } from 'shared/ui/loader';
 import { mockArticles } from 'shared/mocks/article/mock-articles';
 import styles from './article-page.module.scss';
@@ -17,8 +16,6 @@ export const ArticlePage: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentArticle, isLoading } = useSelector((state: StateSchema) => state.article);
-  const [isTestCompleted, setIsTestCompleted] = useState(false);
-  const [finalScore, setFinalScore] = useState<number | null>(null);
 
   useEffect(() => {
     // Загрузка статьи по ID
@@ -38,11 +35,6 @@ export const ArticlePage: FC = () => {
 
   const handleBack = () => {
     navigate('/');
-  };
-
-  const handleFinalTestComplete = (score: number) => {
-    setFinalScore(score);
-    setIsTestCompleted(true);
   };
 
   if (isLoading) {
@@ -86,57 +78,11 @@ export const ArticlePage: FC = () => {
           </div>
         </header>
 
-        {! isTestCompleted ? (
-          <>
-            <ArticleReader
-              blocks    = {currentArticle.blocks}
-              articleId = {currentArticle.id}
-            />
-            <div className={styles.finalTestSection}>
-              <h2>📝 Итоговый тест</h2>
-              <p>Проверьте свои знания перед завершением</p>
-              <FinalTest
-                questions  = {currentArticle.finalTest}
-                onComplete = {handleFinalTestComplete}
-              />
-            </div>
-          </>
-        ) : (
-          <div className={styles.results}>
-            <div className={styles.scoreCard}>
-              <h2>🎉 Поздравляем!</h2>
-              <div className={styles.score}>
-                {finalScore}%
-              </div>
-              <p>
-                {finalScore && finalScore >= 80
-                  ? 'Отличный результат! Вы отлично усвоили материал.'
-                  : finalScore && finalScore >= 60
-                  ? 'Хороший результат! Пересмотрите сложные моменты.'
-                  : 'Стоит повторить материал и пройти тест снова.'}
-              </p>
-              <div className={styles.actions}>
-                  <button
-                    type      = 'button'
-                    className = {styles.backToArticles}
-                    onClick   = {handleBack}
-                  >
-                  К списку статей
-                </button>
-                <button
-                  type      = 'button'
-                  className = {styles.retakeTest}
-                  onClick   = {() => {
-                    setIsTestCompleted(false);
-                    setFinalScore(null);
-                  }}
-                >
-                  Пройти тест заново
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ArticleReader
+          blocks={currentArticle.blocks}
+          finalTest={currentArticle.finalTest}
+          articleId={currentArticle.id}
+        />
       </article>
     </div>
   );

@@ -1,19 +1,66 @@
-React-приложение "Образовательный портал", на TypeScript, архитектура на FSD, главная страница ArticlesListPage.
-Есть блок, который отрисовывает список статей, при нажатии на которые происходит переход на страницу статьи: 
-<div className={styles.articlesGrid}>
-  {filteredArticles.map(article => (
-    <button
-      key     = {article.id}
-      type    = 'button'
-      onClick = {() => handleArticleClick(article.id)}
-      className={styles.articleItem}
-    >
-      {article.title}
-    </button>
-  ))}
-</div>
+React-приложение "Образовательный портал", на TypeScript, архитектура на FSD, главная страница ArticlesListPage, с неё переходим на страницу выбранной статьи: ArticlePage, в ней отображаем выбранную статью ArticleReader.
 
-Задача: сделать компонент, который выводит список имеющихся статей в виде небольших превьюшек, которые должны содержать: title, description (до 3х строк), tags, difficulty, duration, coverImage.
+Задача: напиши статью на тему 'Введение в React Hooks', чтобы было не менее 10 абзацев. Итоговый текст раздели на blocks и для каждого созай тест. В конце сделай финальный тест в котором должно быть не менее 10 вопросов.
+
+Результат представь в следующем формате:
+export const mockArticles: Article[] = [
+  {
+    id: '1',
+    title: 'Введение в React Hooks',
+    description: 'Изучите основные хуки React и их применение в реальных проектах',
+    coverImage: 'https://avatars.mds.yandex.net/i?id=aedf45f63fba3aad245b4adf61ce1d86_l-11506583-images-thumbs&n=13',
+    duration: 25,
+    difficulty: 'beginner',
+    tags: ['React', 'Hooks', 'JavaScript'],
+    blocks: [
+      {
+        id: 'b1',
+        type: 'theory',
+        content: 'React Hooks появились в версии 16.8 и позволили использовать состояние и другие возможности React без написания классов...',
+      },
+      {
+        id: 'b2',
+        type: 'test',
+        content: 'Проверьте понимание useState',
+        questions: [
+          {
+            id: 'q1',
+            text: 'Какой хук используется для управления состоянием?',
+            options: ['useEffect', 'useState', 'useContext', 'useReducer'],
+            correctAnswer: 1,
+          },
+        ],
+      },
+      {
+        id: 'b3',
+        type: 'theory',
+        content: 'useEffect позволяет выполнять побочные эффекты в функциональных компонентах...',
+      },
+    ],
+    finalTest: [
+      {
+        id: 'f1',
+        text: 'Какой хук заменяет lifecycle методы componentDidMount, componentDidUpdate и componentWillUnmount?',
+        options: ['useState', 'useContext', 'useEffect', 'useReducer'],
+        correctAnswer: 2,
+      },
+      {
+        id: 'f2',
+        text: 'Что из перечисленного является правилом хуков?',
+        options: [
+          'Вызывать хуки внутри условий',
+          'Вызывать хуки в циклах',
+          'Вызывать хуки только на верхнем уровне',
+          'Вызывать хуки в любом месте',
+        ],
+        correctAnswer: 2,
+      },
+    ],
+    createdAt: '2024-01-15',
+  },
+]
+
 Ограничение: 
- - не переписывать весь компонент ArticlesListPage.
  - названия файлов с маленькой буквы, а отделение слов через дефис: article-preview.module.scss
+ 
+Вот код текущего ArticleReader:

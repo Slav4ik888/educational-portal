@@ -16,6 +16,6 @@ export const cfg = {
   /** If checks should been disabled */
   IS_EXPERIMENTAL   : false,
   // set IS_DEV = false before PRODUCTION
-  IS_DEV            : false, // true, // Если загрузить данные надо не с сервера а из LS, например, когда нет интернета
+  IS_DEV            : true, // true, // Если загрузить данные надо не с сервера а из LS, например, когда нет интернета
   DASHBOARD_DISABLE : false, // true, // Don`t render dashboard
 }

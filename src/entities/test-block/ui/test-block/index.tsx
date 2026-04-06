@@ -1,28 +1,24 @@
 import { FC, useState, useEffect } from 'react';
-import { TestQuestionType } from 'entities/test-block';
-import styles from './final-test.module.scss';
+import { TestQuestionType } from '../../types';
+import styles from './test-block.module.scss';
 
 
 
-interface FinalTestProps {
-  questions: TestQuestionType[];
-  isCompleted: boolean;
-  savedScore?: number | null;
-  onComplete: (score: number) => void;
+interface TestBlockProps {
+  questions   : TestQuestionType[]
+  isCompleted : boolean
+  savedScore? : number
+  onComplete  : (score: number) => void
 }
 
-export const FinalTest: FC<FinalTestProps> = ({
-  questions,
-  isCompleted,
-  savedScore,
-  onComplete
-}) => {
+export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedScore, onComplete }) => {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
 
+  // Восстанавливаем сохраненные ответы
   useEffect(() => {
-    if (savedScore !== undefined && savedScore !== null && isCompleted) {
+    if (savedScore !== undefined && isCompleted) {
       setSubmitted(true);
       setScore(savedScore);
     }
@@ -52,15 +48,15 @@ export const FinalTest: FC<FinalTestProps> = ({
     const isPassed = score >= 70;
 
     return (
-      <div className={styles.finalTestResult}>
+      <div className={styles.testResult}>
         <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
-          {isPassed ? '🎓' : '📖'}
+          {isPassed ? '🎉' : '📚'}
         </div>
-        <h3>Итоговый результат: {score.toFixed(0)}%</h3>
+        <h4>Результат теста: {score.toFixed(0)}%</h4>
         <p>
           {isPassed
-            ? 'Поздравляем! Вы успешно освоили материал. Можете переходить к следующей статье.'
-            : 'К сожалению, вы не набрали проходной балл. Рекомендуем повторить материал и попробовать снова.'}
+            ? 'Отлично! Вы успешно прошли тест.'
+            : 'Рекомендуем повторить материал и попробовать снова.'}
         </p>
         {!isPassed && (
           <button
@@ -72,7 +68,7 @@ export const FinalTest: FC<FinalTestProps> = ({
               setScore(null);
             }}
           >
-            Пройти тест заново
+            Пройти заново
           </button>
         )}
       </div>
@@ -80,28 +76,24 @@ export const FinalTest: FC<FinalTestProps> = ({
   }
 
   return (
-    <div className={styles.finalTest}>
-      <div className={styles.testDescription}>
-        <p>Итоговый тест состоит из {questions.length} вопросов.
-        Для успешного завершения необходимо набрать не менее 70%.</p>
-      </div>
-
+    <div className={styles.testBlock}>
       <div className={styles.questionsList}>
-        {questions.map((question: TestQuestionType, index) => (
+        {questions.map((question, index) => (
           <div key={question.id} className={styles.question}>
             <div className={styles.questionText}>
               {index + 1}. {question.text}
             </div>
             <div className={styles.options}>
-              {question.options.map((option: string, optIndex: number) => (
+              {question.options.map((option, optIndex) => (
                 // eslint-disable-next-line jsx-a11y/label-has-associated-control
                 <label key={optIndex} className={styles.option}>
                   <input
-                    type='radio'
-                    name={`final-question-${question.id}`}
-                    value={optIndex}
-                    checked={answers[question.id] === optIndex}
-                    onChange={() => handleAnswerChange(question.id, optIndex)}
+                    type     = 'radio'
+                    name     = {`question-${question.id}`}
+                    value    = {optIndex}
+                    checked  = {answers[question.id] === optIndex}
+                    onChange = {() => handleAnswerChange(question.id, optIndex)}
+                    disabled = {submitted}
                   />
                   <span>{option}</span>
                 </label>
@@ -112,12 +104,12 @@ export const FinalTest: FC<FinalTestProps> = ({
       </div>
 
       <button
-        type='button'
-        className={styles.submitFinalButton}
-        onClick={handleSubmit}
-        disabled={Object.keys(answers).length !== questions.length}
+        type      = 'button'
+        className = {styles.submitButton}
+        onClick   = {handleSubmit}
+        disabled  = {Object.keys(answers).length !== questions.length}
       >
-        Завершить итоговый тест
+        Проверить тест
       </button>
     </div>
   );

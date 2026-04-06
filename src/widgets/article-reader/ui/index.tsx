@@ -1,181 +1,192 @@
 import { FC, useState, useEffect } from 'react';
-import { ContentBlock } from 'entities/article';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
-import { TheoryBlock } from './theory-block';
-import { TestBlock } from './test-block';
-import { ProgressBar } from 'shared/ui/progress-bar';
+import { TestBlock } from 'entities/test-block';
 import styles from './article-reader.module.scss';
+import { FinalTest } from 'widgets/final-test';
+import { ContentBlockType, TheoryBlock } from 'entities/article';
 
 
 
 interface ArticleReaderProps {
-  blocks: ContentBlock[];
+  blocks: ContentBlockType[];
+  finalTest?: Array<{
+    id: string;
+    text: string;
+    options: string[];
+    correctAnswer: number;
+  }>;
   articleId: string;
 }
 
-
-export const ArticleReader: FC<ArticleReaderProps> = ({ blocks, articleId }) => {
+export const ArticleReader: FC<ArticleReaderProps> = ({
+  blocks,
+  finalTest = [],
+  articleId
+}) => {
   const dispatch = useDispatch();
-  const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
-  const [blockResults, setBlockResults] = useState<Record<string, { completed: boolean; score?: number }>>({});
+  const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
+  const [testResults, setTestResults] = useState<Record<string, number>>({});
+  const [finalTestCompleted, setFinalTestCompleted] = useState(false);
+  const [finalTestScore, setFinalTestScore] = useState<number | null>(null);
 
   // Получаем сохраненный прогресс из Redux
-  const savedProgress = useSelector((state: StateSchema) => state.userProgress.articlesProgress[articleId]);
+  const savedProgress = useSelector(
+    (state: StateSchema) => state.userProgress.articlesProgress[articleId]
+  );
 
   // Восстанавливаем прогресс при загрузке
   useEffect(() => {
     if (savedProgress) {
-      setCurrentBlockIndex(savedProgress.lastBlockIndex || 0);
-      setBlockResults(savedProgress.blockResults || {});
+      setCompletedBlocks(new Set(savedProgress.completedBlockIds || []));
+      setTestResults(savedProgress.testResults || {});
+      setFinalTestCompleted(savedProgress.finalTestCompleted || false);
+      setFinalTestScore(savedProgress.finalTestScore || null);
     }
-  },
-    [savedProgress]
-  );
-
-  const currentBlock = blocks[currentBlockIndex];
-  const totalBlocks = blocks.length;
-  const completedBlocks = Object.values(blockResults).filter(r => r.completed).length;
+  }, [savedProgress]);
 
   const handleTheoryComplete = (blockId: string) => {
-    const newResults = {
-      ...blockResults,
-      [blockId]: { completed: true },
-    };
-    setBlockResults(newResults);
+    const newCompleted = new Set(completedBlocks);
+    newCompleted.add(blockId);
+    setCompletedBlocks(newCompleted);
 
     dispatch(userProgressActions.updateBlockProgress({
       articleId,
       blockId,
       completed: true,
     }));
-
-    // Автоматически переходим к следующему блоку
-    if (currentBlockIndex < totalBlocks - 1) {
-      setCurrentBlockIndex(currentBlockIndex + 1);
-    }
   };
 
-  const handleQuizComplete = (blockId: string, score: number, totalQuestions: number) => {
-    const percentage = (score / totalQuestions) * 100;
-    const newResults = {
-      ...blockResults,
-      [blockId]: { completed: true, score: percentage },
-    };
-    setBlockResults(newResults);
+  const handleTestComplete = (blockId: string, score: number) => {
+    const newCompleted = new Set(completedBlocks);
+    newCompleted.add(blockId);
+    setCompletedBlocks(newCompleted);
+
+    setTestResults(prev => ({
+      ...prev,
+      [blockId]: score,
+    }));
 
     dispatch(userProgressActions.updateBlockProgress({
       articleId,
       blockId,
       completed: true,
-      score: percentage,
+      score,
     }));
-
-    // Переходим к следующему блоку
-    if (currentBlockIndex < totalBlocks - 1) {
-      setCurrentBlockIndex(currentBlockIndex + 1);
-    }
   };
 
-  const handleNextBlock = () => {
-    if (currentBlockIndex < totalBlocks - 1) {
-      setCurrentBlockIndex(currentBlockIndex + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  const handleFinalTestComplete = (score: number) => {
+    setFinalTestCompleted(true);
+    setFinalTestScore(score);
+
+    dispatch(userProgressActions.updateFinalTestProgress({
+      articleId,
+      completed: true,
+      score,
+    }));
   };
 
-  const handlePrevBlock = () => {
-    if (currentBlockIndex > 0) {
-      setCurrentBlockIndex(currentBlockIndex - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleJumpToBlock = (index: number) => {
-    if (index <= currentBlockIndex || blockResults[blocks[index].id]?.completed) {
-      setCurrentBlockIndex(index);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+  const allBlocksCompleted = blocks.length === completedBlocks.size;
+  const hasFinalTest = finalTest.length > 0;
+  const isArticleCompleted = hasFinalTest ? finalTestCompleted : allBlocksCompleted;
 
   return (
     <div className={styles.articleReader}>
-      <div className={styles.progressSection}>
-        <div className={styles.progressHeader}>
-          <h3>Прогресс изучения</h3>
-          <span>{completedBlocks} / {totalBlocks} блоков</span>
-        </div>
-        <ProgressBar current={completedBlocks} total={totalBlocks} />
-
-        <div className={styles.blockNavigation}>
-          {blocks.map((block, index) => (
-            <button
-              key       = {block.id}
-              type      = 'button'
-              className = {`${styles.navButton} 
-                ${index === currentBlockIndex ? styles.active : ''}
-                ${blockResults[block.id]?.completed ? styles.completed : ''}
-                ${index > currentBlockIndex && !blockResults[block.id]?.completed ? styles.locked : ''}
-              `}
-              disabled  = {index > currentBlockIndex && !blockResults[block.id]?.completed}
-              onClick   = {() => handleJumpToBlock(index)}
-            >
-              {blockResults[block.id]?.completed && '✓ '}
-              Блок {index + 1}
-              {block.type === 'test' && ' 📝'}
-            </button>
-          ))}
+      <div className={styles.progressHeader}>
+        <h2>Изучение материала</h2>
+        <div className={styles.progressStats}>
+          <span>Прогресс: {completedBlocks.size} / {blocks.length} блоков</span>
+          {hasFinalTest && (
+            <span className={finalTestCompleted ? styles.completed : styles.pending}>
+              {finalTestCompleted ? '✅ Итоговый тест пройден' : '📝 Итоговый тест ожидает'}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className={styles.contentSection}>
-        <div className={styles.blockContainer}>
-          <div className={styles.blockHeader}>
-            <span className={styles.blockType}>
-              {currentBlock.type === 'theory' ? '📖 Теоретический блок' : '✍️ Тестовый блок'}
-            </span>
-            <span className={styles.blockNumber}>
-              Блок {currentBlockIndex + 1} из {totalBlocks}
-            </span>
-          </div>
+      <div className={styles.blocksContainer}>
+        {/* Теоретические и тестовые блоки */}
+        {blocks.map((block, index) => {
+          const isCompleted = completedBlocks.has(block.id);
 
-          {currentBlock.type === 'theory' && (
-            <TheoryBlock
-              content={currentBlock.content}
-              onComplete={() => handleTheoryComplete(currentBlock.id)}
-            />
-          )}
-
-          {currentBlock.type === 'test' && currentBlock.questions && (
-            <TestBlock
-              questions={currentBlock.questions}
-              onComplete={(score, total) => handleQuizComplete(currentBlock.id, score, total)}
-            />
-          )}
-        </div>
-
-        <div className={styles.navigationButtons}>
-          <button
-            type      = 'button'
-            className = {styles.prevButton}
-            disabled  = {currentBlockIndex === 0}
-            onClick   = {handlePrevBlock}
-          >
-            ← Предыдущий блок
-          </button>
-
-          {currentBlockIndex < totalBlocks - 1 && (
-            <button
-              type      = 'button'
-              className = {styles.nextButton}
-              disabled  = {!blockResults[currentBlock.id]?.completed}
-              onClick   = {handleNextBlock}
+          return (
+            <div
+              key       = {block.id}
+              id        = {`block-${block.id}`}
+              className = {`${styles.block} ${isCompleted ? styles.completed : ''}`}
             >
-              Следующий блок →
-            </button>
-          )}
-        </div>
+              <div className={styles.blockHeader}>
+                <div className={styles.blockTitle}>
+                  <span className={styles.blockNumber}>Блок {index + 1}</span>
+                  <span className={styles.blockType}>
+                    {block.type === 'theory' ? '📖 Теория' : '✍️ Тест'}
+                  </span>
+                </div>
+                {isCompleted && (
+                  <span className={styles.completedBadge}>✓ Пройдено</span>
+                )}
+              </div>
+
+              <div className={styles.blockContent}>
+                {block.type === 'theory' && block.content && (
+                  <TheoryBlock
+                    content     = {block.content}
+                    isCompleted = {isCompleted}
+                    onComplete  = {() => handleTheoryComplete(block.id)}
+                  />
+                )}
+
+                {block.type === 'test' && block.questions && (
+                  <TestBlock
+                    questions   = {block.questions}
+                    isCompleted = {isCompleted}
+                    savedScore  = {testResults[block.id]}
+                    onComplete  = {(score) => handleTestComplete(block.id, score)}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Итоговый тест */}
+        {hasFinalTest && (
+          <div className={`${styles.block} ${styles.finalTestBlock}`}>
+            <div className={styles.blockHeader}>
+              <div className={styles.blockTitle}>
+                <span className={styles.blockNumber}>Итоговый тест</span>
+                <span className={styles.blockType}>🎯 Финальная проверка</span>
+              </div>
+              {finalTestCompleted && (
+                <span className={styles.completedBadge}>
+                  ✓ Пройден ({(finalTestScore || 0).toFixed(0)}%)
+                </span>
+              )}
+            </div>
+
+            <div className={styles.blockContent}>
+              <FinalTest
+                questions={finalTest}
+                isCompleted={finalTestCompleted}
+                savedScore={finalTestScore}
+                onComplete={handleFinalTestComplete}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Поздравление с завершением */}
+        {isArticleCompleted && (
+          <div className={styles.completionMessage}>
+            <div className={styles.completionIcon}>🏆</div>
+            <h3>Поздравляем!</h3>
+            <p>
+              Вы успешно завершили изучение статьи!
+              {finalTestScore && ` Ваш результат: ${finalTestScore.toFixed(0)}%`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

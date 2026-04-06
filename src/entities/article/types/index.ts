@@ -2,7 +2,7 @@ import { TestQuestionType } from 'entities/test-block';
 
 
 
-export interface ContentBlock {
+export interface ContentBlockType {
   id         : string
   type       : 'theory' | 'test'
   content    : string // для теории
@@ -15,7 +15,7 @@ export interface Article {
   id          : string
   title       : string
   description : string
-  blocks      : ContentBlock[]
+  blocks      : ContentBlockType[]
   finalTest   : TestQuestionType[]
   coverImage? : string
   duration    : number // в минутах
