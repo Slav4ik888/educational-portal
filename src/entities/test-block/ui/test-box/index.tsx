@@ -25,8 +25,8 @@ export const TestBox: FC<Props> = ({ isRetry, isSubmitted, question, initialAnsw
 
   // Показываем вопрос с подсказкой если был неверный ответ
   // const userAnswer = answers[question.id];
-  const isAnswerWrong = isSubmitted && answer !== undefined && answer !== question.correctAnswer;
-  const isAnswerCorrect = isSubmitted && isAnswerCorrectFunc(question, answer);
+  // const isAnswerWrong = isSubmitted && answer !== undefined && answer !== question.correctAnswer;
+  const isAnswerCorrect = isAnswerCorrectFunc(question, answer);
 
   return (
     <>

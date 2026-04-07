@@ -1,18 +1,21 @@
 import { FC, useEffect, useState } from 'react';
 import { TestQuestionType } from '../../types';
-import { TestBox } from '../test-box';
-import styles from './test-block.module.scss';
+import { TestResultCard } from './result-card';
+import { TestCheckBtn } from './check-btn';
+import { TestRetryBtn } from './retry-btn';
+import { TestListBox } from '../test-list-box';
+import styles from './index.module.scss';
 
 
 
-interface TestBlockProps {
+interface Props {
   questions   : TestQuestionType[]
   isCompleted : boolean
   savedScore? : number
   onComplete  : (score: number) => void
 }
 
-export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedScore, onComplete }) => {
+export const TestBlock: FC<Props> = ({ questions, isCompleted, savedScore, onComplete }) => {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
@@ -61,65 +64,27 @@ export const TestBlock: FC<TestBlockProps> = ({ questions, isCompleted, savedSco
 
   return (
     <div className={styles.testBlock}>
-      {submitted && score !== null && (
-        <div className={styles.testResult}>
-          <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
-            {isPassed ? '🎉' : '📚'}
-          </div>
-          <h4>Результат теста: {score.toFixed(0)}%</h4>
-          <p>
-            {isPassed
-              ? 'Отлично! Вы успешно прошли тест.'
-              : 'Некоторые ответы неверные. Нажмите "Пройти заново", чтобы исправить ошибки.'}
-          </p>
-        </div>
-      )}
+      <TestResultCard
+        isPassed    = {isPassed}
+        isSubmitted = {submitted}
+        score       = {score}
+      />
 
-      {
-        ! isPassed && (
-          <div className={styles.questionsList}>
-            {questions.map((question, index) => (
-              <div
-                key={question.id}
-                className={styles.question}
-              >
-                <div className={styles.questionText}>
-                  {index + 1}. {question.text}
-                </div>
-                <TestBox
-                  isRetry            = {retry}
-                  isSubmitted        = {submitted}
-                  question           = {question}
-                  initialAnswerIndex = {answers[question.id]}
-                  onAnswerChange     = {handleAnswerChange}
-                />
-              </div>
-            ))}
-          </div>
-        )
-      }
+      <TestListBox
+        isPassed       = {isPassed}
+        isRetry        = {retry}
+        isSubmitted    = {submitted}
+        answers        = {answers}
+        questions      = {questions}
+        onAnswerChange = {handleAnswerChange}
+      />
 
-      {/* Если уже был submit, показываем кнопку для повторной попытки */}
-      {submitted && hasWrongAnswers && (
-        <button
-          type      = 'button'
-          className = {styles.retryButtonBottom}
-          onClick   = {handleRetry}
-        >
-          🔄 Пройти тест заново
-        </button>
-      )}
-
-      {! submitted && (
-        <button
-          type      = 'button'
-          className = {styles.submitButton}
-          onClick   = {handleSubmit}
-          disabled  = {Object.keys(answers).length !== questions.length}
-        >
-          Проверить тест
-        </button>
-      )}
+      {submitted && hasWrongAnswers
+        ? <TestRetryBtn onClick={handleRetry} /> // Если уже был submit, показываем кнопку для повторной попытки
+        : <TestCheckBtn
+            disabled = {Object.keys(answers).length !== questions.length}
+            onClick  = {handleSubmit}
+          />}
     </div>
   );
 };

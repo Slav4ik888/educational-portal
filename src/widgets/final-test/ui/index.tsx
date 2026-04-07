@@ -20,7 +20,7 @@ export const FinalTest: FC<FinalTestProps> = ({
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
-  const [savedAnswers, setSavedAnswers] = useState<Record<string, number>>({});
+  const [retry, setRetry] = useState<boolean>(false);
 
 
   useEffect(() => {
@@ -45,11 +45,16 @@ export const FinalTest: FC<FinalTestProps> = ({
     });
 
     const calculatedScore = (correctCount / questions.length) * 100;
-    setSavedAnswers(answers);
     setScore(calculatedScore);
     setSubmitted(true);
     onComplete(calculatedScore);
   };
+
+  const handleRetry = () => {
+    setSubmitted(false);
+    setRetry(true);
+  };
+
 
   if (submitted && score !== null) {
     const isPassed = score >= 70;
@@ -65,15 +70,12 @@ export const FinalTest: FC<FinalTestProps> = ({
             ? 'Поздравляем! Вы успешно освоили материал. Можете переходить к следующей статье.'
             : 'К сожалению, вы не набрали проходной балл. Рекомендуем повторить материал и попробовать снова.'}
         </p>
+
         {!isPassed && (
           <button
             type='button'
             className={styles.retryButton}
-            onClick={() => {
-              setAnswers({});
-              setSubmitted(false);
-              setScore(null);
-            }}
+            onClick={handleRetry}
           >
             Пройти тест заново
           </button>
@@ -90,7 +92,7 @@ export const FinalTest: FC<FinalTestProps> = ({
       </div>
 
       <div className={styles.questionsList}>
-        {questions.map((question: TestQuestionType, index) => (
+        {questions.map((question, index) => (
           <div key={question.id} className={styles.question}>
             <div className={styles.questionText}>
               {index + 1}. {question.text}
@@ -102,21 +104,6 @@ export const FinalTest: FC<FinalTestProps> = ({
               initialAnswerIndex = {answers[question.id]}
               onAnswerChange     = {handleAnswerChange}
             />
-            {/* <div className={styles.options}>
-              {question.options.map((option: string, optIndex: number) => (
-                // eslint-disable-next-line jsx-a11y/label-has-associated-control
-                <label key={optIndex} className={styles.option}>
-                  <input
-                    type     = 'radio'
-                    name     = {`final-question-${question.id}`}
-                    value    = {optIndex}
-                    checked  = {answers[question.id] === optIndex}
-                    onChange = {() => handleAnswerChange(question.id, optIndex)}
-                  />
-                  <span>{option}</span>
-                </label>
-              ))}
-            </div> */}
           </div>
         ))}
       </div>
