@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { RichTextRenderer } from 'shared/ui/rich-text-render/index';
+import { RichTextRenderer } from 'shared/ui/rich-text-render';
 import styles from './theory-block.module.scss';
 
 
@@ -7,16 +7,16 @@ import styles from './theory-block.module.scss';
 interface TheoryBlockProps {
   content     : string
   isCompleted : boolean
-  onComplete  : () => void
+  // onComplete  : () => void
 }
 
-export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted, onComplete }) => {
+export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted }) => {
   const [isMarkedCompleted, setIsMarkedCompleted] = useState(isCompleted);
 
   const handleComplete = () => {
     if (! isMarkedCompleted) {
       setIsMarkedCompleted(true);
-      onComplete();
+      // onComplete();
     }
   };
 
@@ -26,7 +26,7 @@ export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted, onComp
         <RichTextRenderer text={content} />
       </div>
 
-      {! isMarkedCompleted && (
+      {/* {! isMarkedCompleted && (
         <button
           type='button'
           className={styles.markCompleteButton}
@@ -34,7 +34,7 @@ export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted, onComp
         >
           ✓ Отметить как пройденное
         </button>
-      )}
+      )} */}
 
       {isMarkedCompleted && (
         <div className={styles.completedIndicator}>

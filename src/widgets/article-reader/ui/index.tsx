@@ -3,9 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
 import { TestBlock } from 'entities/test-block';
-import styles from './article-reader.module.scss';
 import { FinalTest } from 'widgets/final-test';
 import { ContentBlockType, TheoryBlock } from 'entities/article';
+import { decrementString } from '../utils';
+import styles from './article-reader.module.scss';
 
 
 
@@ -46,17 +47,17 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
     }
   }, [savedProgress]);
 
-  const handleTheoryComplete = (blockId: string) => {
-    const newCompleted = new Set(completedBlocks);
-    newCompleted.add(blockId);
-    setCompletedBlocks(newCompleted);
+  // const handleTheoryComplete = (blockId: string) => {
+  //   const newCompleted = new Set(completedBlocks);
+  //   newCompleted.add(blockId);
+  //   setCompletedBlocks(newCompleted);
 
-    dispatch(userProgressActions.updateBlockProgress({
-      articleId,
-      blockId,
-      completed: true,
-    }));
-  };
+  //   dispatch(userProgressActions.updateBlockProgress({
+  //     articleId,
+  //     blockId,
+  //     completed: true,
+  //   }));
+  // };
 
   const handleTestComplete = (blockId: string, score: number) => {
     const isCompleted = score === 100;
@@ -64,6 +65,15 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
       const newCompleted = new Set(completedBlocks);
       newCompleted.add(blockId);
       setCompletedBlocks(newCompleted);
+
+      const theoryBlockId = decrementString(blockId);
+      newCompleted.add(theoryBlockId);
+
+      dispatch(userProgressActions.updateBlockProgress({
+        articleId,
+        blockId   : theoryBlockId,
+        completed : true,
+      }));
     }
 
     setTestResults(prev => ({
@@ -80,7 +90,7 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   };
 
   const handleFinalTestComplete = (score: number) => {
-    setFinalTestCompleted(true);
+    setFinalTestCompleted(score >= 70);
     setFinalTestScore(score);
 
     dispatch(userProgressActions.updateFinalTestProgress({
@@ -136,7 +146,7 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
                   <TheoryBlock
                     content     = {block.content}
                     isCompleted = {isCompleted}
-                    onComplete  = {() => handleTheoryComplete(block.id)}
+                    // onComplete  = {() => handleTheoryComplete(block.id)}
                   />
                 )}
 
@@ -170,10 +180,10 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
 
             <div className={styles.blockContent}>
               <FinalTest
-                questions={finalTest}
-                isCompleted={finalTestCompleted}
-                savedScore={finalTestScore}
-                onComplete={handleFinalTestComplete}
+                questions   = {finalTest}
+                isCompleted = {finalTestCompleted}
+                savedScore  = {finalTestScore}
+                onComplete  = {handleFinalTestComplete}
               />
             </div>
           </div>

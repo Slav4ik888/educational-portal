@@ -1,2 +1,2 @@
 export type { TestQuestionType } from './types'
-export { TestBlock, TestBox } from './ui'
+export { TestBlock, TestListBox } from './ui'
