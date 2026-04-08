@@ -1,4 +1,61 @@
 React-приложение "Образовательный портал", на TypeScript, архитектура на FSD.
+Участник читает статью и во время чтения, проходит промежуточные тесты.
+
+/** Структура статьи */
+export interface Article {
+  id          : string
+  title       : string
+  description : string
+  blocks      : ContentBlockType[]
+  finalTest   : TestQuestionType[]
+  coverImage? : string
+  duration    : number // в минутах
+  difficulty  : Difficulty
+  tags        : string[]
+  createdAt   : string
+}
+
+Статья состоит из блоков контента.
+
+/** Тип блока контента */
+export interface ContentBlockType {
+  id         : string
+  type       : 'theory' | 'test'
+  content    : string // для теории
+  questions? : TestQuestionType[] // для тестовых блоков
+}
+
+/** Тип теста */
+export interface TestQuestionType {
+  id            : string
+  text          : string
+  options       : string[]
+  correctAnswer : number
+}
+
+/** Ответы пользователя */
+export type TestUserAnswers = Record<string, number>
+
+
+Задача: сделать компонент теста MultipleChoice — выбор одного или нескольких правильных ответов.
+Возможно надо изменить типы TestQuestionType и TestUserAnswers
+
+Что можешь предложить есть затем добавить ещё другие тесты, например
+
+MatchPairs — соединить пары (термин ↔ определение)
+FillTheBlank — вставить пропущенное слово
+TrueFalse — верно/неверно с объяснением
+OrderSteps — расставить шаги в правильном порядке
+Подумай:
+
+Как визуально различать типы компонентов?
+Как обрабатывать частично правильные ответы (3 из 4 пар соединены верно)?
+Как сделать drag-and-drop для MatchPairs и OrderSteps?
+
+Ограничение: 
+ - названия файлов с маленькой буквы, а отделение слов через дефис: article-preview.module.scss
+
+------------------------------------------------------------------------------------
 
 Главная страница ArticlesListPage, с неё переходим на страницу выбранной статьи: ArticlePage, в ней отображаем выбранную статью ArticleReader.
 
@@ -62,7 +119,5 @@ export const mockArticles: Article[] = [
   },
 ]
 
-Ограничение: 
- - названия файлов с маленькой буквы, а отделение слов через дефис: article-preview.module.scss
  
 Вот код текущего ArticleReader:

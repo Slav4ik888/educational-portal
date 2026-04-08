@@ -1,0 +1,35 @@
+.match-pairs {
+  .match-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 20px 0;
+  }
+
+  .match-item {
+    padding: 12px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: move;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #e9ecef;
+    }
+
+    &.dragging {
+      opacity: 0.5;
+    }
+
+    &.over {
+      background: #d4edda;
+      border: 2px dashed #28a745;
+    }
+
+    &.matched {
+      background: #d4edda;
+      cursor: default;
+    }
+  }
+}

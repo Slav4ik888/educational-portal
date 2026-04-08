@@ -1,0 +1,68 @@
+.questionCard {
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .questionHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid;
+  }
+
+  .typeBadge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  &.typeblue {
+    border-left: 4px solid #3498db;
+
+    .typeBadge {
+      background: #3498db20;
+      color: #3498db;
+    }
+  }
+
+  &.typegreen {
+    border-left: 4px solid #2ecc71;
+
+    .typeBadge {
+      background: #2ecc7120;
+      color: #2ecc71;
+    }
+  }
+
+  &.typeorange {
+    border-left: 4px solid #e67e22;
+
+    .typeBadge {
+      background: #e67e2220;
+      color: #e67e22;
+    }
+  }
+
+  &.typepurple {
+    border-left: 4px solid #9b59b6;
+
+    .typeBadge {
+      background: #9b59b620;
+      color: #9b59b6;
+    }
+  }
+
+  &.type-teal {
+    border-left: 4px solid #1abc9c;
+
+    .typeBadge {
+      background: #1abc9c20;
+      color: #1abc9c;
+    }
+  }
+}

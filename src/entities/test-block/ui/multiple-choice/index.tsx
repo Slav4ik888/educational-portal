@@ -1,0 +1,84 @@
+import { useState } from 'react'
+import { MultipleChoiceQuestion, QuestionResult, TestUserAnswer } from '../../types'
+
+
+interface MultipleChoiceProps {
+  question: MultipleChoiceQuestion
+  userAnswer?: number[]
+  onAnswer: (answer: TestUserAnswer) => void
+  showResult?: boolean
+  disabled?: boolean
+}
+
+export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
+  question,
+  userAnswer = [],
+  onAnswer,
+  showResult = false,
+  disabled = false
+}) => {
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer)
+
+  const handleToggle = (index: number) => {
+    if (disabled) return
+
+    let newSelected: number[]
+    if (question.allowMultiple) {
+      newSelected = selectedAnswers.includes(index)
+        ? selectedAnswers.filter(i => i !== index)
+        : [...selectedAnswers, index]
+    } else {
+      newSelected = [index]
+    }
+
+    setSelectedAnswers(newSelected)
+    onAnswer({
+      questionId: question.id,
+      type: 'multiple-choice',
+      value: newSelected
+    })
+  }
+
+  const isCorrect = (index: number): boolean | null => {
+    if (!showResult) return null
+    const isSelected = selectedAnswers.includes(index)
+    const shouldBeSelected = question.correctAnswers.includes(index)
+
+    if (isSelected && shouldBeSelected) return true
+    if (isSelected && !shouldBeSelected) return false
+    return null
+  }
+
+  return (
+    <div className='multiple-choice'>
+      <h3>{question.text}</h3>
+      <p className='points'>Баллов: {question.points}</p>
+
+      <div className='options'>
+        {question.options.map((option, index) => {
+          const correctness = isCorrect(index)
+          return (
+            // eslint-disable-next-line jsx-a11y/label-has-associated-control
+            <label
+              key={index}
+              className={`option ${correctness === true ? 'correct' : ''} 
+                         ${correctness === false ? 'incorrect' : ''}`}
+            >
+              <input
+                type={question.allowMultiple ? 'checkbox' : 'radio'}
+                checked={selectedAnswers.includes(index)}
+                onChange={() => handleToggle(index)}
+                disabled={disabled}
+              />
+              <span>{option}</span>
+            </label>
+          )
+        })}
+      </div>
+
+      {showResult && question.explanation && (
+        <div className='explanation'>{question.explanation}</div>
+      )}
+    </div>
+  )
+}
