@@ -79,9 +79,9 @@ export const ArticlePage: FC = () => {
         </header>
 
         <ArticleReader
-          blocks={currentArticle.blocks}
-          finalTest={currentArticle.finalTest}
-          articleId={currentArticle.id}
+          blocks    = {currentArticle.blocks}
+          finalTest = {currentArticle.finalTest}
+          articleId = {currentArticle.id}
         />
       </article>
     </div>

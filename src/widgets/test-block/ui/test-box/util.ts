@@ -1,4 +1,4 @@
-import { TestQuestionType } from '../../types';
+import { TestQuestionType } from 'entities/test-block';
 
 
 export const isAnswerCorrect = (

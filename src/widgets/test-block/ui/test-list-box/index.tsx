@@ -1,15 +1,14 @@
 import { FC } from 'react';
-import { TestQuestionType } from '../../types';
+import { TestQuestionType, TestType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
 import { TestCheckBtn } from '../test-block/check-btn';
 import { TestRetryBtn } from '../test-block/retry-btn';
-import { isFinalCompleted, isTestCompleted } from '../../utils';
 import { TestBox } from '../test-box';
 import styles from './index.module.scss';
 
 
 
 interface Props {
-  type            : 'final' | 'inline'
+  type            : TestType
   questions       : TestQuestionType[]
   isRetry         : boolean
   isSubmitted     : boolean

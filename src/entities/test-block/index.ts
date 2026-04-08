@@ -1,3 +1,2 @@
-export type { TestQuestionType, TestUserAnswers } from './types'
-export { TestBlock, TestListBox } from './ui'
+export type { TestQuestionType, TestUserAnswers, TestType } from './types'
 export { getRightAnswers, isTestCompleted, isFinalCompleted } from './utils'

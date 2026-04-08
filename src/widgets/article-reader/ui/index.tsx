@@ -2,8 +2,8 @@ import { FC, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
-import { TestBlock, TestQuestionType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
-import { FinalTest } from './final-test';
+import { TestQuestionType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
+import { TestBlock } from 'widgets/test-block';
 import { ContentBlockType, TheoryBlock } from 'entities/article';
 import { decrementString } from '../utils';
 import { Congratulation } from './congratulation';
@@ -153,10 +153,11 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
 
                 {block.type === 'test' && block.questions && (
                   <TestBlock
+                    type        = 'inline'
                     questions   = {block.questions}
                     isCompleted = {isCompleted}
                     savedScore  = {testResults[block.id]}
-                    onComplete  = {(score) => handleTestComplete(block.id, score)}
+                    onComplete  = {(score: number) => handleTestComplete(block.id, score)}
                   />
                 )}
               </div>
@@ -166,12 +167,25 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
 
         {/* Итоговый тест появляется после прохождения всех блоков */}
         {hasFinalTest && allBlocksCompleted && (
-          <FinalTest
-            finalTest          = {finalTest}
-            finalTestCompleted = {finalTestCompleted}
-            finalTestScore     = {finalTestScore}
-            onComplete         = {handleFinalTestComplete}
-          />
+          <div className={`${styles.block} ${styles.finalTestBlock}`}>
+            <div className={styles.blockContent}>
+              <div className={styles.finalTest}>
+                {! finalTestCompleted && (
+                  <div className={styles.testDescription}>
+                    <p>Итоговый тест состоит из {finalTest.length} вопросов.
+                    Для успешного завершения необходимо набрать не менее 70%.</p>
+                  </div>
+                )}
+                <TestBlock
+                  type        = 'final'
+                  questions   = {finalTest}
+                  isCompleted = {finalTestCompleted}
+                  savedScore  = {finalTestScore}
+                  onComplete  = {handleFinalTestComplete}
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Поздравление с завершением */}

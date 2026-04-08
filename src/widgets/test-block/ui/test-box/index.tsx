@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { TestQuestionType } from '../../types';
+import { TestQuestionType } from 'entities/test-block';
 import { Explanation } from './explanation';
 import { isAnswerCorrect as isAnswerCorrectFunc } from './util';
 import styles from './index.module.scss';

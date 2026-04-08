@@ -1,15 +1,17 @@
 import { FC } from 'react';
+import { TestType } from 'entities/test-block';
 import styles from './index.module.scss';
 
 
 
 interface Props {
+  type        : TestType
   score       : number | null
   isPassed    : boolean
   isSubmitted : boolean
 }
 
-export const TestResultCard: FC<Props> = ({ score, isPassed, isSubmitted }) => {
+export const TestResult: FC<Props> = ({ score, isPassed, isSubmitted }) => {
   if (! isSubmitted && score === null) return null;
 
   return (

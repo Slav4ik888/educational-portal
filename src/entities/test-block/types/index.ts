@@ -1,3 +1,5 @@
+export type TestType = 'final' | 'inline'
+
 export interface TestQuestionType {
   id            : string
   text          : string

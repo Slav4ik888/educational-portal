@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { TestQuestionType } from '../../../types';
+import { TestQuestionType } from 'entities/test-block';
 import { getExplanation } from './util';
 import styles from './index.module.scss';
 

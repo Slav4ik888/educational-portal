@@ -120,6 +120,7 @@
   }
 }
 
+
 // Theory Block Styles
 .theoryBlock {
   .theoryContent {
@@ -246,4 +247,28 @@
     background: #ccc;
     cursor: not-allowed;
   }
+}
+
+
+// FINAL
+.finalTest {
+  .testDescription {
+    background: #e3f2fd;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    color: #1565c0;
+    font-size: 14px;
+  }
+}
+
+.finalTest {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.finalTestBlock {
+  border: 2px solid #ff9800;
+  background: #fff8e1;
 }

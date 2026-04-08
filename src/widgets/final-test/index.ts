@@ -1,1 +1,0 @@
-export { FinalTest } from './ui'
