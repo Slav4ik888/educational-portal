@@ -1,0 +1,27 @@
+
+.completionMessage {
+  text-align: center;
+  padding: 48px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  color: white;
+
+  .completionIcon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    opacity: 0.95;
+  }
+}
+
+.completionMessage.failed {
+  background: linear-gradient(135deg, #bd2929 0%, #7d0000 100%);
+}

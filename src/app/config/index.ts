@@ -2,7 +2,7 @@ import { sec } from 'shared/helpers/dates'
 
 export const cfg = {
   VERSION                 : '1.0.0',
-  ASSEMBLY_DATE           : '2026-04-03',
+  ASSEMBLY_DATE           : '2026-04-08',
 
   COOKIE_NAME             : 'education-portal',
   DEFAULT_MESSAGE_TIMEOUT : sec(6),
@@ -14,8 +14,9 @@ export const cfg = {
 
   // DEV
   /** If checks should been disabled */
-  IS_EXPERIMENTAL   : false,
-  // set IS_DEV = false before PRODUCTION
-  IS_DEV            : true, // true, // Если загрузить данные надо не с сервера а из LS, например, когда нет интернета
-  DASHBOARD_DISABLE : false, // true, // Don`t render dashboard
+  IS_EXPERIMENTAL : false,
+
+  // TODO: set IS_DEV = false before PRODUCTION
+  IS_DEV          : true,
+  SET_ANSWERS     : true, // По умолчанию расставить верные ответы
 }

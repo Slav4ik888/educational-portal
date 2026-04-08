@@ -1,9 +1,11 @@
 import { FC, useEffect, useState } from 'react';
-import { TestQuestionType } from '../../types';
+import { TestQuestionType, TestUserAnswers } from '../../types';
 import { TestResultCard } from './result-card';
 import { TestCheckBtn } from './check-btn';
 import { TestRetryBtn } from './retry-btn';
 import { TestListBox } from '../test-list-box';
+import { cfg } from 'app/config';
+import { getRightAnswers } from '../../utils';
 import styles from './index.module.scss';
 
 
@@ -16,7 +18,7 @@ interface Props {
 }
 
 export const TestBlock: FC<Props> = ({ questions, isCompleted, savedScore, onComplete }) => {
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<TestUserAnswers>(() => cfg.SET_ANSWERS ? getRightAnswers(questions) : {});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
   const [retry, setRetry] = useState<boolean>(false);
@@ -78,12 +80,11 @@ export const TestBlock: FC<Props> = ({ questions, isCompleted, savedScore, onCom
         onAnswerChange = {handleAnswerChange}
       />
 
-      {submitted && hasWrongAnswers
-        ? <TestRetryBtn onClick={handleRetry} /> // Если уже был submit, показываем кнопку для повторной попытки
-        : <TestCheckBtn
-            disabled = {Object.keys(answers).length !== questions.length}
-            onClick  = {handleSubmit}
-          />}
+      {submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
+      {! submitted && <TestCheckBtn
+        disabled = {Object.keys(answers).length !== questions.length}
+        onClick  = {handleSubmit}
+      />}
     </div>
   );
 };

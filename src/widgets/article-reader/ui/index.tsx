@@ -2,22 +2,18 @@ import { FC, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
-import { TestBlock } from 'entities/test-block';
-import { FinalTest } from 'widgets/final-test';
+import { TestBlock, TestQuestionType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
+import { FinalTest } from './final-test';
 import { ContentBlockType, TheoryBlock } from 'entities/article';
 import { decrementString } from '../utils';
+import { Congratulation } from './congratulation';
 import styles from './article-reader.module.scss';
 
 
 
 interface ArticleReaderProps {
   blocks: ContentBlockType[];
-  finalTest?: Array<{
-    id: string;
-    text: string;
-    options: string[];
-    correctAnswer: number;
-  }>;
+  finalTest?: TestQuestionType[];
   articleId: string;
 }
 
@@ -29,6 +25,7 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   const dispatch = useDispatch();
   const [completedBlocks, setCompletedBlocks] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<Record<string, number>>({});
+  const [finalTestSubmitted, setFinalTestSubmitted] = useState(false);
   const [finalTestCompleted, setFinalTestCompleted] = useState(false);
   const [finalTestScore, setFinalTestScore] = useState<number | null>(null);
 
@@ -60,7 +57,8 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   // };
 
   const handleTestComplete = (blockId: string, score: number) => {
-    const isCompleted = score === 100;
+    const isCompleted = isTestCompleted(score);
+
     if (isCompleted) {
       const newCompleted = new Set(completedBlocks);
       newCompleted.add(blockId);
@@ -90,19 +88,22 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   };
 
   const handleFinalTestComplete = (score: number) => {
-    setFinalTestCompleted(score >= 70);
+    const isCompleted = isFinalCompleted(score);
+
+    setFinalTestCompleted(isCompleted);
     setFinalTestScore(score);
+    setFinalTestSubmitted(true);
 
     dispatch(userProgressActions.updateFinalTestProgress({
       articleId,
-      completed: true,
+      completed: isCompleted,
       score,
     }));
   };
 
   const allBlocksCompleted = blocks.length === completedBlocks.size;
   const hasFinalTest = finalTest.length > 0;
-  const isArticleCompleted = hasFinalTest ? finalTestCompleted : allBlocksCompleted;
+  // const isArticleCompleted = finalTestCompleted && allBlocksCompleted;
 
   return (
     <div className={styles.articleReader}>
@@ -163,42 +164,22 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
           );
         })}
 
-        {/* Итоговый тест */}
-        {hasFinalTest && (
-          <div className={`${styles.block} ${styles.finalTestBlock}`}>
-            <div className={styles.blockHeader}>
-              <div className={styles.blockTitle}>
-                <span className={styles.blockNumber}>Итоговый тест</span>
-                <span className={styles.blockType}>🎯 Финальная проверка</span>
-              </div>
-              {finalTestCompleted && (
-                <span className={styles.completedBadge}>
-                  ✓ Пройден ({(finalTestScore || 0).toFixed(0)}%)
-                </span>
-              )}
-            </div>
-
-            <div className={styles.blockContent}>
-              <FinalTest
-                questions   = {finalTest}
-                isCompleted = {finalTestCompleted}
-                savedScore  = {finalTestScore}
-                onComplete  = {handleFinalTestComplete}
-              />
-            </div>
-          </div>
+        {/* Итоговый тест появляется после прохождения всех блоков */}
+        {hasFinalTest && allBlocksCompleted && (
+          <FinalTest
+            finalTest = {finalTest}
+            finalTestCompleted = {finalTestCompleted}
+            finalTestScore = {finalTestScore}
+            onFinalTestComplete = {handleFinalTestComplete}
+          />
         )}
 
         {/* Поздравление с завершением */}
-        {isArticleCompleted && (
-          <div className={styles.completionMessage}>
-            <div className={styles.completionIcon}>🏆</div>
-            <h3>Поздравляем!</h3>
-            <p>
-              Вы успешно завершили изучение статьи!
-              {finalTestScore && ` Ваш результат: ${finalTestScore.toFixed(0)}%`}
-            </p>
-          </div>
+        {finalTestSubmitted && (
+          <Congratulation
+            finalTestCompleted = {finalTestCompleted}
+            finalTestScore     = {finalTestScore}
+          />
         )}
       </div>
     </div>

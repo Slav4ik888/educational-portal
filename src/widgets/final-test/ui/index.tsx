@@ -1,16 +1,17 @@
 import { FC, useState, useEffect } from 'react';
-import { TestListBox, TestQuestionType } from 'entities/test-block';
+import { getRightAnswers, TestListBox, TestQuestionType, TestUserAnswers } from 'entities/test-block';
+import { TestRetryBtn } from 'entities/test-block/ui/test-block/retry-btn';
+import { TestCheckBtn } from 'entities/test-block/ui/test-block/check-btn';
+import { cfg } from 'app/config';
 import styles from './final-test.module.scss';
-import { TestRetryBtn } from 'entities/test-block/ui/test-block/retry-btn/index';
-import { TestCheckBtn } from 'entities/test-block/ui/test-block/check-btn/index';
 
 
 
 interface Props {
-  questions   : TestQuestionType[];
-  isCompleted : boolean;
-  savedScore? : number | null;
-  onComplete  : (score: number) => void;
+  questions   : TestQuestionType[]
+  isCompleted : boolean
+  savedScore? : number | null
+  onComplete  : (score: number) => void
 }
 
 export const FinalTest: FC<Props> = ({
@@ -19,15 +20,7 @@ export const FinalTest: FC<Props> = ({
   savedScore,
   onComplete
 }) => {
-  const [answers, setAnswers] = useState<Record<string, number>>(() => {
-    const answers: Record<string, number> = {};
-    questions.forEach(question => {
-      answers[question.id] = question.correctAnswer;
-    });
-
-    return answers
-  });
-
+  const [answers, setAnswers] = useState<TestUserAnswers>(() => cfg.SET_ANSWERS ? getRightAnswers(questions) : {});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
   const [retry, setRetry] = useState<boolean>(false);
@@ -80,7 +73,7 @@ export const FinalTest: FC<Props> = ({
         </div>
       )}
 
-      {submitted && hasWrongAnswers && (
+      {/* {submitted && hasWrongAnswers && (
         <div className={styles.finalTestResult}>
           <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
             {isPassed ? '🎓' : '📖'}
@@ -94,7 +87,7 @@ export const FinalTest: FC<Props> = ({
             }
           </p>
         </div>
-      )}
+      )} */}
 
       <TestListBox
         isPassed       = {allCorrectAnswers}

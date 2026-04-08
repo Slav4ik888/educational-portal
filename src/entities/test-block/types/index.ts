@@ -4,3 +4,5 @@ export interface TestQuestionType {
   options       : string[]
   correctAnswer : number
 }
+
+export type TestUserAnswers = Record<string, number>
