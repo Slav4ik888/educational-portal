@@ -5,7 +5,7 @@ import { TestCheckBtn } from './check-btn';
 import { TestRetryBtn } from './retry-btn';
 import { TestListBox } from '../test-list-box';
 import { cfg } from 'app/config';
-import { getRightAnswers } from '../../utils';
+import { getRightAnswers, isTestCompleted } from '../../utils';
 import styles from './index.module.scss';
 
 
@@ -59,9 +59,9 @@ export const TestBlock: FC<Props> = ({ questions, isCompleted, savedScore, onCom
   };
 
   // Определяем, есть ли неверные ответы
-  const hasWrongAnswers = submitted && score !== null && score < 100;
+  const isPassed = isTestCompleted(score);
+  const hasWrongAnswers = submitted && ! isPassed;
 
-  const isPassed = score ? score >= 70 : false;
 
   return (
     <div className={styles.testBlock}>
@@ -72,19 +72,16 @@ export const TestBlock: FC<Props> = ({ questions, isCompleted, savedScore, onCom
       />
 
       <TestListBox
-        isPassed       = {isPassed}
+        type           = 'inline'
+        score          = {score}
         isRetry        = {retry}
         isSubmitted    = {submitted}
         answers        = {answers}
         questions      = {questions}
         onAnswerChange = {handleAnswerChange}
+        onSubmit       = {handleSubmit}
+        onRetry        = {handleRetry}
       />
-
-      {submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
-      {! submitted && <TestCheckBtn
-        disabled = {Object.keys(answers).length !== questions.length}
-        onClick  = {handleSubmit}
-      />}
     </div>
   );
 };

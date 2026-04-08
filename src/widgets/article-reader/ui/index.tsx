@@ -167,10 +167,10 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
         {/* Итоговый тест появляется после прохождения всех блоков */}
         {hasFinalTest && allBlocksCompleted && (
           <FinalTest
-            finalTest = {finalTest}
+            finalTest          = {finalTest}
             finalTestCompleted = {finalTestCompleted}
-            finalTestScore = {finalTestScore}
-            onFinalTestComplete = {handleFinalTestComplete}
+            finalTestScore     = {finalTestScore}
+            onComplete         = {handleFinalTestComplete}
           />
         )}
 

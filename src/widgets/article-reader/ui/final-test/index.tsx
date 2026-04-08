@@ -6,10 +6,10 @@ import styles from './index.module.scss';
 
 
 interface Props {
-  finalTest           : TestQuestionType[]
-  finalTestCompleted  : boolean
-  finalTestScore      : number | null
-  onFinalTestComplete : (score: number) => void
+  finalTest          : TestQuestionType[]
+  finalTestCompleted : boolean
+  finalTestScore     : number | null
+  onComplete         : (score: number) => void
 }
 
 
@@ -17,7 +17,7 @@ export const FinalTest: FC<Props> = ({
   finalTest = [],
   finalTestCompleted,
   finalTestScore,
-  onFinalTestComplete
+  onComplete
 }) => (
   <div className={`${styles.block} ${styles.finalTestBlock}`}>
     <div className={styles.blockHeader}>
@@ -37,7 +37,7 @@ export const FinalTest: FC<Props> = ({
         questions   = {finalTest}
         isCompleted = {finalTestCompleted}
         savedScore  = {finalTestScore}
-        onComplete  = {onFinalTestComplete}
+        onComplete  = {onComplete}
       />
     </div>
   </div>

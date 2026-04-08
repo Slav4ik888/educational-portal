@@ -1,7 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { getRightAnswers, TestListBox, TestQuestionType, TestUserAnswers } from 'entities/test-block';
-import { TestRetryBtn } from 'entities/test-block/ui/test-block/retry-btn';
-import { TestCheckBtn } from 'entities/test-block/ui/test-block/check-btn';
+import { getRightAnswers, isFinalCompleted, TestListBox, TestQuestionType, TestUserAnswers } from 'entities/test-block';
 import { cfg } from 'app/config';
 import styles from './final-test.module.scss';
 
@@ -60,9 +58,9 @@ export const FinalTest: FC<Props> = ({
   };
 
   // Определяем, есть ли неверные ответы
-  const hasWrongAnswers = submitted && score !== null && score < 100;
-  const allCorrectAnswers = score === 100;
-  const isPassed = score ? score >= 70 : false;
+  // const hasWrongAnswers = submitted && score !== null && score < 100;
+  // const allCorrectAnswers = score === 100;
+  const isPassed = isFinalCompleted(score);
 
   return (
     <div className={styles.finalTest}>
@@ -73,37 +71,17 @@ export const FinalTest: FC<Props> = ({
         </div>
       )}
 
-      {/* {submitted && hasWrongAnswers && (
-        <div className={styles.finalTestResult}>
-          <div className={`${styles.resultIcon} ${isPassed ? styles.passed : styles.failed}`}>
-            {isPassed ? '🎓' : '📖'}
-          </div>
-          <h3>Итоговый результат: {score && score.toFixed(0)}%</h3>
-          <p>
-            {
-              isPassed
-                ? 'Присутствуют неверные ответы, но вы набрали достаточное количество баллов.'
-                : 'К сожалению, вы не прошли тест. Рекомендуем повторить материал и попробовать снова.'
-            }
-          </p>
-        </div>
-      )} */}
-
       <TestListBox
-        isPassed       = {allCorrectAnswers}
+        type           = 'inline'
+        score          = {score}
         isRetry        = {retry}
         isSubmitted    = {submitted}
         answers        = {answers}
         questions      = {questions}
         onAnswerChange = {handleAnswerChange}
+        onSubmit       = {handleSubmit}
+        onRetry        = {handleRetry}
       />
-
-      {/* Если уже был submit, показываем кнопку для повторной попытки */}
-      {submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
-      {! submitted && <TestCheckBtn
-        disabled = {Object.keys(answers).length !== questions.length}
-        onClick  = {handleSubmit}
-      />}
     </div>
   );
 };
