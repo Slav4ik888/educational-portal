@@ -55,16 +55,22 @@ export interface FillBlankQuestion extends BaseQuestion {
 
 
 /** Match Pairs (drag & drop или select) */
-export interface MatchItem {
+export interface MatchLeftItem {
   id      : string
   text    : string
-  matchId : string // id соответствующего элемента
+  matchId : string  // id элемента из rightItems, с которым нужно сопоставить
+}
+
+export interface MatchRightItem {
+  id      : string
+  text    : string
+  // НЕТ matchId!
 }
 
 export interface MatchPairsQuestion extends BaseQuestion {
   type            : 'match-pairs'
-  leftItems       : MatchItem[]
-  rightItems      : MatchItem[]
+  leftItems       : MatchLeftItem[]    // левая колонка (содержит matchId)
+  rightItems      : MatchRightItem[]  // правая колонка (просто элементы для сопоставления)
   // Для частичной оценки
   scoringType     : 'exact' | 'partial' | 'points-per-match'
   pointsPerMatch? : number

@@ -13,12 +13,12 @@ interface TheoryBlockProps {
 export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted }) => {
   const [isMarkedCompleted, setIsMarkedCompleted] = useState(isCompleted);
 
-  const handleComplete = () => {
-    if (! isMarkedCompleted) {
-      setIsMarkedCompleted(true);
-      // onComplete();
-    }
-  };
+  // const handleComplete = () => {
+  //   if (! isMarkedCompleted) {
+  //     setIsMarkedCompleted(true);
+  //     // onComplete();
+  //   }
+  // };
 
   return (
     <div className={styles.theoryBlock}>

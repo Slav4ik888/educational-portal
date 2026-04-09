@@ -1,22 +1,27 @@
 import { useState } from 'react'
 import { MultipleChoiceQuestion, TestUserAnswer } from '../../types'
+import { Explanation } from '../explanation'
 
 
 
 interface MultipleChoiceProps {
-  question    : MultipleChoiceQuestion
-  userAnswer? : number[]
-  showResult? : boolean
-  disabled?   : boolean
-  onAnswer    : (answer: TestUserAnswer) => void
+  question        : MultipleChoiceQuestion
+  isSubmitted     : boolean
+  isAnswerCorrect : boolean
+  userAnswer?     : number[]
+  showResult?     : boolean
+  disabled?       : boolean
+  onAnswer        : (answer: TestUserAnswer) => void
 }
 
 export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   question,
+  isSubmitted,
+  isAnswerCorrect,
   userAnswer = [],
-  onAnswer,
   showResult = false,
-  disabled = false
+  disabled   = false,
+  onAnswer
 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer)
 
@@ -77,9 +82,14 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
         })}
       </div>
 
-      {showResult && question.explanation && (
+      <Explanation
+        isAnswerCorrect = {isAnswerCorrect}
+        question        = {question}
+        isSubmitted     = {isSubmitted}
+      />
+      {/* {showResult && question.explanation && (
         <div className='explanation'>{question.explanation}</div>
-      )}
+      )} */}
     </div>
   )
 }

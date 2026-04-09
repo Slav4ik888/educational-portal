@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { TestQuestionType, TestType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
+import { TestQuestion, TestType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
 import { TestCheckBtn } from '../test-block/check-btn';
 import { TestRetryBtn } from '../test-block/retry-btn';
 import { TestBox } from '../test-box';
@@ -9,7 +9,7 @@ import styles from './index.module.scss';
 
 interface Props {
   type            : TestType
-  questions       : TestQuestionType[]
+  questions       : TestQuestion[]
   isRetry         : boolean
   isSubmitted     : boolean
   answers         : Record<string, number>

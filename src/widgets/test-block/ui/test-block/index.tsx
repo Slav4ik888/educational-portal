@@ -1,12 +1,15 @@
 import { FC, useEffect, useState } from 'react';
 import { TestResult } from '../test-result/index';
-import { TestListBox } from '../test-list-box';
+// import { TestListBox } from '../test-list-box';
 import { cfg } from 'app/config';
 import {
   TestQuestion, TestUserAnswers, TestUserAnswer, isTestCompleted, TestType, isFinalCompleted, useDevAnswers,
   TestQuestionRenderer
 } from 'entities/test-block';
 import styles from './index.module.scss';
+import { TestRetryBtn } from './retry-btn/index';
+import { TestCheckBtn } from './check-btn/index';
+import { getAnswerDetails, isAnswerCorrect } from './util';
 
 
 
@@ -52,12 +55,34 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
 
   const handleSubmit = () => {
+    // checkAnswer
+    const question = questions[0];
+    const userAnswer = answers[question.id];
+
+    // Простая проверка
+    const isCorrect = isAnswerCorrect(question, userAnswer);
+
+    // Детальная проверка
+    const details = getAnswerDetails(question, userAnswer);
+
+    if (isCorrect) {
+      console.log('✅ Правильно!')
+    }
+    else if (details.details?.partiallyCorrect) {
+      console.log(`⚠️ Частично правильно: ${details.details.correctCount} из ${details.details.totalCount}`)
+    }
+    else {
+      console.log('❌ Неправильно')
+    }
+
+    // eslint-disable-next-line prefer-const
     let correctCount = 0;
-    questions.forEach(question => {
-      if (answers[question.id] === question.correctAnswer) {
-        correctCount++;
-      }
-    });
+    // TODO:
+    // questions.forEach(question => {
+    //   if (answers[question.id] === question.correctAnswer) {
+    //     correctCount++;
+    //   }
+    // });
 
     const calculatedScore = (correctCount / questions.length) * 100;
     setScore(calculatedScore);
@@ -71,6 +96,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
     setRetry(true);
   };
 
+  const hasWrongAnswers = submitted && score !== null && score < 100;
 
   return (
     <div className={styles.testBlock}>
@@ -87,10 +113,12 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
       {questions.map(question => (
         <TestQuestionRenderer
-          key        = {question.id}
-          question   = {question}
-          userAnswer = {answers[question.id]}
-          onAnswer   = {handleAnswer}
+          key             = {question.id}
+          isSubmitted     = {submitted}
+          isAnswerCorrect = {isAnswerCorrect(question, answers[question.id])}
+          question        = {question}
+          userAnswer      = {answers[question.id]}
+          onAnswer        = {handleAnswerChange}
         />
       ))}
 
@@ -105,6 +133,11 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         onSubmit       = {handleSubmit}
         onRetry        = {handleRetry}
       /> */}
+      {! isPassed && submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
+      {! isPassed && ! submitted && <TestCheckBtn
+        disabled = {Object.keys(answers).length !== questions.length}
+        onClick  = {handleSubmit}
+      />}
     </div>
   );
 };

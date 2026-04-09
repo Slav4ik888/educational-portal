@@ -35,6 +35,7 @@ module.exports = {
     'react/jsx-filename-extension': [2, {
       extensions: ['.js', '.jsx', '.ts', '.tsx']
     }],
+    'no-use-before-define': 0,
     'switch-colon-spacing': 0,
     'no-else-return': 0,
     'space-unary-ops': 0,

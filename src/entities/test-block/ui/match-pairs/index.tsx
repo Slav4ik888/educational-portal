@@ -4,6 +4,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd'
 // @ts-ignore
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { MatchPairsQuestion, TestUserAnswer } from '../../types'
+import { Explanation } from '../explanation'
 
 
 const ItemType = 'MATCH_ITEM'
@@ -54,18 +55,22 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ id, text, matchedTo, onDr
 
 
 interface MatchPairsProps {
-  question: MatchPairsQuestion
-  userAnswer: Record<string, string>
-  showResult?: boolean
-  disabled?: boolean
-  onAnswer: (answer: TestUserAnswer) => void
+  question        : MatchPairsQuestion
+  userAnswer      : Record<string, string>
+  isSubmitted     : boolean
+  isAnswerCorrect : boolean
+  showResult?     : boolean
+  disabled?       : boolean
+  onAnswer        : (answer: TestUserAnswer) => void
 }
 export const MatchPairs: React.FC<MatchPairsProps> = ({
   question,
   userAnswer = {},
-  onAnswer,
+  isSubmitted,
+  isAnswerCorrect,
   showResult,
-  disabled
+  disabled,
+  onAnswer
 }) => {
   console.log('userAnswer: ', userAnswer);
 
@@ -122,46 +127,53 @@ export const MatchPairs: React.FC<MatchPairsProps> = ({
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className='match-pairs'>
-        <h3>{question.text}</h3>
+    <>
+      <DndProvider backend={HTML5Backend}>
+        <div className='match-pairs'>
+          <h3>{question.text}</h3>
 
-        <div className='match-container'>
-          <div className='left-column'>
-            <h4>Термины</h4>
-            {question.leftItems.map(item => (
-              <div key={item.id} className='left-item'>
-                <span>{item.text}</span>
-                {matches[item.id] && showResult && (
-                  <span className={isMatchCorrect(item.id, matches[item.id]) ? 'correct' : 'incorrect'}>
-                    {isMatchCorrect(item.id, matches[item.id]) ? '✓' : '✗'}
-                  </span>
-                )}
-              </div>
-            ))}
+          <div className='match-container'>
+            <div className='left-column'>
+              <h4>Термины</h4>
+              {question.leftItems.map(item => (
+                <div key={item.id} className='left-item'>
+                  <span>{item.text}</span>
+                  {matches[item.id] && showResult && (
+                    <span className={isMatchCorrect(item.id, matches[item.id]) ? 'correct' : 'incorrect'}>
+                      {isMatchCorrect(item.id, matches[item.id]) ? '✓' : '✗'}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className='right-column'>
+              <h4>Определения</h4>
+              {question.rightItems.map(item => (
+                <DraggableItem
+                  key={item.id}
+                  id={item.id}
+                  text={item.text}
+                  matchedTo={Object.entries(matches).find(([_, rId]) => rId === item.id)?.[0]}
+                  onDrop={handleMatch}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className='right-column'>
-            <h4>Определения</h4>
-            {question.rightItems.map(item => (
-              <DraggableItem
-                key={item.id}
-                id={item.id}
-                text={item.text}
-                matchedTo={Object.entries(matches).find(([_, rId]) => rId === item.id)?.[0]}
-                onDrop={handleMatch}
-              />
-            ))}
-          </div>
+          {showResult && (
+            <div className='result'>
+              <p>Правильных сопоставлений: {calculateScore().correctMatches} из {question.leftItems.length}</p>
+              <p>Баллов: {calculateScore().score} / {question.points}</p>
+            </div>
+          )}
         </div>
-
-        {showResult && (
-          <div className='result'>
-            <p>Правильных сопоставлений: {calculateScore().correctMatches} из {question.leftItems.length}</p>
-            <p>Баллов: {calculateScore().score} / {question.points}</p>
-          </div>
-        )}
-      </div>
-    </DndProvider>
+      </DndProvider>
+      <Explanation
+        isAnswerCorrect = {isAnswerCorrect}
+        question        = {question}
+        isSubmitted     = {isSubmitted}
+      />
+    </>
   )
 }
