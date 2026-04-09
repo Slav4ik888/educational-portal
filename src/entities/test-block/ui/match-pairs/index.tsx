@@ -55,21 +55,21 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ id, text, matchedTo, onDr
 
 interface MatchPairsProps {
   question: MatchPairsQuestion
-  userAnswer: TestUserAnswer
+  userAnswer: Record<string, string>
   showResult?: boolean
   disabled?: boolean
   onAnswer: (answer: TestUserAnswer) => void
 }
 export const MatchPairs: React.FC<MatchPairsProps> = ({
   question,
-  userAnswer = {} as TestUserAnswer,
+  userAnswer = {},
   onAnswer,
   showResult,
   disabled
 }) => {
   console.log('userAnswer: ', userAnswer);
 
-  const [matches, setMatches] = useState<Record<string, string>>(userAnswer.value as Record<string, string>)
+  const [matches, setMatches] = useState<Record<string, string>>(userAnswer)
 
   const handleMatch = (leftId: string, rightId: string) => {
     if (disabled) return

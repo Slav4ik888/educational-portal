@@ -18,5 +18,5 @@ export const cfg = {
 
   // TODO: set IS_DEV = false before PRODUCTION
   IS_DEV          : true,
-  SET_ANSWERS     : true, // По умолчанию расставить верные ответы
+  // SET_ANSWERS     : true, // По умолчанию расставить верные ответы
 }

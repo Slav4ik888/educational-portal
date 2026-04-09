@@ -2,22 +2,23 @@ import { FC, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
-import { TestQuestionType, isFinalCompleted, isTestCompleted } from 'entities/test-block';
+import { TestQuestion, isFinalCompleted, isTestCompleted } from 'entities/test-block';
 import { TestBlock } from 'widgets/test-block';
 import { ContentBlockType, TheoryBlock } from 'entities/article';
 import { decrementString } from '../utils';
 import { Congratulation } from './congratulation';
 import styles from './article-reader.module.scss';
+import { cfg } from 'app/config/index';
 
 
 
-interface ArticleReaderProps {
-  blocks: ContentBlockType[];
-  finalTest?: TestQuestionType[];
-  articleId: string;
+interface Props {
+  blocks     : ContentBlockType[]
+  finalTest? : TestQuestion[]
+  articleId  : string
 }
 
-export const ArticleReader: FC<ArticleReaderProps> = ({
+export const ArticleReader: FC<Props> = ({
   blocks,
   finalTest = [],
   articleId
@@ -33,6 +34,7 @@ export const ArticleReader: FC<ArticleReaderProps> = ({
   const savedProgress = useSelector(
     (state: StateSchema) => state.userProgress.articlesProgress[articleId]
   );
+
 
   // Восстанавливаем прогресс при загрузке
   useEffect(() => {

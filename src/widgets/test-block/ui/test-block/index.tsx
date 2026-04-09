@@ -3,7 +3,8 @@ import { TestResult } from '../test-result/index';
 import { TestListBox } from '../test-list-box';
 import { cfg } from 'app/config';
 import {
-  TestQuestionType, TestUserAnswers, getRightAnswers, isTestCompleted, TestType, isFinalCompleted
+  TestQuestion, TestUserAnswers, TestUserAnswer, isTestCompleted, TestType, isFinalCompleted, useDevAnswers,
+  TestQuestionRenderer
 } from 'entities/test-block';
 import styles from './index.module.scss';
 
@@ -11,14 +12,21 @@ import styles from './index.module.scss';
 
 interface Props {
   type        : TestType
-  questions   : TestQuestionType[]
+  questions   : TestQuestion[]
   isCompleted : boolean
   savedScore  : number | null
   onComplete  : (score: number) => void
 }
 
 export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore, onComplete }) => {
-  const [answers, setAnswers] = useState<TestUserAnswers>(() => cfg.SET_ANSWERS ? getRightAnswers(questions) : {});
+  // Автоматически заполняем ответы в режиме разработки
+  const devAnswers = useDevAnswers(questions, {
+    enabled          : cfg.IS_DEV,
+    correctnessRatio : 1,    // Все ответы правильные
+    useLocalStorage  : false
+  });
+
+  const [answers, setAnswers] = useState<TestUserAnswers>(() => devAnswers || {});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
   const [retry, setRetry] = useState<boolean>(false);
@@ -35,10 +43,11 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
     }
   }, [savedScore, isCompleted]);
 
-  const handleAnswerChange = (questionId: string, answerIndex: number) => {
+  const handleAnswerChange = (answer: TestUserAnswer) => {
     if (! submitted) {
-      setAnswers((prev: TestUserAnswers) => ({ ...prev, [questionId]: answerIndex }));
+      setAnswers((prev: TestUserAnswers) => ({ ...prev, [answer.questionId]: answer }));
     }
+    // TODO: В dev режиме не сохраняем ответы пользователя
   };
 
 
@@ -76,7 +85,16 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         )
       }
 
-      <TestListBox
+      {questions.map(question => (
+        <TestQuestionRenderer
+          key        = {question.id}
+          question   = {question}
+          userAnswer = {answers[question.id]}
+          onAnswer   = {handleAnswer}
+        />
+      ))}
+
+      {/* <TestListBox
         type           = 'inline'
         score          = {score}
         isRetry        = {retry}
@@ -86,7 +104,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         onAnswerChange = {handleAnswerChange}
         onSubmit       = {handleSubmit}
         onRetry        = {handleRetry}
-      />
+      /> */}
     </div>
   );
 };

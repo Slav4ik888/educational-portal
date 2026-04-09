@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { MultipleChoiceQuestion, QuestionResult, TestUserAnswer } from '../../types'
+import { MultipleChoiceQuestion, TestUserAnswer } from '../../types'
+
 
 
 interface MultipleChoiceProps {
-  question: MultipleChoiceQuestion
-  userAnswer?: number[]
-  onAnswer: (answer: TestUserAnswer) => void
-  showResult?: boolean
-  disabled?: boolean
+  question    : MultipleChoiceQuestion
+  userAnswer? : number[]
+  showResult? : boolean
+  disabled?   : boolean
+  onAnswer    : (answer: TestUserAnswer) => void
 }
 
 export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
