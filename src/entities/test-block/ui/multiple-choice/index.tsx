@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { MultipleChoiceQuestion, TestUserAnswer } from '../../types'
-import { Explanation } from '../explanation'
+import { useState } from 'react';
+import { MultipleChoiceQuestion, TestUserAnswer } from '../../types';
+import { Explanation } from '../explanation';
+import styles from './index.module.scss';
 
 
 
@@ -23,26 +24,27 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   disabled   = false,
   onAnswer
 }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer)
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer);
 
   const handleToggle = (index: number) => {
     if (disabled) return
 
-    let newSelected: number[]
+    let newSelected: number[];
     if (question.allowMultiple) {
       newSelected = selectedAnswers.includes(index)
         ? selectedAnswers.filter(i => i !== index)
-        : [...selectedAnswers, index]
-    } else {
-      newSelected = [index]
+        : [...selectedAnswers, index];
+    }
+    else {
+      newSelected = [index];
     }
 
-    setSelectedAnswers(newSelected)
+    setSelectedAnswers(newSelected);
     onAnswer({
-      questionId: question.id,
-      type: 'multiple-choice',
-      value: newSelected
-    })
+      questionId : question.id,
+      type       : 'multiple-choice',
+      value      : newSelected
+    });
   }
 
   const isCorrect = (index: number): boolean | null => {
@@ -56,25 +58,25 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   }
 
   return (
-    <div className='multiple-choice'>
+    <div className={styles.multipleChoice}>
       <h3>{question.text}</h3>
-      <p className='points'>Баллов: {question.points}</p>
+      <p className={styles.points}>Баллов: {question.points}</p>
 
-      <div className='options'>
+      <div className={styles.options}>
         {question.options.map((option, index) => {
           const correctness = isCorrect(index)
           return (
             // eslint-disable-next-line jsx-a11y/label-has-associated-control
             <label
               key={index}
-              className={`option ${correctness === true ? 'correct' : ''} 
-                         ${correctness === false ? 'incorrect' : ''}`}
+              className={`${styles.option} ${correctness === true ? styles.correct : ''} 
+                         ${correctness === false ? styles.incorrect : ''}`}
             >
               <input
-                type={question.allowMultiple ? 'checkbox' : 'radio'}
-                checked={selectedAnswers.includes(index)}
-                onChange={() => handleToggle(index)}
-                disabled={disabled}
+                type     = {question.allowMultiple ? 'checkbox' : 'radio'}
+                checked  = {selectedAnswers.includes(index)}
+                disabled = {disabled}
+                onChange = {() => handleToggle(index)}
               />
               <span>{option}</span>
             </label>

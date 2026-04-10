@@ -1,6 +1,6 @@
 import { TrueFalseQuestion, TestUserAnswer } from '../../types'
 import { Explanation } from '../explanation'
-
+import styles from './index.module.scss'
 
 
 interface TrueFalseProps {
@@ -39,10 +39,14 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
   ]
 
   return (
-    <div className='true-false'>
+    <div className={styles.trueFalse}>
       <h3>{question.text}</h3>
 
-      <div className='options'>
+      {question.points && (
+        <p className={styles.points}>Баллов: {question.points}</p>
+      )}
+
+      <div className={styles.options}>
         {options.map(option => {
           const isSelected = userAnswer === option.value
           const isCorrect = showResult && option.value === question.correctAnswer
@@ -53,9 +57,12 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
               key       = {option.value.toString()}
               type      = 'button'
               disabled  = {disabled}
-              className = {`option-btn ${isSelected ? 'selected' : ''} 
-                         ${isCorrect ? 'correct' : ''} 
-                         ${isWrong ? 'incorrect' : ''}`}
+              className = {`
+                ${styles.optionBtn} 
+                ${isSelected ? styles.selected : ''} 
+                ${isCorrect ? styles.correct : ''} 
+                ${isWrong ? styles.incorrect : ''}
+              `}
               onClick   = {() => handleAnswer(option.value)}
             >
               {option.label}

@@ -1,0 +1,90 @@
+.rich-text-renderer {
+  line-height: 1.6;
+  color: #333;
+}
+
+.rich-text-renderer h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #eaecef;
+}
+
+.rich-text-renderer h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 1.2em 0 0.4em;
+}
+
+.rich-text-renderer h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 1em 0 0.3em;
+}
+
+.rich-text-renderer h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0.8em 0 0.2em;
+}
+
+.rich-text-renderer p {
+  margin: 0.8em 0;
+}
+
+.rich-text-renderer blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid #3498db;
+  background: #f8f9fa;
+  font-style: italic;
+  color: #555;
+}
+
+.rich-text-renderer ul,
+.rich-text-renderer ol {
+  margin: 0.8em 0;
+  padding-left: 2em;
+}
+
+.rich-text-renderer li {
+  margin: 0.3em 0;
+}
+
+.rich-text-renderer strong {
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.rich-text-renderer em {
+  font-style: italic;
+}
+
+.rich-text-renderer code {
+  padding: 0.2em 0.4em;
+  background: #f4f4f4;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.rich-text-renderer a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.rich-text-renderer a:hover {
+  text-decoration: underline;
+}
+
+.rich-text-renderer hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 1px solid #eaecef;
+}
+
+.rich-text-renderer br {
+  display: block;
+  margin: 0.5em 0;
+}
