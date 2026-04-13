@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from 'react';
 import { TestResult } from '../test-result/index';
-// import { TestListBox } from '../test-list-box';
 import { cfg } from 'app/config';
 import {
   TestQuestion, TestUserAnswers, TestUserAnswer, isTestCompleted, TestType, isFinalCompleted, useDevAnswers,
@@ -32,7 +31,6 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
   const [answers, setAnswers] = useState<TestUserAnswers>(() => devAnswers || {});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
-  const [retry, setRetry] = useState<boolean>(false);
   const isFinal = type === 'final';
   // Определяем, есть ли неверные ответы
   const isPassed = isFinal ? isFinalCompleted(score) : isTestCompleted(score);
@@ -55,45 +53,43 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
 
   const handleSubmit = () => {
-    // checkAnswer
-    const question = questions[0];
-    const userAnswer = answers[question.id];
-
-    // Простая проверка
-    const isCorrect = isAnswerCorrect(question, userAnswer);
-
-    // Детальная проверка
-    const details = getAnswerDetails(question, userAnswer);
-
-    if (isCorrect) {
-      console.log('✅ Правильно!')
-    }
-    else if (details.details?.partiallyCorrect) {
-      console.log(`⚠️ Частично правильно: ${details.details.correctCount} из ${details.details.totalCount}`)
-    }
-    else {
-      console.log('❌ Неправильно')
-    }
-
-    // eslint-disable-next-line prefer-const
     let correctCount = 0;
-    // TODO:
-    // questions.forEach(question => {
-    //   if (answers[question.id] === question.correctAnswer) {
-    //     correctCount++;
-    //   }
-    // });
+    questions.forEach(question => {
+      // checkAnswer
+      const userAnswer = answers[question.id];
 
-    const calculatedScore = (correctCount / questions.length) * 100;
+      // Простая проверка
+      const isCorrect = isAnswerCorrect(question, userAnswer);
+
+      // Детальная проверка
+      const details = getAnswerDetails(question, userAnswer);
+
+      if (isCorrect) {
+        console.log('✅ Правильно!');
+        correctCount += question.points;
+      }
+      else if (details.details?.partiallyCorrect) {
+        console.log(`⚠️ Частично правильно: ${details.details.correctCount} из ${details.details.totalCount}`);
+        correctCount += details.details.correctCount || 0;
+      }
+      else {
+        console.log('❌ Неправильно');
+      }
+    });
+
+    let allScores = 0;
+    questions.forEach(question => {
+      allScores += question.points;
+    });
+
+    const calculatedScore = (correctCount * 100) / allScores;
     setScore(calculatedScore);
     setSubmitted(true);
     onComplete(calculatedScore);
-    setRetry(false);
   };
 
   const handleRetry = () => {
     setSubmitted(false);
-    setRetry(true);
   };
 
   const hasWrongAnswers = submitted && score !== null && score < 100;
@@ -122,20 +118,9 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         />
       ))}
 
-      {/* <TestListBox
-        type           = 'inline'
-        score          = {score}
-        isRetry        = {retry}
-        isSubmitted    = {submitted}
-        answers        = {answers}
-        questions      = {questions}
-        onAnswerChange = {handleAnswerChange}
-        onSubmit       = {handleSubmit}
-        onRetry        = {handleRetry}
-      /> */}
       {! isPassed && submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
       {! isPassed && ! submitted && <TestCheckBtn
-        disabled = {Object.keys(answers).length !== questions.length}
+        disabled = {! Object.keys(answers).length}
         onClick  = {handleSubmit}
       />}
     </div>

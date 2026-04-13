@@ -33,4 +33,4 @@ root.render(
 
 
 
-// git add . && git commit -m "refacted RichTextRenderer, styles for MultipleChoice & TrueFalse" && git push -u origin main
+// git add . && git commit -m "refacted RichTextRenderer" && git push -u origin main

@@ -11,7 +11,6 @@ interface MultipleChoiceProps {
   isAnswerCorrect : boolean
   userAnswer?     : number[]
   showResult?     : boolean
-  disabled?       : boolean
   onAnswer        : (answer: TestUserAnswer) => void
 }
 
@@ -21,13 +20,12 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   isAnswerCorrect,
   userAnswer = [],
   showResult = false,
-  disabled   = false,
   onAnswer
 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer);
 
   const handleToggle = (index: number) => {
-    if (disabled) return
+    if (isSubmitted) return
 
     let newSelected: number[];
     if (question.allowMultiple) {
@@ -68,14 +66,14 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
           return (
             // eslint-disable-next-line jsx-a11y/label-has-associated-control
             <label
-              key={index}
-              className={`${styles.option} ${correctness === true ? styles.correct : ''} 
+              key       = {index}
+              className = {`${styles.option} ${correctness === true ? styles.correct : ''} 
                          ${correctness === false ? styles.incorrect : ''}`}
             >
               <input
                 type     = {question.allowMultiple ? 'checkbox' : 'radio'}
                 checked  = {selectedAnswers.includes(index)}
-                disabled = {disabled}
+                disabled = {isSubmitted}
                 onChange = {() => handleToggle(index)}
               />
               <span>{option}</span>

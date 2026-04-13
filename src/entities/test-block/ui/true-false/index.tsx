@@ -1,3 +1,4 @@
+import { cn } from 'shared/lib/styles/class-names'
 import { TrueFalseQuestion, TestUserAnswer } from '../../types'
 import { Explanation } from '../explanation'
 import styles from './index.module.scss'
@@ -9,7 +10,6 @@ interface TrueFalseProps {
   isAnswerCorrect : boolean
   userAnswer?     : boolean
   showResult?     : boolean
-  disabled?       : boolean
   onAnswer        : (answer: TestUserAnswer) => void
 }
 
@@ -19,11 +19,10 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
   isSubmitted,
   isAnswerCorrect,
   showResult = false,
-  disabled = false,
   onAnswer
 }) => {
   const handleAnswer = (value: boolean) => {
-    if (disabled) return
+    if (isSubmitted) return
 
     onAnswer({
       questionId: question.id,
@@ -36,7 +35,7 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
   const options = [
     { value: true, label: '✅ Верно' },
     { value: false, label: '❌ Неверно' }
-  ]
+  ];
 
   return (
     <div className={styles.trueFalse}>
@@ -56,13 +55,12 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
             <button
               key       = {option.value.toString()}
               type      = 'button'
-              disabled  = {disabled}
-              className = {`
-                ${styles.optionBtn} 
-                ${isSelected ? styles.selected : ''} 
-                ${isCorrect ? styles.correct : ''} 
-                ${isWrong ? styles.incorrect : ''}
-              `}
+              disabled  = {isSubmitted}
+              className = {cn(styles.optionBtn, {}, [
+                isSelected ? styles.selected : '',
+                isCorrect ? styles.correct : '',
+                isWrong ? styles.incorrect : ''
+              ])}
               onClick   = {() => handleAnswer(option.value)}
             >
               {option.label}

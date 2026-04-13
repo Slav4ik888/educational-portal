@@ -5,6 +5,8 @@ import { TrueFalse } from '../true-false'
 import { MatchPairs } from '../match-pairs'
 // import { OrderSteps } from '../order-steps'
 import styles from './index.module.scss'
+import { FillBlank } from '../fill-blank'
+import { cn } from 'shared/lib/styles/class-names'
 
 
 interface TestQuestionRendererProps {
@@ -69,15 +71,17 @@ export const TestQuestionRenderer: React.FC<TestQuestionRendererProps> = ({
           />
         )
 
-      // case 'fill-blank':
-      //   return (
-      //     <FillBlank
-      //       question={question}
-      //       userAnswer={userAnswer?.type === 'fill-blank' ? userAnswer.value : undefined}
-      //       onAnswer={onAnswer}
-      //       showResult={showResult}
-      //     />
-      //   )
+      case 'fill-blank':
+        return (
+          <FillBlank
+            question        = {question}
+            userAnswer      = {userAnswer?.type === 'fill-blank' ? userAnswer.value : undefined}
+            isSubmitted     = {isSubmitted}
+            isAnswerCorrect = {isAnswerCorrect}
+            showResult      = {showResult}
+            onAnswer        = {onAnswer}
+          />
+        )
 
       case 'match-pairs':
         return (
@@ -102,12 +106,17 @@ export const TestQuestionRenderer: React.FC<TestQuestionRendererProps> = ({
       //   )
 
       default:
-        return <div>Unknown question type</div>
+        return <div>Этот компонент теста ещё не отрисован</div>
     }
   }
 
   return (
-    <div className={`${styles.questionCard} ${styles[`type${TypeColor[question.type]}`]}`}>
+    <div
+      className={cn(styles.questionCard, {}, [
+        styles[`type${TypeColor[question.type]}`],
+        isSubmitted && ! isAnswerCorrect ? styles.wrongAnswer : ''
+      ])}
+    >
       <div className={styles.questionHeader}>
         <span className={styles.typeIcon}>{TypeIcon[question.type]}</span>
         <span className={styles.typeBadge}>{question.type}</span>
