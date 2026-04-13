@@ -1,58 +1,9 @@
-import { useState } from 'react'
-// @ts-ignore
-import { DndProvider, useDrag, useDrop } from 'react-dnd'
-// @ts-ignore
-import { HTML5Backend } from 'react-dnd-html5-backend'
+// import { DndProvider, useDrag, useDrop } from 'react-dnd'
+// import { HTML5Backend } from 'react-dnd-html5-backend'
+import { useState, useRef, useEffect } from 'react'
 import { MatchPairsQuestion, TestUserAnswer } from '../../types'
 import { Explanation } from '../explanation'
-
-
-const ItemType = 'MATCH_ITEM'
-
-interface DraggableItemProps {
-  id: string
-  text: string
-  matchedTo?: string
-  onDrop: (draggedId: string, targetId: string) => void
-}
-
-const DraggableItem: React.FC<DraggableItemProps> = ({ id, text, matchedTo, onDrop }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: ItemType,
-    item: { id },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    }),
-    canDrag: !matchedTo // уже сопоставленные нельзя перетаскивать
-  }))
-
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: ItemType,
-    drop: (item: { id: string }) => onDrop(item.id, id),
-    collect: (monitor) => ({
-      isOver: monitor.isOver()
-    })
-  }))
-
-  const dragAndDropRef = (element: HTMLDivElement | null) => {
-    if (element) {
-      drag(element);
-      drop(element);
-    }
-  };
-
-  return (
-    <div
-      // ref={(node) => drag(drop(node))}
-      ref={dragAndDropRef}
-      className={`match-item ${matchedTo ? 'matched' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'over' : ''}`}
-    >
-      {text}
-      {matchedTo && <span className='match-badge'>✓</span>}
-    </div>
-  )
-}
-
+import styles from './index.module.scss'
 
 interface MatchPairsProps {
   question        : MatchPairsQuestion
@@ -63,6 +14,13 @@ interface MatchPairsProps {
   disabled?       : boolean
   onAnswer        : (answer: TestUserAnswer) => void
 }
+
+interface DragData {
+  id   : string
+  type : 'left' | 'right'
+  text : string
+}
+
 export const MatchPairs: React.FC<MatchPairsProps> = ({
   question,
   userAnswer = {},
@@ -72,108 +30,260 @@ export const MatchPairs: React.FC<MatchPairsProps> = ({
   disabled,
   onAnswer
 }) => {
-  console.log('userAnswer: ', userAnswer);
+  const [matches, setMatches] = useState<Record<string, string>>(userAnswer);
+  const [draggedItem, setDraggedItem] = useState<DragData | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
-  const [matches, setMatches] = useState<Record<string, string>>(userAnswer)
+  // const leftItemsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+  // const rightItemsRef = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  const handleMatch = (leftId: string, rightId: string) => {
-    if (disabled) return
+  // Синхронизация с userAnswer
+  useEffect(() => {
+    setMatches(userAnswer);
+  }, [userAnswer]);
 
-    const newMatches = { ...matches }
-
-    // Если элемент уже сопоставлен, разрываем старую связь
-    const existingMatch = Object.entries(newMatches).find(([_, rId]) => rId === rightId)
-    if (existingMatch) {
-      delete newMatches[existingMatch[0]]
+  const handleDragStart = (e: React.DragEvent, id: string, type: 'left' | 'right', text: string) => {
+    if (disabled || isSubmitted) {
+      e.preventDefault();
+      return
     }
 
-    newMatches[leftId] = rightId
-    setMatches(newMatches)
+    // Для левых элементов, которые уже сопоставлены, запрещаем перетаскивание
+    if (type === 'left' && matches[id]) {
+      e.preventDefault();
+      return
+    }
+
+    setDraggedItem({ id, type, text });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id, type, text }));
+
+    // Добавляем класс для визуального эффекта
+    e.currentTarget.classList.add(styles.dragging);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedItem(null);
+    setDragOverItemId(null);
+
+    // Убираем классы со всех элементов
+    document.querySelectorAll(`.${styles.dragging}`).forEach(el => {
+      el.classList.remove(styles.dragging);
+    });
+    document.querySelectorAll(`.${styles.dragOver}`).forEach(el => {
+      el.classList.remove(styles.dragOver);
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent, id: string, type: 'left' | 'right') => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    if (!draggedItem) return
+
+    // Разрешаем drop только на правые элементы
+    if (type === 'right') {
+      setDragOverItemId(id);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    setDragOverItemId(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string, targetType: 'left' | 'right') => {
+    e.preventDefault();
+
+    if (!draggedItem || disabled || isSubmitted) return
+
+    // Обрабатываем drop только на правые элементы
+    if (targetType === 'right' && draggedItem.type === 'left') {
+      handleMatch(draggedItem.id, targetId);
+    }
+
+    setDraggedItem(null);
+    setDragOverItemId(null);
+  };
+
+  const handleMatch = (leftId: string, rightId: string) => {
+    const newMatches = { ...matches };
+
+    // Если элемент уже сопоставлен, разрываем старую связь
+    const existingMatch = Object.entries(newMatches).find(([_, rId]) => rId === rightId);
+    if (existingMatch) {
+      delete newMatches[existingMatch[0]];
+    }
+
+    newMatches[leftId] = rightId;
+    setMatches(newMatches);
 
     onAnswer({
-      questionId: question.id,
-      type: 'match-pairs',
-      value: newMatches
-    })
-  }
+      questionId : question.id,
+      type       : 'match-pairs',
+      value      : newMatches
+    });
+  };
+
+  const handleUnmatch = (leftId: string) => {
+    if (disabled || isSubmitted) return
+
+    const newMatches = { ...matches };
+    delete newMatches[leftId];
+    setMatches(newMatches);
+
+    onAnswer({
+      questionId : question.id,
+      type       : 'match-pairs',
+      value      : newMatches
+    });
+  };
 
   const isMatchCorrect = (leftId: string, rightId: string): boolean => {
-    const leftItem = question.leftItems.find(item => item.id === leftId)
+    const leftItem = question.leftItems.find(item => item.id === leftId);
     return leftItem?.matchId === rightId
-  }
+  };
 
-  // Расчет частичного балла
   const calculateScore = (): { score: number; correctMatches: number } => {
-    let correctMatches = 0
+    let correctMatches = 0;
     Object.entries(matches).forEach(([leftId, rightId]) => {
       if (isMatchCorrect(leftId, rightId)) correctMatches++
-    })
+    });
 
-    let score = 0
+    let score = 0;
     // eslint-disable-next-line default-case
     switch (question.scoringType) {
       case 'exact':
-        score = correctMatches === question.leftItems.length ? question.points : 0
+        score = correctMatches === question.leftItems.length ? question.points : 0;
         break
       case 'partial':
-        score = (correctMatches / question.leftItems.length) * question.points
+        score = (correctMatches / question.leftItems.length) * question.points;
         break
       case 'points-per-match':
-        score = correctMatches * (question.pointsPerMatch || 0)
+        score = correctMatches * (question.pointsPerMatch || 0);
         break
     }
 
     return { score, correctMatches }
-  }
+  };
+
+  const scoreInfo = calculateScore();
 
   return (
-    <>
-      <DndProvider backend={HTML5Backend}>
-        <div className='match-pairs'>
-          <h3>{question.text}</h3>
+    <div className={styles.matchPairs}>
+      <h3>{question.text}</h3>
 
-          <div className='match-container'>
-            <div className='left-column'>
-              <h4>Термины</h4>
-              {question.leftItems.map(item => (
-                <div key={item.id} className='left-item'>
-                  <span>{item.text}</span>
-                  {matches[item.id] && showResult && (
-                    <span className={isMatchCorrect(item.id, matches[item.id]) ? 'correct' : 'incorrect'}>
-                      {isMatchCorrect(item.id, matches[item.id]) ? '✓' : '✗'}
+      {question.points && (
+        <p className={styles.points}>Баллов: {question.points}</p>
+      )}
+
+      <div className={styles.matchContainer}>
+        {/* Левая колонка - Термины */}
+        <div className={styles.leftColumn}>
+          <h4 className={styles.columnTitle}>📝 Термины</h4>
+          <div className={styles.itemsList}>
+            {question.leftItems.map(item => {
+              const matchedRightId = matches[item.id];
+              const matchedItem = question.rightItems.find(r => r.id === matchedRightId);
+              const isCorrect = matchedRightId && isMatchCorrect(item.id, matchedRightId);
+
+              return (
+                <div
+                  key         = {item.id}
+                  className   = {`${styles.leftItem} ${matchedRightId ? styles.matched : ''}`}
+                  draggable   = {!disabled && !isSubmitted && !matchedRightId}
+                  onDragStart = {(e) => handleDragStart(e, item.id, 'left', item.text)}
+                  onDragEnd   = {handleDragEnd}
+                >
+                  <span className={styles.itemText}>{item.text}</span>
+                  {matchedRightId && (
+                    <div className={styles.matchInfo}>
+                      {
+                        isSubmitted && (
+                          <span className={`${styles.matchBadge} ${isCorrect ? styles.correct : styles.incorrect}`}>
+                            {isCorrect ? '✓' : '✗'}
+                          </span>
+                        )
+                      }
+                      <span className={styles.matchedWith}>
+                        → {matchedItem?.text}
+                      </span>
+                      {!isSubmitted && (
+                        <button
+                          type      = 'button'
+                          className = {styles.unmatchBtn}
+                          onClick   = {() => handleUnmatch(item.id)}
+                          title     = 'Отменить сопоставление'
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Правая колонка - Определения */}
+        <div className={styles.rightColumn}>
+          <h4 className={styles.columnTitle}>📖 Определения</h4>
+          <div className={styles.itemsList}>
+            {question.rightItems.map(item => {
+              const isMatched = Object.values(matches).includes(item.id)
+              const matchedLeftId = Object.entries(matches).find(([_, rId]) => rId === item.id)?.[0]
+              const isCorrectMatch = matchedLeftId && isMatchCorrect(matchedLeftId, item.id)
+
+              return (
+                <div
+                  key         = {item.id}
+                  onDragOver  = {(e) => handleDragOver(e, item.id, 'right')}
+                  onDragLeave = {handleDragLeave}
+                  onDrop      = {(e) => handleDrop(e, item.id, 'right')}
+                  className   = {`
+                    ${styles.rightItem} 
+                    ${isMatched ? styles.matched : ''}
+                    ${dragOverItemId === item.id ? styles.dragOver : ''}
+                  `}
+                >
+                  <span className={styles.itemText}>{item.text}</span>
+                  {isMatched && isSubmitted && (
+                    <span className={`${styles.matchIndicator} ${isCorrectMatch ? styles.correct : styles.incorrect}`}>
+                      {isCorrectMatch ? '✓' : '✗'}
                     </span>
                   )}
                 </div>
-              ))}
-            </div>
-
-            <div className='right-column'>
-              <h4>Определения</h4>
-              {question.rightItems.map(item => (
-                <DraggableItem
-                  key={item.id}
-                  id={item.id}
-                  text={item.text}
-                  matchedTo={Object.entries(matches).find(([_, rId]) => rId === item.id)?.[0]}
-                  onDrop={handleMatch}
-                />
-              ))}
-            </div>
+              )
+            })}
           </div>
-
-          {showResult && (
-            <div className='result'>
-              <p>Правильных сопоставлений: {calculateScore().correctMatches} из {question.leftItems.length}</p>
-              <p>Баллов: {calculateScore().score} / {question.points}</p>
-            </div>
-          )}
         </div>
-      </DndProvider>
+      </div>
+
+      {showResult && (
+        <div className={styles.resultInfo}>
+          <div className={styles.scoreBadge}>
+            <span className={styles.scoreValue}>
+              {Math.round(scoreInfo.score)} / {question.points}
+            </span>
+            <span className={styles.scoreLabel}>баллов</span>
+          </div>
+          <div className={styles.progressBar}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${(scoreInfo.correctMatches / question.leftItems.length) * 100}%` }}
+            />
+          </div>
+          <p className={styles.scoreText}>
+            Правильных сопоставлений: {scoreInfo.correctMatches} из {question.leftItems.length}
+          </p>
+        </div>
+      )}
+
       <Explanation
-        isAnswerCorrect = {isAnswerCorrect}
-        question        = {question}
-        isSubmitted     = {isSubmitted}
+        isAnswerCorrect={isAnswerCorrect}
+        question={question}
+        isSubmitted={isSubmitted}
       />
-    </>
+    </div>
   )
 }

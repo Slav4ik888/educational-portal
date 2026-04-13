@@ -8,7 +8,6 @@ import { ContentBlockType, TheoryBlock } from 'entities/article';
 import { decrementString } from '../utils';
 import { Congratulation } from './congratulation';
 import styles from './article-reader.module.scss';
-import { cfg } from 'app/config/index';
 
 
 
@@ -46,17 +45,6 @@ export const ArticleReader: FC<Props> = ({
     }
   }, [savedProgress]);
 
-  // const handleTheoryComplete = (blockId: string) => {
-  //   const newCompleted = new Set(completedBlocks);
-  //   newCompleted.add(blockId);
-  //   setCompletedBlocks(newCompleted);
-
-  //   dispatch(userProgressActions.updateBlockProgress({
-  //     articleId,
-  //     blockId,
-  //     completed: true,
-  //   }));
-  // };
 
   const handleTestComplete = (blockId: string, score: number) => {
     const isCompleted = isTestCompleted(score);
@@ -125,6 +113,7 @@ export const ArticleReader: FC<Props> = ({
         {/* Теоретические и тестовые блоки */}
         {blocks.map((block, index) => {
           const isCompleted = completedBlocks.has(block.id);
+          if (block.type === 'test' && isCompleted) return null
 
           return (
             <div

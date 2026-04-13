@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MultipleChoiceQuestion, TestUserAnswer } from '../../types';
 import { Explanation } from '../explanation';
 import styles from './index.module.scss';
@@ -23,6 +23,22 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   onAnswer
 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(userAnswer);
+
+  // Используем ref для хранения предыдущего значения
+  const prevUserAnswerRef = useRef<number[]>(userAnswer);
+
+  // Синхронизация внутреннего состояния с входящим пропсом userAnswer
+  // Синхронизация с проверкой на реальное изменение
+  useEffect(() => {
+    // Сравниваем массивы по содержимому
+    const hasChanged = userAnswer.length !== prevUserAnswerRef.current.length
+      || userAnswer.some((value, index) => value !== prevUserAnswerRef.current[index]);
+
+    if (hasChanged) {
+      setSelectedAnswers(userAnswer);
+      prevUserAnswerRef.current = userAnswer;
+    }
+  }, [userAnswer]);
 
   const handleToggle = (index: number) => {
     if (isSubmitted) return
@@ -87,9 +103,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
         question        = {question}
         isSubmitted     = {isSubmitted}
       />
-      {/* {showResult && question.explanation && (
-        <div className='explanation'>{question.explanation}</div>
-      )} */}
     </div>
   )
 }

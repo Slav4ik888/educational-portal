@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { FC, useEffect, useState } from 'react';
 import { TestResult } from '../test-result/index';
 import { cfg } from 'app/config';
@@ -21,19 +22,23 @@ interface Props {
 }
 
 export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore, onComplete }) => {
-  // Автоматически заполняем ответы в режиме разработки
-  const devAnswers = useDevAnswers(questions, {
-    enabled          : cfg.IS_DEV,
-    correctnessRatio : 1,    // Все ответы правильные
-    useLocalStorage  : false
-  });
-
-  const [answers, setAnswers] = useState<TestUserAnswers>(() => devAnswers || {});
+  const [answers, setAnswers] = useState<TestUserAnswers>({});
   const [submitted, setSubmitted] = useState(isCompleted);
   const [score, setScore] = useState<number | null>(savedScore || null);
   const isFinal = type === 'final';
   // Определяем, есть ли неверные ответы
   const isPassed = isFinal ? isFinalCompleted(score) : isTestCompleted(score);
+
+  // Автоматически заполняем ответы в режиме разработки
+  const devAnswers = useDevAnswers(questions, {
+    enabled          : cfg.IS_DEV, // false, //
+    correctnessRatio : 1,    // Все ответы правильные
+    useLocalStorage  : false
+  });
+
+  useEffect(() => {
+    setAnswers(devAnswers || {});
+  }, [devAnswers]);
 
 
   // Восстанавливаем сохраненные ответы
@@ -65,15 +70,16 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
       const details = getAnswerDetails(question, userAnswer);
 
       if (isCorrect) {
-        console.log('✅ Правильно!');
+        cfg.IS_DEV && console.log('✅ Правильно!');
         correctCount += question.points;
       }
       else if (details.details?.partiallyCorrect) {
-        console.log(`⚠️ Частично правильно: ${details.details.correctCount} из ${details.details.totalCount}`);
-        correctCount += details.details.correctCount || 0;
+        const d = details.details;
+        cfg.IS_DEV && console.log(`⚠️ Частично правильно: ${d.correctCount} из ${d.totalCount}`);
+        correctCount += d.correctCount || 0;
       }
       else {
-        console.log('❌ Неправильно');
+        cfg.IS_DEV && console.log('❌ Неправильно');
       }
     });
 
@@ -94,6 +100,9 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
   const hasWrongAnswers = submitted && score !== null && score < 100;
 
+  if (isPassed) return null
+
+
   return (
     <div className={styles.testBlock}>
       {
@@ -107,7 +116,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         )
       }
 
-      {questions.map(question => (
+      {! isPassed && questions.map(question => (
         <TestQuestionRenderer
           key             = {question.id}
           isSubmitted     = {submitted}

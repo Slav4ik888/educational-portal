@@ -7,6 +7,7 @@ import { MatchPairs } from '../match-pairs'
 import styles from './index.module.scss'
 import { FillBlank } from '../fill-blank'
 import { cn } from 'shared/lib/styles/class-names'
+import { OrderSteps } from '../order-steps'
 
 
 interface TestQuestionRendererProps {
@@ -90,20 +91,22 @@ export const TestQuestionRenderer: React.FC<TestQuestionRendererProps> = ({
             userAnswer      = {userAnswer?.type === 'match-pairs' ? userAnswer.value : {}}
             isSubmitted     = {isSubmitted}
             isAnswerCorrect = {isAnswerCorrect}
-            showResult      = {showResult}
+            showResult      = {isSubmitted}
             onAnswer        = {onAnswer}
           />
         )
 
-      // case 'order-steps':
-      //   return (
-      //     <OrderSteps
-      //       question={question}
-      //       userAnswer={userAnswer?.type === 'order-steps' ? userAnswer.value : undefined}
-      //       onAnswer={onAnswer}
-      //       showResult={showResult}
-      //     />
-      //   )
+      case 'order-steps':
+        return (
+          <OrderSteps
+            question        = {question}
+            userAnswer      = {userAnswer?.type === 'order-steps' ? userAnswer.value : undefined}
+            isSubmitted     = {isSubmitted}
+            isAnswerCorrect = {isAnswerCorrect}
+            showResult      = {isSubmitted}
+            onAnswer        = {onAnswer}
+          />
+        )
 
       default:
         return <div>Этот компонент теста ещё не отрисован</div>

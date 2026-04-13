@@ -1,0 +1,334 @@
+// components/OrderSteps/index.module.scss
+
+.orderSteps {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  margin: 24px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+  }
+
+  .points {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 6px 14px;
+    border-radius: 24px;
+    margin: 0 0 20px 0;
+    width: fit-content;
+
+    &::before {
+      content: '⭐';
+      font-size: 0.875rem;
+    }
+  }
+
+  .stepsContainer {
+    margin: 20px 0;
+  }
+
+  .stepsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stepItem {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.25s ease;
+    cursor: grab;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    &:hover:not(.dragging) {
+      border-color: #3b82f6;
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+      background: #ffffff;
+    }
+
+    &.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+      transform: scale(0.98);
+    }
+
+    &.correct {
+      background: #f0fdf4;
+      border-color: #22c55e;
+
+      .stepNumber .number {
+        background: #22c55e;
+        color: white;
+      }
+    }
+
+    &.incorrect {
+      background: #fef2f2;
+      border-color: #ef4444;
+
+      .stepNumber .number {
+        background: #ef4444;
+        color: white;
+      }
+    }
+
+    .stepNumber {
+      flex-shrink: 0;
+
+      .number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: #cbd5e0;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+        transition: all 0.2s ease;
+      }
+    }
+
+    .stepContent {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+
+      .stepText {
+        flex: 1;
+
+        strong {
+          font-size: 1rem;
+          color: #1e293b;
+          font-weight: 600;
+        }
+
+        .stepDescription {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 4px 0 0 0;
+          line-height: 1.4;
+        }
+      }
+
+      .stepControls {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+
+        button {
+          width: 32px;
+          height: 32px;
+          border: 1px solid #cbd5e0;
+          background: #ffffff;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+          color: #475569;
+
+          &:hover:not(:disabled) {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            transform: scale(1.05);
+          }
+
+          &:active:not(:disabled) {
+            transform: scale(0.95);
+          }
+
+          &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .resultIcon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.25rem;
+      font-weight: bold;
+      flex-shrink: 0;
+
+      .correct & {
+        color: #22c55e;
+      }
+
+      .incorrect & {
+        color: #ef4444;
+      }
+    }
+  }
+
+  .dragHint {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+
+    .hintIcon {
+      font-size: 1.25rem;
+    }
+
+    .hintText {
+      font-size: 0.875rem;
+      color: #475569;
+    }
+  }
+
+  .resultInfo {
+    margin-top: 24px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+
+    .scoreBadge {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .scoreValue {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #3b82f6;
+      }
+
+      .scoreLabel {
+        font-size: 0.875rem;
+        color: #64748b;
+      }
+    }
+
+    .progressBar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+
+      .progressFill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+      }
+    }
+
+    .scoreText {
+      font-size: 0.875rem;
+      color: #475569;
+      margin: 0;
+      text-align: center;
+    }
+  }
+}
+
+// Адаптивность для мобильных устройств
+@media (max-width: 768px) {
+  .orderSteps {
+    padding: 18px;
+    margin: 16px 0;
+
+    h3 {
+      font-size: 1.125rem;
+    }
+
+    .stepItem {
+      padding: 12px;
+      flex-wrap: wrap;
+
+      .stepContent {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .stepControls {
+          align-self: flex-end;
+        }
+      }
+
+      .stepNumber .number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.875rem;
+      }
+    }
+
+    .dragHint {
+      padding: 10px 12px;
+
+      .hintText {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
+
+// Клавиатурная навигация
+.stepItem:focus-visible,
+.stepControls button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+// Анимация для правильных ответов
+@keyframes correctPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.stepItem.correct {
+  animation: correctPulse 0.5s ease;
+}
