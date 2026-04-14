@@ -32,4 +32,4 @@ root.render(
 
 
 
-// git add . && git commit -m "used __IS_DEV__" && git push -u origin main
+// git add . && git commit -m "refacted RichTextRenderer & added 2 articles" && git push -u origin main

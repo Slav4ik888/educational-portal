@@ -69,71 +69,6 @@
       background: #eff6ff;
     }
   }
-  
-  // ========== Стили для блоков кода ==========
-  .codeBlock {
-    background: #99a0ab;
-    color: #11161d;
-    padding: 16px 20px;
-    border-radius: 12px;
-    overflow-x: auto;
-    font-family: 'Courier New', 'Fira Code', monospace;
-    font-size: 1.2rem;
-    line-height: 1.5;
-    margin: 1.2em 0;
-    
-    code {
-      background: transparent;
-      padding: 0;
-      font-family: inherit;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-  }
-  
-  // ========== Стили для таблиц ==========
-  .tableWrapper {
-    overflow-x: auto;
-    margin: 1.2em 0;
-  }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    background: #ffffff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    
-    th,
-    td {
-      border: 1px solid #e2e8f0;
-      padding: 12px 16px;
-      text-align: left;
-      vertical-align: top;
-    }
-    
-    th {
-      background: #f8fafc;
-      font-weight: 600;
-      color: #0f172a;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    
-    td {
-      color: #334155;
-    }
-    
-    // Чередование строк для улучшения читаемости
-    tbody tr:nth-child(even) {
-      background: #fafcff;
-    }
-    
-    tbody tr:hover {
-      background: #f1f5f9;
-    }
-  }
 }
 
 // Стили для тултипа
@@ -184,25 +119,6 @@
     .glossary-tooltip-content {
       font-size: 0.8rem;
       padding: 8px 10px;
-    }
-  }
-}
-
-// Адаптация для мобильных устройств
-@media (max-width: 768px) {
-  .richTextRenderer {
-    .codeBlock {
-      padding: 12px 16px;
-      font-size: 0.8rem;
-    }
-
-    .table {
-
-      th,
-      td {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-      }
     }
   }
 }

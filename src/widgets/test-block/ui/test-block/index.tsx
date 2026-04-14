@@ -24,6 +24,7 @@ interface Props {
 export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore, onComplete }) => {
   const [answers, setAnswers] = useState<TestUserAnswers>({});
   const [submitted, setSubmitted] = useState(isCompleted);
+  const [retry, setRetry] = useState(false);
   const [score, setScore] = useState<number | null>(savedScore || null);
   const isFinal = type === 'final';
   // Определяем, есть ли неверные ответы
@@ -53,7 +54,6 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
     if (! submitted) {
       setAnswers((prev: TestUserAnswers) => ({ ...prev, [answer.questionId]: answer }));
     }
-    // TODO: В dev режиме не сохраняем ответы пользователя
   };
 
 
@@ -96,12 +96,13 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
   const handleRetry = () => {
     setSubmitted(false);
+    setRetry(true);
   };
 
-  const hasWrongAnswers = submitted && score !== null && score < 100;
+  const hasWrongAnswers = (submitted && score !== null && score < 100)
+    || (! submitted && isPassed);
 
-  if (isPassed) return null
-
+  if (isPassed && ! hasWrongAnswers) return null
 
   return (
     <div className={styles.testBlock}>
@@ -116,7 +117,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         )
       }
 
-      {! isPassed && questions.map(question => (
+      {(! isPassed || hasWrongAnswers) && questions.map(question => (
         <TestQuestionRenderer
           key             = {question.id}
           isSubmitted     = {submitted}
@@ -127,11 +128,14 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
         />
       ))}
 
-      {! isPassed && submitted && hasWrongAnswers && <TestRetryBtn onClick={handleRetry} />}
-      {! isPassed && ! submitted && <TestCheckBtn
-        disabled = {! Object.keys(answers).length}
-        onClick  = {handleSubmit}
-      />}
+      {((! isPassed && submitted) || (submitted && hasWrongAnswers)) && <TestRetryBtn onClick={handleRetry} />}
+      {((! submitted && ! retry)
+        || (! submitted && ! isPassed)
+        || (! submitted && retry))
+        && <TestCheckBtn
+          disabled = {! Object.keys(answers).length}
+          onClick  = {handleSubmit}
+        />}
     </div>
   );
 };

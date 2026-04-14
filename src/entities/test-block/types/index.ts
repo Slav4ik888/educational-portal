@@ -1,17 +1,5 @@
 export type TestType = 'final' | 'inline'
 
-// /** Тип теста */
-// export interface TestQuestionType {
-//   id            : string
-//   text          : string
-//   options       : string[]
-//   correctAnswer : number
-// }
-
-// /** Ответы пользователя */
-// export type TestUserAnswers = Record<string, number>
-
-
 /** Базовый тип для всех вопросов */
 export interface BaseQuestion {
   id           : string

@@ -96,6 +96,7 @@ export const ArticleReader: FC<Props> = ({
   const hasFinalTest = finalTest.length > 0;
   // const isArticleCompleted = finalTestCompleted && allBlocksCompleted;
 
+
   return (
     <div className={styles.articleReader}>
       <div className={styles.progressHeader}>
