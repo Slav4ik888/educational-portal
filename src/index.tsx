@@ -4,7 +4,6 @@ import { ErrorBoundary } from 'app/providers/error-boundary';
 import { App } from './app';
 import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
-// import 'regenerator-runtime/runtime';
 import './index.module.scss';
 
 
@@ -33,4 +32,4 @@ root.render(
 
 
 
-// git add . && git commit -m "added https://slav4ik888.github.io/educational-portal" && git push -u origin main
+// git add . && git commit -m "used __IS_DEV__" && git push -u origin main

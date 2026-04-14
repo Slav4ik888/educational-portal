@@ -1,7 +1,10 @@
 # 📚 Образовательный портал "Как работают LLM"
 
 Интерактивное React-приложение для изучения больших языковых моделей (LLM) с встроенными тестами и глоссарием.
-[🌐 Открыть образовательный портал](https://slav4ik888.github.io/educational-portal "Перейти к приложению")
+
+## 🚀 Демо
+
+👉 **Попробовать онлайн:** [https://slav4ik888.github.io/educational-portal](https://slav4ik888.github.io/educational-portal)
 
 ## 🎯 О проекте
 
