@@ -1,40 +1,27 @@
 import { FC, useState } from 'react';
+import { llmGlossaryTerms } from 'entities/glossary';
 import { RichTextRenderer } from 'shared/ui/rich-text-render';
 import styles from './theory-block.module.scss';
 
 
 
 interface TheoryBlockProps {
-  content     : string
-  isCompleted : boolean
-  // onComplete  : () => void
+  content         : string
+  isCompleted     : boolean
+  enableGlossary? : boolean
 }
 
-export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted }) => {
+export const TheoryBlock: FC<TheoryBlockProps> = ({ content, isCompleted, enableGlossary }) => {
   const [isMarkedCompleted, setIsMarkedCompleted] = useState(isCompleted);
-
-  // const handleComplete = () => {
-  //   if (! isMarkedCompleted) {
-  //     setIsMarkedCompleted(true);
-  //     // onComplete();
-  //   }
-  // };
 
   return (
     <div className={styles.theoryBlock}>
       <div className={styles.theoryContent}>
-        <RichTextRenderer text={content} />
+        <RichTextRenderer
+          text          = {content}
+          glossaryTerms = {llmGlossaryTerms}  // Просто передаём термины
+        />
       </div>
-
-      {/* {! isMarkedCompleted && (
-        <button
-          type='button'
-          className={styles.markCompleteButton}
-          onClick={handleComplete}
-        >
-          ✓ Отметить как пройденное
-        </button>
-      )} */}
 
       {isMarkedCompleted && (
         <div className={styles.completedIndicator}>

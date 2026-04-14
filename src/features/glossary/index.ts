@@ -1,0 +1,1 @@
+export { GlossaryText } from './ui'

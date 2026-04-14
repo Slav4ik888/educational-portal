@@ -2,7 +2,7 @@ import { sec } from 'shared/helpers/dates'
 
 export const cfg = {
   VERSION                 : '1.0.0',
-  ASSEMBLY_DATE           : '2026-04-08',
+  ASSEMBLY_DATE           : '2026-04-14',
 
   COOKIE_NAME             : 'education-portal',
   DEFAULT_MESSAGE_TIMEOUT : sec(6),
@@ -17,6 +17,6 @@ export const cfg = {
   IS_EXPERIMENTAL : false,
 
   // TODO: set IS_DEV = false before PRODUCTION
-  IS_DEV          : true,
+  IS_DEV          : false,
   // SET_ANSWERS     : true, // По умолчанию расставить верные ответы
 }

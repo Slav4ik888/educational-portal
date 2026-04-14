@@ -1,4 +1,19 @@
 .articleReader {
+  position: relative;
+  overflow-x: visible !important; // Чтобы тултипы не обрезались
+
+  .theoryBlock {
+    position: relative;
+    overflow-x: visible !important;
+    margin-bottom: 2rem;
+
+    // Убираем overflow hidden с родительских контейнеров
+    &,
+    & * {
+      overflow-x: visible !important;
+    }
+  }
+  
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 24px;

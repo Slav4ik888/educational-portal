@@ -12,14 +12,16 @@ import styles from './article-reader.module.scss';
 
 
 interface Props {
-  blocks     : ContentBlockType[]
-  finalTest? : TestQuestion[]
-  articleId  : string
+  blocks          : ContentBlockType[]
+  finalTest?      : TestQuestion[]
+  enableGlossary? : boolean
+  articleId       : string
 }
 
 export const ArticleReader: FC<Props> = ({
   blocks,
   finalTest = [],
+  enableGlossary = true,
   articleId
 }) => {
   const dispatch = useDispatch();
@@ -136,6 +138,7 @@ export const ArticleReader: FC<Props> = ({
               <div className={styles.blockContent}>
                 {block.type === 'theory' && block.content && (
                   <TheoryBlock
+                    enableGlossary
                     content     = {block.content}
                     isCompleted = {isCompleted}
                     // onComplete  = {() => handleTheoryComplete(block.id)}
