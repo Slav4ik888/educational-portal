@@ -1,7 +1,6 @@
 import { FC, useEffect } from 'react';
 import { highlightTerms } from '../../lib';
 import { GlossaryTerm } from 'entities/glossary';
-// import styles from './index.module.scss';
 
 
 
@@ -127,5 +126,6 @@ export const GlossaryText: FC<Props> = ({
     };
   }, [html]);
 
+  // eslint-disable-next-line react/no-danger
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 };

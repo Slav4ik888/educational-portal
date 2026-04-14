@@ -12,7 +12,6 @@ interface Props {
   glossaryTerms?: GlossaryTerm[];  // Опциональные термины для глоссария
 }
 
-
 export const RichTextRenderer: FC<Props> = ({ text, glossaryTerms = [] }) => {
   // Применяем глоссарий к тексту
   const processText = (content: string, key: number): ReactNode => {

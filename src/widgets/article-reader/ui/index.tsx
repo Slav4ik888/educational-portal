@@ -21,7 +21,6 @@ interface Props {
 export const ArticleReader: FC<Props> = ({
   blocks,
   finalTest = [],
-  enableGlossary = true,
   articleId
 }) => {
   const dispatch = useDispatch();
@@ -137,12 +136,7 @@ export const ArticleReader: FC<Props> = ({
 
               <div className={styles.blockContent}>
                 {block.type === 'theory' && block.content && (
-                  <TheoryBlock
-                    enableGlossary
-                    content     = {block.content}
-                    isCompleted = {isCompleted}
-                    // onComplete  = {() => handleTheoryComplete(block.id)}
-                  />
+                  <TheoryBlock content={block.content} />
                 )}
 
                 {block.type === 'test' && block.questions && (

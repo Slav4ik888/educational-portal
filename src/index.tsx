@@ -33,4 +33,4 @@ root.render(
 
 
 
-// git add . && git commit -m "added Glossary" && git push -u origin main
+// git add . && git commit -m "added https://slav4ik888.github.io/educational-portal" && git push -u origin main

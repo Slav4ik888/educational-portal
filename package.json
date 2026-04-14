@@ -4,6 +4,8 @@
   "description": "<!--  -->",
   "main": "index.js",
   "scripts": {
+    "predeploy": "npm run build:prod",
+    "deploy": "gh-pages -d build",
     "dev": "npm run client",
     "client": "NODE_OPTIONS=--max-old-space-size=4096 webpack serve --env mode=development port=3000 apiUrl=http://localhost:7575 --hot",
     "build:prod": "webpack --env mode=production",
@@ -32,7 +34,7 @@
   "imports": {
     "#*": "./src/*"
   },
-  "homepage": "https://github.com/Slav4ik888/educational-portal#readme",
+  "homepage": "https://github.com/Slav4ik888/educational-portal",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.15.0",
@@ -77,6 +79,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-slavchik888-plugin": "^0.0.2",
     "file-loader": "^6.2.0",
+    "gh-pages": "^6.3.0",
     "html-webpack-plugin": "^5.6.6",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
