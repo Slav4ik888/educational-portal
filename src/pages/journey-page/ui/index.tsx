@@ -100,7 +100,9 @@ const ActivityCard: FC<ActivityCardProps> = ({
         <span className={styles.pointsBadge}>{activity.points} XP</span>
       </div>
 
-      <div className={styles.activityQuestion}>{activity.text}</div>
+      {activity.type !== 'fill-blank' && (
+        <div className={styles.activityQuestion}>{activity.text}</div>
+      )}
 
       <ActivityRenderer
         activity       = {activity}
