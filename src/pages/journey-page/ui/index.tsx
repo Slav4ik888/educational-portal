@@ -275,13 +275,11 @@ export const JourneyPage: FC = () => {
   // Refs to access current values inside the timer callback without re-creating it
   const timerExpiredRef  = useRef(false)
   const submittedRef     = useRef(false)   // mirrors `submitted` state for use in callbacks
-  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const checkpointRef    = useRef(checkpoint)
   const answersRef       = useRef(answers)
-  const timerTotalRef    = useRef(timerTotal)
   checkpointRef.current  = checkpoint
   answersRef.current     = answers
-  timerTotalRef.current  = timerTotal
 
   /**
    * Award XP for the current checkpoint exactly once.
@@ -340,26 +338,13 @@ export const JourneyPage: FC = () => {
     if (timerExpiredRef.current) return
     timerExpiredRef.current = true
 
-    // If the user already finished manually, the timer was paused — this path
-    // should never fire.  Guard anyway to be safe.
+    // If the user already finished manually, nothing to do.
     if (submittedRef.current) return
 
+    // Show the penalty banner but let the user keep working.
+    // XP penalty (×0.5) is applied when they actually submit/advance.
     setTimedOut(true)
-    setSubmitted(true)
-    submittedRef.current = true
-
-    const cp = checkpointRef.current
-    if (!cp) return
-
-    // Award 50% XP (penalised); lightning never fires on timeout (elapsed ≥ total)
-    awardCheckpointXP(0.5, 0, timerTotalRef.current)
-
-    // Persist timed-out state to Redux and auto-advance after 2.5s
-    dispatch(journeyActions.completeCheckpointTimedOut(cp.id))
-    autoAdvanceTimer.current = setTimeout(() => {
-      dispatch(journeyActions.nextCheckpoint())
-    }, 2500)
-  }, [dispatch, awardCheckpointXP])
+  }, [])
 
   const timer = useCheckpointTimer(timerTotal, handleTimeOut)
 
@@ -369,12 +354,8 @@ export const JourneyPage: FC = () => {
     if (submitted) timer.pause()
   }, [submitted, timer])
 
-  // Reset per-checkpoint local state when checkpoint changes; clear pending auto-advance
+  // Reset per-checkpoint local state when checkpoint changes
   useEffect(() => {
-    if (autoAdvanceTimer.current !== null) {
-      clearTimeout(autoAdvanceTimer.current)
-      autoAdvanceTimer.current = null
-    }
     timerExpiredRef.current = false
     submittedRef.current    = false
     timer.reset(timerTotal)
@@ -384,11 +365,6 @@ export const JourneyPage: FC = () => {
     setEvaluatingSet(new Set())
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCheckpointIdx])
-
-  // Clean up auto-advance timer on unmount
-  useEffect(() => () => {
-    if (autoAdvanceTimer.current !== null) clearTimeout(autoAdvanceTimer.current)
-  }, [])
 
   // Show achievement toast when pending
   useEffect(() => {
@@ -475,8 +451,9 @@ export const JourneyPage: FC = () => {
     : aiAllEvaluated
 
   const handleCheck = () => {
-    const elapsed = timerTotal - timer.remaining
-    awardCheckpointXP(1, timer.pct, elapsed)
+    const elapsed    = timerTotal - timer.remaining
+    const speedMult  = timedOut ? 0.5 : 1
+    awardCheckpointXP(speedMult, timedOut ? 0 : timer.pct, elapsed)
     setSubmitted(true)
     submittedRef.current = true
   }
@@ -485,17 +462,21 @@ export const JourneyPage: FC = () => {
     // Award XP if the user reached here without going through handleCheck
     // (i.e., pure-AI checkpoint where submitted was never set)
     if (!submittedRef.current) {
-      const elapsed = timerTotal - timer.remaining
-      awardCheckpointXP(1, timer.pct, elapsed)
+      const elapsed   = timerTotal - timer.remaining
+      const speedMult = timedOut ? 0.5 : 1
+      awardCheckpointXP(speedMult, timedOut ? 0 : timer.pct, elapsed)
       submittedRef.current = true
     }
+    const completeAction = timedOut
+      ? journeyActions.completeCheckpointTimedOut
+      : journeyActions.completeCheckpoint
     if (finish) {
-      dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
+      dispatch(completeAction(checkpoint!.id))
       navigate(`/journey/${journey.id}/report`)
     } else {
       setTransitioning(true)
       setTimeout(() => {
-        dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
+        dispatch(completeAction(checkpoint!.id))
         dispatch(journeyActions.nextCheckpoint())
         setTransitioning(false)
       }, 350)
@@ -558,10 +539,10 @@ export const JourneyPage: FC = () => {
         </div>
       ) : checkpoint && (
         <div className={`${styles.checkpoint} ${transitioning ? styles.cpTransitionOut : styles.cpTransitionIn}`}>
-          {/* Timed-out warning — auto-advance fires after 2.5s */}
+          {/* Timed-out warning — user can still answer but earns half XP */}
           {timedOut && (
             <div className={styles.timerExpiredBanner}>
-              ⏰ Время вышло — начислено 50% XP за выполненные задания. Переход к следующему чекпоинту…
+              ⏰ Время вышло — максимальный XP за этот чекпоинт уменьшен вдвое. Завершите задания, чтобы продолжить.
             </div>
           )}
 
@@ -589,10 +570,7 @@ export const JourneyPage: FC = () => {
           </div>
 
           <div className={styles.actions}>
-            {timedOut ? (
-              /* Auto-advance is pending — block all manual navigation */
-              null
-            ) : !submitted ? (
+            {!submitted ? (
               nonAiActivities.length > 0 ? (
                 <button
                   className = {styles.checkBtn}
