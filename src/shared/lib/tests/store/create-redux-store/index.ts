@@ -6,16 +6,18 @@ import { createReducerManager } from 'app/providers/store/config/reducer-manager
 import { articleReducer } from 'entities/article';
 import { userProgressReducer } from 'entities/user-progress';
 import { journeyReducer } from 'entities/journey';
+import { gamificationReducer } from 'entities/gamification';
 
 
 
 export function createReduxStore(initialState: DeepPartial<StateSchema>) {
   const
     rootReducers: ReducersMapObject<StateSchema> = {
-      ui           : uiReducer,
-      article      : articleReducer,
-      userProgress : userProgressReducer,
-      journey      : journeyReducer,
+      ui            : uiReducer,
+      article       : articleReducer,
+      userProgress  : userProgressReducer,
+      journey       : journeyReducer,
+      gamification  : gamificationReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {

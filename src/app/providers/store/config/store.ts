@@ -6,6 +6,7 @@ import { api } from 'shared/api';
 import { articleReducer } from 'entities/article';
 import { userProgressReducer } from 'entities/user-progress';
 import { journeyReducer } from 'entities/journey';
+import { gamificationReducer } from 'entities/gamification';
 
 
 export function createReduxStore(
@@ -17,10 +18,11 @@ export function createReduxStore(
       ...asyncReducers,
 
       // Entities
-      ui           : uiReducer,
-      article      : articleReducer,
-      userProgress : userProgressReducer,
-      journey      : journeyReducer
+      ui            : uiReducer,
+      article       : articleReducer,
+      userProgress  : userProgressReducer,
+      journey       : journeyReducer,
+      gamification  : gamificationReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {

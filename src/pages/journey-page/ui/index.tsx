@@ -1,4 +1,4 @@
-import { FC, useState, useCallback } from 'react'
+import { FC, useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
@@ -10,7 +10,9 @@ import {
   ActivityRenderer,
   AI_EVALUATED_TYPES,
 } from 'entities/journey'
+import { gamificationActions } from 'entities/gamification'
 import { evaluateAnswer } from 'shared/lib/ai'
+import { useCheckpointTimer } from 'shared/lib/hooks/use-checkpoint-timer'
 import styles from './journey-page.module.scss'
 
 function isAiEvaluated(a: JourneyActivity): a is AiEvaluatedActivity {
@@ -50,14 +52,46 @@ const TYPE_COLOR: Record<string, string> = {
   'debug-the-logic'      : 'rose',
 }
 
+function checkActivityCorrect(activity: JourneyActivity, ans: ActivityAnswer | undefined): boolean {
+  if (!ans) return false
+  if (activity.type === 'multiple-choice') {
+    const val = ans.value as number[]
+    return val?.length === activity.correctAnswers.length &&
+      activity.correctAnswers.every(c => val.includes(c))
+  }
+  if (activity.type === 'true-false') {
+    return ans.value === activity.correctAnswer
+  }
+  if (activity.type === 'fill-blank') {
+    const vals = ans.value as Record<string, string>
+    const norm = activity.caseSensitive
+      ? (s: string) => s
+      : (s: string) => s.toLowerCase()
+    return activity.blanks.every(b => {
+      const v = (vals?.[b.id] ?? '').trim()
+      return norm(v) === norm(b.correctAnswer) ||
+        (b.alternatives ?? []).some(a => norm(v) === norm(a))
+    })
+  }
+  if (AI_EVALUATED_TYPES.has(activity.type)) {
+    return (ans.aiScore ?? 0) >= 50
+  }
+  return false
+}
+
+/** Seconds for a checkpoint based on activity count */
+function cpTimerSeconds(activityCount: number): number {
+  return Math.min(300, Math.max(180, 120 + activityCount * 40))
+}
+
 interface ActivityCardProps {
-  activity         : JourneyActivity
-  answer           : ActivityAnswer | undefined
-  globalSubmitted  : boolean
-  evalSubmitted    : Set<string>
-  evaluatingSet    : Set<string>
-  onAnswer         : (ans: ActivityAnswer) => void
-  onSubmitForEval  : (activityId: string, value: string) => void
+  activity        : JourneyActivity
+  answer          : ActivityAnswer | undefined
+  globalSubmitted : boolean
+  evalSubmitted   : Set<string>
+  evaluatingSet   : Set<string>
+  onAnswer        : (ans: ActivityAnswer) => void
+  onSubmitForEval : (activityId: string, value: string) => void
 }
 
 const ActivityCard: FC<ActivityCardProps> = ({
@@ -97,7 +131,7 @@ const ActivityCard: FC<ActivityCardProps> = ({
         }}
       />
 
-      {activity.hint && !submitted && (
+      {activity.hint && !isAiType && !submitted && (
         <>
           {!showHint && (
             <button className={styles.hintBtn} onClick={() => setShowHint(true)}>
@@ -112,22 +146,184 @@ const ActivityCard: FC<ActivityCardProps> = ({
 }
 
 
-export const JourneyPage: FC = () => {
-  const navigate  = useNavigate()
-  const dispatch  = useDispatch()
-  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey)
+// ─── Achievement Toast ────────────────────────────────────────────────────────
+interface ToastProps {
+  icon        : string
+  title       : string
+  description : string
+  onDismiss   : () => void
+}
 
-  const [submitted, setSubmitted]         = useState(false)
+const AchievementToast: FC<ToastProps> = ({ icon, title, description, onDismiss }) => {
+  useEffect(() => {
+    const id = setTimeout(onDismiss, 3500)
+    return () => clearTimeout(id)
+  }, [onDismiss])
+
+  return (
+    <div className={styles.achievementToast} role="status">
+      <span className={styles.toastIcon}>{icon}</span>
+      <div className={styles.toastBody}>
+        <div className={styles.toastTitle}>Достижение разблокировано!</div>
+        <div className={styles.toastName}>{title}</div>
+        <div className={styles.toastDesc}>{description}</div>
+      </div>
+      <button className={styles.toastClose} onClick={onDismiss}>×</button>
+    </div>
+  )
+}
+
+
+// ─── Timer Ring ───────────────────────────────────────────────────────────────
+interface TimerRingProps {
+  remaining : number
+  total     : number
+  phase     : 'normal' | 'warning' | 'danger'
+}
+
+const TimerRing: FC<TimerRingProps> = ({ remaining, total, phase }) => {
+  const min  = Math.floor(remaining / 60)
+  const sec  = remaining % 60
+  const pct  = remaining / total
+  const r    = 18
+  const circ = 2 * Math.PI * r
+  const dash = circ * pct
+
+  return (
+    <div className={`${styles.timerRing} ${styles[`timer_${phase}`]}`}>
+      <svg width="48" height="48" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r={r} fill="none" strokeWidth="3" className={styles.timerTrack} />
+        <circle
+          cx="24" cy="24" r={r}
+          fill="none" strokeWidth="3"
+          strokeDasharray={`${dash} ${circ}`}
+          strokeLinecap="round"
+          transform="rotate(-90 24 24)"
+          className={styles.timerArc}
+        />
+      </svg>
+      <span className={styles.timerText}>
+        {min}:{sec.toString().padStart(2, '0')}
+      </span>
+    </div>
+  )
+}
+
+
+// ─── HUD ─────────────────────────────────────────────────────────────────────
+interface HudProps {
+  xp              : number
+  streak          : number
+  cpIndex         : number
+  cpTotal         : number
+  timerRemaining  : number
+  timerTotal      : number
+  timerPhase      : 'normal' | 'warning' | 'danger'
+}
+
+const JourneyHud: FC<HudProps> = ({ xp, streak, cpIndex, cpTotal, timerRemaining, timerTotal, timerPhase }) => {
+  const multiplier = streak >= 5 ? 2 : streak >= 3 ? 1.5 : streak >= 2 ? 1.25 : 1
+
+  return (
+    <div className={styles.hud}>
+      <div className={styles.hudItem}>
+        <span className={styles.hudIcon}>⚡</span>
+        <span className={styles.hudValue}>{xp}</span>
+        <span className={styles.hudLabel}>XP</span>
+      </div>
+      <div className={`${styles.hudItem} ${streak > 0 ? styles.hudStreakActive : ''}`}>
+        <span className={styles.hudIcon}>🔥</span>
+        <span className={styles.hudValue}>×{multiplier.toFixed(2).replace(/\.?0+$/, '')}</span>
+        <span className={styles.hudLabel}>Серия {streak}</span>
+      </div>
+      <div className={styles.hudItem}>
+        <span className={styles.hudIcon}>📍</span>
+        <span className={styles.hudValue}>{cpIndex} / {cpTotal}</span>
+        <span className={styles.hudLabel}>Чекпоинт</span>
+      </div>
+      <TimerRing remaining={timerRemaining} total={timerTotal} phase={timerPhase} />
+    </div>
+  )
+}
+
+
+// ─── Progress Bar ─────────────────────────────────────────────────────────────
+interface ProgressBarProps {
+  checkpoints        : { id: string }[]
+  completedIds       : string[]
+  currentIdx         : number
+}
+
+const CheckpointProgress: FC<ProgressBarProps> = ({ checkpoints, completedIds, currentIdx }) => (
+  <div className={styles.progressBar}>
+    {checkpoints.map((cp, i) => (
+      <div
+        key       = {cp.id}
+        className = {[
+          styles.progressSegment,
+          completedIds.includes(cp.id) ? styles.psDone    : '',
+          i === currentIdx && !completedIds.includes(cp.id) ? styles.psCurrent : '',
+        ].join(' ')}
+      >
+        {completedIds.includes(cp.id) && <span className={styles.psTick}>✓</span>}
+        {i === currentIdx && !completedIds.includes(cp.id) && (
+          <span className={styles.psDot} />
+        )}
+      </div>
+    ))}
+  </div>
+)
+
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export const JourneyPage: FC = () => {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey)
+  const gamification = useSelector((s: StateSchema) => s.gamification)
+
+  const [submitted,     setSubmitted]     = useState(false)
   const [evalSubmitted, setEvalSubmitted] = useState<Set<string>>(new Set())
   const [evaluatingSet, setEvaluatingSet] = useState<Set<string>>(new Set())
+  const [transitioning, setTransitioning] = useState(false)
+  const [toastKey,      setToastKey]      = useState(0)
+
+  const { currentCheckpointIdx, completedCheckpoints } = progress
+  const checkpoint   = journey?.checkpoints[currentCheckpointIdx]
+  const cpActivities = checkpoint?.activities ?? []
+  const timerTotal   = cpTimerSeconds(cpActivities.length)
+
+  const timerExpiredRef = useRef(false)
+
+  const handleTimeOut = useCallback(() => {
+    if (timerExpiredRef.current) return
+    timerExpiredRef.current = true
+    // Auto-submit with a 30% penalty flag (XP already = 0 for un-answered)
+    setSubmitted(true)
+  }, [])
+
+  const timer = useCheckpointTimer(timerTotal, handleTimeOut)
+
+  // Reset timer when checkpoint changes
+  useEffect(() => {
+    timerExpiredRef.current = false
+    timer.reset(timerTotal)
+    setSubmitted(false)
+    setEvalSubmitted(new Set())
+    setEvaluatingSet(new Set())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCheckpointIdx])
+
+  // Show achievement toast when pending
+  useEffect(() => {
+    if (gamification.pendingAchievement) {
+      setToastKey(k => k + 1)
+    }
+  }, [gamification.pendingAchievement])
 
   const handleSubmitForEval = useCallback(async (activityId: string, value: string) => {
     if (!journey) return
-    const { currentCheckpointIdx } = progress
-    const checkpoint = journey.checkpoints[currentCheckpointIdx]
-    if (!checkpoint) return
-
-    const rawActivity = checkpoint.activities.find(a => a.id === activityId)
+    const rawActivity = checkpoint?.activities.find(a => a.id === activityId)
     if (!rawActivity || !isAiEvaluated(rawActivity)) return
     const activity = rawActivity
 
@@ -135,12 +331,12 @@ export const JourneyPage: FC = () => {
     setEvaluatingSet(prev => new Set(prev).add(activityId))
 
     try {
-      const reasoning  = activity.type === 'debug-the-logic' ? activity.reasoning   : undefined
+      const reasoning  = activity.type === 'debug-the-logic' ? activity.reasoning    : undefined
       const exampleAns = activity.type === 'free-response'   ? activity.exampleAnswer : undefined
       const forbidden  = activity.type === 'teach-back'      ? activity.forbiddenTerms : undefined
 
       const result = await evaluateAnswer({
-        concept            : checkpoint.concept,
+        concept            : checkpoint!.concept,
         activityType       : activity.type,
         question           : activity.text,
         reasoning,
@@ -152,19 +348,29 @@ export const JourneyPage: FC = () => {
 
       dispatch(journeyActions.setAiEvaluation({
         activityId,
-        score    : result.score,
-        feedback : result.feedback,
-        strengths    : result.strengths ?? null,
-        improvements : result.improvements ?? null,
+        score       : result.score,
+        feedback    : result.feedback,
+        strengths   : result.strengths   ?? null,
+        improvements: result.improvements ?? null,
       }))
+
+      // XP for AI activity
+      const speedBonus = timer.pct > 75 ? 2 : timer.pct > 50 ? 1.5 : 1
+      if (result.score >= 50) {
+        dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
+        dispatch(gamificationActions.incrementStreak())
+      } else {
+        dispatch(gamificationActions.resetStreak())
+      }
     } catch {
       dispatch(journeyActions.setAiEvaluation({
         activityId,
-        score    : 0,
-        feedback : 'Не удалось оценить ответ. Ознакомьтесь с критериями оценки вручную.',
-        strengths    : null,
-        improvements : null,
+        score       : 0,
+        feedback    : 'Не удалось оценить ответ. Ознакомьтесь с критериями оценки вручную.',
+        strengths   : null,
+        improvements: null,
       }))
+      dispatch(gamificationActions.resetStreak())
     }
 
     setEvaluatingSet(prev => {
@@ -172,7 +378,24 @@ export const JourneyPage: FC = () => {
       next.delete(activityId)
       return next
     })
-  }, [journey, progress, dispatch])
+  }, [journey, checkpoint, timer, dispatch])
+
+  const computeNonAiXP = useCallback(() => {
+    if (!checkpoint) return
+    const speedBonus = timer.pct > 75 ? 2 : timer.pct > 50 ? 1.5 : 1
+
+    checkpoint.activities.forEach(activity => {
+      if (AI_EVALUATED_TYPES.has(activity.type)) return // already handled on evaluation
+      const ans = answers[activity.id]
+      const ok  = checkActivityCorrect(activity, ans)
+      if (ok) {
+        dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
+        dispatch(gamificationActions.incrementStreak())
+      } else {
+        dispatch(gamificationActions.resetStreak())
+      }
+    })
+  }, [checkpoint, answers, timer, dispatch])
 
   if (!journey) {
     return (
@@ -185,10 +408,8 @@ export const JourneyPage: FC = () => {
     )
   }
 
-  const { currentCheckpointIdx, completedCheckpoints } = progress
-  const checkpoint = journey.checkpoints[currentCheckpointIdx]
-  const isLast     = currentCheckpointIdx === journey.checkpoints.length - 1
-  const allDone    = completedCheckpoints.length === journey.checkpoints.length
+  const isLast  = currentCheckpointIdx === journey.checkpoints.length - 1
+  const allDone = completedCheckpoints.length === journey.checkpoints.length
 
   const nonAiActivities = checkpoint ? checkpoint.activities.filter(a => !AI_EVALUATED_TYPES.has(a.type)) : []
   const aiActivities    = checkpoint ? checkpoint.activities.filter(a =>  AI_EVALUATED_TYPES.has(a.type)) : []
@@ -196,30 +417,51 @@ export const JourneyPage: FC = () => {
   const nonAiAnswered  = nonAiActivities.filter(a =>
     answers[a.id]?.value !== undefined && answers[a.id]?.value !== ''
   ).length
-  // AI activities are gated by actual Redux isEvaluated flag — not optimistic local state
   const aiAllEvaluated = aiActivities.every(a => answers[a.id]?.isEvaluated === true)
 
   const canCheck = nonAiActivities.length > 0
     ? nonAiAnswered === nonAiActivities.length && aiAllEvaluated
     : aiAllEvaluated
 
-  const handleCheck = () => setSubmitted(true)
-
-  const handleNext = () => {
-    dispatch(journeyActions.completeCheckpoint(checkpoint.id))
-    dispatch(journeyActions.nextCheckpoint())
-    setSubmitted(false)
-    setEvalSubmitted(new Set())
-    setEvaluatingSet(new Set())
+  const handleCheck = () => {
+    computeNonAiXP()
+    // Check lightning achievement (elapsed < 60s)
+    const elapsed = timerTotal - timer.remaining
+    if (elapsed < 60) {
+      dispatch(gamificationActions.unlockAchievement('lightning'))
+    }
+    setSubmitted(true)
   }
 
+  const advanceCheckpoint = () => {
+    setTransitioning(true)
+    setTimeout(() => {
+      dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
+      dispatch(journeyActions.nextCheckpoint())
+      setTransitioning(false)
+    }, 350)
+  }
+
+  const handleNext = () => advanceCheckpoint()
+
   const handleFinish = () => {
-    dispatch(journeyActions.completeCheckpoint(checkpoint.id))
+    dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
     navigate(`/journey/${journey.id}/report`)
   }
 
   return (
     <div className={styles.page}>
+      {/* Achievement Toast */}
+      {gamification.pendingAchievement && (
+        <AchievementToast
+          key         = {toastKey}
+          icon        = {gamification.pendingAchievement.icon}
+          title       = {gamification.pendingAchievement.title}
+          description = {gamification.pendingAchievement.description}
+          onDismiss   = {() => dispatch(gamificationActions.clearPendingAchievement())}
+        />
+      )}
+
       <div className={styles.header}>
         <div className={styles.nav}>
           <button className={styles.back} onClick={() => navigate('/journey/new')}>← Создать новое</button>
@@ -229,16 +471,27 @@ export const JourneyPage: FC = () => {
         {journey.description && <p className={styles.description}>{journey.description}</p>}
       </div>
 
-      <div className={styles.progress} style={{ width: '100%', maxWidth: 720 }}>
-        {journey.checkpoints.map((cp, i) => (
-          <div
-            key       = {cp.id}
-            className = {`${styles.progressDot}
-              ${completedCheckpoints.includes(cp.id) ? styles.done : ''}
-              ${i === currentCheckpointIdx && !completedCheckpoints.includes(cp.id) ? styles.current : ''}`}
-          />
-        ))}
+      {/* Progress bar */}
+      <div style={{ width: '100%', maxWidth: 720, marginBottom: 16 }}>
+        <CheckpointProgress
+          checkpoints  = {journey.checkpoints}
+          completedIds = {completedCheckpoints}
+          currentIdx   = {currentCheckpointIdx}
+        />
       </div>
+
+      {/* HUD */}
+      {!allDone && (
+        <JourneyHud
+          xp             = {gamification.sessionXP}
+          streak         = {gamification.streak}
+          cpIndex        = {currentCheckpointIdx + 1}
+          cpTotal        = {journey.checkpoints.length}
+          timerRemaining = {timer.remaining}
+          timerTotal     = {timerTotal}
+          timerPhase     = {timer.phase}
+        />
+      )}
 
       {allDone ? (
         <div className={styles.checkpoint}>
@@ -248,7 +501,14 @@ export const JourneyPage: FC = () => {
           </button>
         </div>
       ) : checkpoint && (
-        <div className={styles.checkpoint}>
+        <div className={`${styles.checkpoint} ${transitioning ? styles.cpTransitionOut : styles.cpTransitionIn}`}>
+          {/* Timed-out warning */}
+          {timer.remaining === 0 && (
+            <div className={styles.timerExpiredBanner}>
+              ⏰ Время вышло — штраф к очкам применён
+            </div>
+          )}
+
           <div className={styles.cpHeader}>
             <div className={styles.cpNum}>
               Чекпоинт {currentCheckpointIdx + 1} из {journey.checkpoints.length}
@@ -260,14 +520,14 @@ export const JourneyPage: FC = () => {
           <div className={styles.activities}>
             {checkpoint.activities.map(activity => (
               <ActivityCard
-                key            = {activity.id}
-                activity       = {activity}
-                answer         = {answers[activity.id]}
-                globalSubmitted= {submitted}
-                evalSubmitted  = {evalSubmitted}
-                evaluatingSet  = {evaluatingSet}
-                onAnswer       = {ans => dispatch(journeyActions.setActivityAnswer(ans))}
-                onSubmitForEval= {handleSubmitForEval}
+                key             = {activity.id}
+                activity        = {activity}
+                answer          = {answers[activity.id]}
+                globalSubmitted = {submitted}
+                evalSubmitted   = {evalSubmitted}
+                evaluatingSet   = {evaluatingSet}
+                onAnswer        = {ans => dispatch(journeyActions.setActivityAnswer(ans))}
+                onSubmitForEval = {handleSubmitForEval}
               />
             ))}
           </div>
