@@ -102,18 +102,24 @@ echo "OPENAI_API_KEY=sk-..." > .env
 ### Запуск (dev)
 
 ```bash
-# Запускает одновременно backend (порт 7575) и Vite dev-сервер (порт 5000)
-node server.js & npx vite --host 0.0.0.0 --port 5000
+# Терминал 1 — backend (порт 7575)
+node server.js
+
+# Терминал 2 — Vite dev-сервер (порт 5000)
+npx vite --host 0.0.0.0 --port 5000
 ```
 
 Откройте [http://localhost:5000](http://localhost:5000).
 
+> В Replit оба процесса запускаются одной командой workflow:
+> `node server.js & npx vite --host 0.0.0.0 --port 5000`
+
 ### Production-сборка
 
 ```bash
-npm run build          # собирает в dist/
+npm run build:prod     # Webpack-сборка → dist/ (package.json script)
 node server.js         # backend на порту 7575
-# настройте nginx / любой статик-сервер на dist/
+# Раздайте dist/ через nginx или любой статик-сервер
 ```
 
 ---

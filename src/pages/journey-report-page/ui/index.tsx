@@ -28,14 +28,18 @@ function cpAccuracy(
 ): number {
   const { earned, total } = cp.activities.reduce(
     (acc, a) => {
+      // Every activity contributes to the denominator, answered or not
+      const newTotal = acc.total + a.points
       const ans = answers[a.id]
-      if (!ans) return acc
+      if (!ans || ans.value === undefined || ans.value === '') {
+        return { earned: acc.earned, total: newTotal }
+      }
       if (AI_EVALUATED_TYPES.has(a.type)) {
         const score = ans.aiScore ?? 0
-        return { earned: acc.earned + (score / 100) * a.points, total: acc.total + a.points }
+        return { earned: acc.earned + (score / 100) * a.points, total: newTotal }
       }
       const ok = checkActivityCorrect(a, ans)
-      return { earned: acc.earned + (ok ? a.points : 0), total: acc.total + a.points }
+      return { earned: acc.earned + (ok ? a.points : 0), total: newTotal }
     },
     { earned: 0, total: 0 },
   )
@@ -143,20 +147,29 @@ interface AnswerRowProps {
 }
 
 const AnswerRow: FC<AnswerRowProps> = ({ activity, answer }) => {
-  if (!answer) return null
-
-  const isAi      = AI_EVALUATED_TYPES.has(activity.type)
-  const correct   = isAi ? (answer.aiScore ?? 0) >= 50 : checkActivityCorrect(activity, answer)
-  const userAns   = formatAnswer(activity, answer)
+  const isAi       = AI_EVALUATED_TYPES.has(activity.type)
+  const unanswered = !answer || answer.value === undefined || answer.value === ''
+  const correct    = unanswered
+    ? false
+    : isAi
+      ? (answer!.aiScore ?? 0) >= 50
+      : checkActivityCorrect(activity, answer)
+  const userAns    = unanswered ? '—' : formatAnswer(activity, answer!)
   const correctAns = formatCorrect(activity)
 
+  const rowClass = unanswered
+    ? styles.answerSkipped
+    : correct ? styles.answerCorrect : styles.answerWrong
+
   return (
-    <div className={`${styles.answerRow} ${correct ? styles.answerCorrect : styles.answerWrong}`}>
+    <div className={`${styles.answerRow} ${rowClass}`}>
       <div className={styles.answerHeader}>
         <span className={styles.actIcon}>{ACTIVITY_ICON[activity.type] ?? '❓'}</span>
         <span className={styles.actLabel}>{ACTIVITY_TYPE_LABEL[activity.type] ?? activity.type}</span>
         <span className={styles.actPoints}>{activity.points} XP</span>
-        <span className={styles.verdict}>{correct ? '✓' : '✗'}</span>
+        <span className={styles.verdict}>
+          {unanswered ? '−' : correct ? '✓' : '✗'}
+        </span>
       </div>
 
       <p className={styles.questionText}>{activity.text}</p>
@@ -167,12 +180,12 @@ const AnswerRow: FC<AnswerRowProps> = ({ activity, answer }) => {
           <span className={styles.fieldValue}>{userAns}</span>
         </div>
 
-        {isAi ? (
+        {isAi && !unanswered ? (
           <div className={styles.answerField}>
             <span className={styles.fieldLabel}>Оценка AI</span>
-            <span className={styles.fieldValue}>{answer.aiScore ?? '—'} / 100</span>
+            <span className={styles.fieldValue}>{answer?.aiScore ?? '—'} / 100</span>
           </div>
-        ) : correctAns ? (
+        ) : !isAi && correctAns ? (
           <div className={styles.answerField}>
             <span className={styles.fieldLabel}>Правильный ответ</span>
             <span className={`${styles.fieldValue} ${styles.correctAnswer}`}>{correctAns}</span>
@@ -180,7 +193,7 @@ const AnswerRow: FC<AnswerRowProps> = ({ activity, answer }) => {
         ) : null}
       </div>
 
-      {isAi && answer.aiFeedback && (
+      {isAi && !unanswered && answer?.aiFeedback && (
         <div className={styles.aiFeedback}>
           <span className={styles.feedbackLabel}>💬 AI-фидбек</span>
           <p className={styles.feedbackText}>{answer.aiFeedback}</p>
@@ -260,7 +273,7 @@ export const JourneyReportPage: FC = () => {
   const totalPoints   = allActivities.reduce((s, a) => s + a.points, 0)
   const earnedPoints  = allActivities.reduce((sum, a) => {
     const ans = answers[a.id]
-    if (!ans) return sum
+    if (!ans || ans.value === undefined || ans.value === '') return sum
     if (AI_EVALUATED_TYPES.has(a.type)) {
       return sum + Math.round(((ans.aiScore ?? 0) / 100) * a.points)
     }

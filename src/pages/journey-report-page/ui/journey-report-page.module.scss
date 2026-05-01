@@ -254,6 +254,7 @@
 
 .answerCorrect { border-color: #064e3b; }
 .answerWrong   { border-color: #7f1d1d; }
+.answerSkipped { border-color: #334155; opacity: 0.7; }
 
 .answerHeader {
   display     : flex;
