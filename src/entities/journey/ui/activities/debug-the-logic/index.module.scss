@@ -45,18 +45,18 @@
 
 .textareaWrap {
   position     : relative;
-  border       : 2px solid #e2e8f0;
+  border       : 2px solid #334155;
   border-radius: 12px;
   transition   : border-color 0.2s;
-  background   : #fff;
+  background   : #1e293b;
 
   &.focused {
     border-color: #f59e0b;
-    box-shadow  : 0 0 0 3px rgba(245, 158, 11, 0.12);
+    box-shadow  : 0 0 0 3px rgba(245, 158, 11, 0.15);
   }
 
   &.locked {
-    background: #f8fafc;
+    background: #0f172a;
 
     .textarea {
       color: #64748b;
@@ -75,10 +75,11 @@
   resize       : vertical;
   outline      : none;
   background   : transparent;
+  color        : #e2e8f0;
   box-sizing   : border-box;
 
   &::placeholder {
-    color: #94a3b8;
+    color: #475569;
   }
 }
 
