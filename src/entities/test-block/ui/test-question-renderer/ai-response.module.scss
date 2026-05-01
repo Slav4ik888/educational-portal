@@ -1,0 +1,197 @@
+.container {
+  display        : flex;
+  flex-direction : column;
+  gap            : 10px;
+}
+
+.reasoningCard {
+  border        : 1.5px solid #fbbf24;
+  border-radius : 10px;
+  background    : #fffbeb;
+  padding       : 12px 14px;
+}
+
+.reasoningLabel {
+  font-size     : 0.8rem;
+  font-weight   : 700;
+  color         : #92400e;
+  margin-bottom : 8px;
+  text-transform: uppercase;
+}
+
+.reasoningText {
+  margin       : 0;
+  padding      : 10px 14px;
+  background   : #fff;
+  border-left  : 4px solid #fbbf24;
+  border-radius: 0 8px 8px 0;
+  font-size    : 0.93rem;
+  line-height  : 1.6;
+  color        : #374151;
+  font-style   : italic;
+}
+
+.contextHint {
+  padding      : 8px 12px;
+  background   : #f0f7ff;
+  border       : 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size    : 0.85rem;
+  color        : #1e40af;
+}
+
+.textareaWrap {
+  position     : relative;
+  border       : 1.5px solid #d1d5db;
+  border-radius: 10px;
+  background   : #fff;
+  transition   : border-color 0.2s;
+
+  &:focus-within {
+    border-color: #6366f1;
+    box-shadow  : 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  &.locked {
+    background: #f9fafb;
+  }
+}
+
+.textarea {
+  width       : 100%;
+  padding     : 10px 10px 30px;
+  border      : none;
+  border-radius: 10px;
+  font-size   : 0.93rem;
+  font-family : inherit;
+  line-height : 1.6;
+  resize      : vertical;
+  outline     : none;
+  background  : transparent;
+  box-sizing  : border-box;
+
+  &::placeholder { color: #9ca3af; }
+}
+
+.charCount {
+  position    : absolute;
+  bottom      : 8px;
+  right       : 10px;
+  font-size   : 0.73rem;
+  color       : #9ca3af;
+
+  &.tooShort { color: #f59e0b; }
+}
+
+.submitBtn,
+.evalBtn {
+  align-self   : flex-end;
+  padding      : 9px 18px;
+  background   : linear-gradient(135deg, #6366f1, #8b5cf6);
+  color        : #fff;
+  border       : none;
+  border-radius: 8px;
+  font-size    : 0.87rem;
+  font-weight  : 600;
+  cursor       : pointer;
+  transition   : opacity 0.2s;
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:hover:not(:disabled) { opacity: 0.88; }
+}
+
+.evalBtn {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+}
+
+.skeleton {
+  padding       : 14px;
+  background    : #f9fafb;
+  border-radius : 8px;
+  display       : flex;
+  flex-direction: column;
+  gap           : 8px;
+}
+
+.skeletonLine {
+  height        : 12px;
+  border-radius : 4px;
+  background    : linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation     : shimmer 1.4s infinite;
+  width         : 100%;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.evalText {
+  font-size  : 0.8rem;
+  color      : #6366f1;
+  text-align : center;
+  margin     : 0;
+  animation  : pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.feedbackBox {
+  padding        : 14px;
+  border-radius  : 10px;
+  border         : 1.5px solid #e5e7eb;
+  background     : #f9fafb;
+  display        : flex;
+  flex-direction : column;
+  gap            : 8px;
+
+  &.high   { border-color: #86efac; background: #f0fdf4; }
+  &.medium { border-color: #fde68a; background: #fffbeb; }
+  &.low    { border-color: #fca5a5; background: #fff1f2; }
+}
+
+.scoreRow {
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+}
+
+.scoreLabel {
+  font-size     : 0.78rem;
+  font-weight   : 600;
+  color         : #6b7280;
+  text-transform: uppercase;
+}
+
+.scoreBadge {
+  font-size    : 1rem;
+  font-weight  : 700;
+  padding      : 3px 10px;
+  border-radius: 20px;
+  background   : #e5e7eb;
+  color        : #374151;
+
+  &.high   { background: #dcfce7; color: #166534; }
+  &.medium { background: #fef9c3; color: #854d0e; }
+  &.low    { background: #ffe4e6; color: #9f1239; }
+}
+
+.feedbackText {
+  font-size  : 0.88rem;
+  line-height: 1.6;
+  color      : #374151;
+  margin     : 0;
+}
+
+.section {
+  display    : flex;
+  align-items: flex-start;
+  gap        : 6px;
+  font-size  : 0.85rem;
+  line-height: 1.5;
+  color      : #374151;
+}

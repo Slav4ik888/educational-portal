@@ -4,7 +4,7 @@ import { TestResult } from '../test-result/index';
 import { cfg } from 'app/config';
 import {
   TestQuestion, TestUserAnswers, TestUserAnswer, isTestCompleted, TestType, isFinalCompleted, useDevAnswers,
-  TestQuestionRenderer
+  TestQuestionRenderer, TEST_AI_EVALUATED_TYPES,
 } from 'entities/test-block';
 import styles from './index.module.scss';
 import { TestRetryBtn } from './retry-btn/index';
@@ -60,25 +60,28 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
   const handleSubmit = () => {
     let correctCount = 0;
     questions.forEach(question => {
-      // checkAnswer
       const userAnswer = answers[question.id];
 
-      // Простая проверка
-      const isCorrect = isAnswerCorrect(question, userAnswer);
+      // AI-evaluated: proportional scoring based on aiScore (0-100)
+      if (TEST_AI_EVALUATED_TYPES.has(question.type)) {
+        const aiAnswer = userAnswer as { aiScore?: number; isEvaluated?: boolean } | undefined;
+        if (aiAnswer?.isEvaluated) {
+          correctCount += Math.round(((aiAnswer.aiScore ?? 0) / 100) * question.points);
+        }
+        return;
+      }
 
-      // Детальная проверка
-      const details = getAnswerDetails(question, userAnswer);
+      const isCorrect = isAnswerCorrect(question, userAnswer);
+      const details   = getAnswerDetails(question, userAnswer);
 
       if (isCorrect) {
         cfg.IS_DEV && console.log('✅ Правильно!');
         correctCount += question.points;
-      }
-      else if (details.details?.partiallyCorrect) {
+      } else if (details.details?.partiallyCorrect) {
         const d = details.details;
         cfg.IS_DEV && console.log(`⚠️ Частично правильно: ${d.correctCount} из ${d.totalCount}`);
         correctCount += d.correctCount || 0;
-      }
-      else {
+      } else {
         cfg.IS_DEV && console.log('❌ Неправильно');
       }
     });

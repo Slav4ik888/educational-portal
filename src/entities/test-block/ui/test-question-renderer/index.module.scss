@@ -1,72 +1,75 @@
 .questionCard {
-  background: #ffffff;
+  background   : #ffffff;
   border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding      : 20px;
+  margin       : 20px 0;
+  box-shadow   : 0 2px 8px rgba(0, 0, 0, 0.1);
 
   .questionHeader {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid;
+    display        : flex;
+    align-items    : center;
+    gap            : 12px;
+    margin-bottom  : 16px;
+    padding-bottom : 12px;
+    border-bottom  : 2px solid #e5e7eb;
+  }
+
+  .typeIcon {
+    font-size: 1.1rem;
   }
 
   .typeBadge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    padding       : 4px 12px;
+    border-radius : 20px;
+    font-size     : 12px;
+    font-weight   : 600;
     text-transform: uppercase;
+    flex          : 1;
+  }
+
+  .pointsBadge {
+    font-size  : 11px;
+    font-weight: 700;
+    color      : #6b7280;
+    white-space: nowrap;
+  }
+
+  .explanation {
+    margin-top   : 12px;
+    padding      : 10px 14px;
+    background   : #f0f9ff;
+    border-left  : 3px solid #38bdf8;
+    border-radius: 0 8px 8px 0;
+    font-size    : 0.88rem;
+    color        : #0c4a6e;
+    line-height  : 1.5;
   }
 
   &.typeblue {
     border-left: 4px solid #3498db;
-
-    .typeBadge {
-      background: #3498db20;
-      color: #3498db;
-    }
+    .typeBadge { background: #3498db20; color: #3498db; }
   }
 
   &.typegreen {
     border-left: 4px solid #2ecc71;
-
-    .typeBadge {
-      background: #2ecc7120;
-      color: #2ecc71;
-    }
+    .typeBadge { background: #2ecc7120; color: #2ecc71; }
   }
 
   &.typeorange {
     border-left: 4px solid #e67e22;
-
-    .typeBadge {
-      background: #e67e2220;
-      color: #e67e22;
-    }
+    .typeBadge { background: #e67e2220; color: #e67e22; }
   }
 
   &.typepurple {
     border-left: 4px solid #9b59b6;
-
-    .typeBadge {
-      background: #9b59b620;
-      color: #9b59b6;
-    }
+    .typeBadge { background: #9b59b620; color: #9b59b6; }
   }
 
-  &.type-teal {
+  &.typeteal {
     border-left: 4px solid #1abc9c;
-
-    .typeBadge {
-      background: #1abc9c20;
-      color: #1abc9c;
-    }
+    .typeBadge { background: #1abc9c20; color: #1abc9c; }
   }
-  
+
   &.wrongAnswer {
     background: #f5d4ce;
   }

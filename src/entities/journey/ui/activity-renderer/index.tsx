@@ -8,17 +8,6 @@ import { TextResponseActivity } from '../activities/text-response'
 import { DebugTheLogicComponent } from '../activities/debug-the-logic'
 import styles from './index.module.scss'
 
-const ACTIVITY_LABELS: Record<string, string> = {
-  'multiple-choice'      : 'Выбор ответа',
-  'true-false'           : 'Верно / Неверно',
-  'fill-blank'           : 'Заполни пропуски',
-  'free-response'        : 'Развёрнутый ответ',
-  'explain-like-im-five' : 'Объясни просто',
-  'teach-back'           : 'Объясни другу',
-  'give-your-example'    : 'Твой пример',
-  'debug-the-logic'      : 'Найди ошибку',
-}
-
 const TEXT_RESPONSE_PLACEHOLDER: Record<string, string> = {
   'free-response'        : 'Напишите развёрнутый ответ…',
   'explain-like-im-five' : 'Объясни это простыми словами, без специальных терминов…',

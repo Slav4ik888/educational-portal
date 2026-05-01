@@ -6,7 +6,8 @@ import {
   TrueFalseQuestion,
   FillBlankQuestion,
   MatchPairsQuestion,
-  OrderStepsQuestion
+  OrderStepsQuestion,
+  TEST_AI_EVALUATED_TYPES,
 } from 'entities/test-block'
 
 /**
@@ -24,6 +25,12 @@ export const isAnswerCorrect = (
 
   // Проверяем, что ID вопроса совпадают
   if (question.id !== userAnswer.questionId) return false
+
+  // AI-evaluated types: correct if aiScore >= 60
+  if (TEST_AI_EVALUATED_TYPES.has(question.type)) {
+    const aiAnswer = userAnswer as { aiScore?: number; isEvaluated?: boolean }
+    return aiAnswer.isEvaluated === true && (aiAnswer.aiScore ?? 0) >= 60
+  }
 
   // В зависимости от типа вопроса вызываем соответствующую проверку
   switch (question.type) {
@@ -43,7 +50,6 @@ export const isAnswerCorrect = (
       return isOrderStepsCorrect(question, userAnswer)
 
     default:
-      console.warn(`Unknown question type: ${(question as any).type}`)
       return false
   }
 }

@@ -79,6 +79,44 @@ export interface OrderStepsQuestion extends BaseQuestion {
 }
 
 
+/** AI-оцениваемые вопросы: студент пишет развёрнутый ответ, оценивается нейросетью */
+
+/** Объясни развёрнуто */
+export interface FreeResponseQuestion extends BaseQuestion {
+  type               : 'free-response'
+  evaluationCriteria : string
+  exampleAnswer?     : string
+}
+
+/** Объясни простыми словами (ELI5) */
+export interface ExplainLikeImFiveQuestion extends BaseQuestion {
+  type               : 'explain-like-im-five'
+  evaluationCriteria : string
+  targetAudience     : string
+}
+
+/** Объясни другу */
+export interface TeachBackQuestion extends BaseQuestion {
+  type               : 'teach-back'
+  evaluationCriteria : string
+  forbiddenTerms?    : string[]
+}
+
+/** Приведи свой пример */
+export interface GiveYourExampleQuestion extends BaseQuestion {
+  type               : 'give-your-example'
+  evaluationCriteria : string
+  domain?            : string
+}
+
+/** Найди ошибку в рассуждении */
+export interface DebugTheLogicQuestion extends BaseQuestion {
+  type               : 'debug-the-logic'
+  reasoning          : string
+  errorLocation?     : string
+  evaluationCriteria : string
+}
+
 /** Объединенный тип */
 export type TestQuestion =
   | MultipleChoiceQuestion
@@ -86,14 +124,40 @@ export type TestQuestion =
   | FillBlankQuestion
   | MatchPairsQuestion
   | OrderStepsQuestion
+  | FreeResponseQuestion
+  | ExplainLikeImFiveQuestion
+  | TeachBackQuestion
+  | GiveYourExampleQuestion
+  | DebugTheLogicQuestion
+
+/** Типы вопросов, оцениваемых AI */
+export const TEST_AI_EVALUATED_TYPES = new Set<string>([
+  'free-response',
+  'explain-like-im-five',
+  'teach-back',
+  'give-your-example',
+  'debug-the-logic',
+])
+
+export type AiEvaluatedTestQuestion =
+  | FreeResponseQuestion
+  | ExplainLikeImFiveQuestion
+  | TeachBackQuestion
+  | GiveYourExampleQuestion
+  | DebugTheLogicQuestion
 
 /** Расширенный тип для ответов пользователя */
 export type TestUserAnswer =
-  | { questionId: string; type: 'multiple-choice'; value: number[] }
-  | { questionId: string; type: 'true-false';      value: boolean }
-  | { questionId: string; type: 'fill-blank';      value: Record<string, string> }
-  | { questionId: string; type: 'match-pairs';     value: Record<string, string> }
-  | { questionId: string; type: 'order-steps';     value: string[] }
+  | { questionId: string; type: 'multiple-choice';       value: number[] }
+  | { questionId: string; type: 'true-false';             value: boolean }
+  | { questionId: string; type: 'fill-blank';             value: Record<string, string> }
+  | { questionId: string; type: 'match-pairs';            value: Record<string, string> }
+  | { questionId: string; type: 'order-steps';            value: string[] }
+  | { questionId: string; type: 'free-response';          value: string; aiScore?: number; isEvaluated?: boolean; aiFeedback?: string; aiStrengths?: string; aiImprovements?: string }
+  | { questionId: string; type: 'explain-like-im-five';   value: string; aiScore?: number; isEvaluated?: boolean; aiFeedback?: string; aiStrengths?: string; aiImprovements?: string }
+  | { questionId: string; type: 'teach-back';             value: string; aiScore?: number; isEvaluated?: boolean; aiFeedback?: string; aiStrengths?: string; aiImprovements?: string }
+  | { questionId: string; type: 'give-your-example';      value: string; aiScore?: number; isEvaluated?: boolean; aiFeedback?: string; aiStrengths?: string; aiImprovements?: string }
+  | { questionId: string; type: 'debug-the-logic';        value: string; aiScore?: number; isEvaluated?: boolean; aiFeedback?: string; aiStrengths?: string; aiImprovements?: string }
 
 export type TestUserAnswers = Record<string, TestUserAnswer>
 

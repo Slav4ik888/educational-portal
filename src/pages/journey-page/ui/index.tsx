@@ -1,4 +1,4 @@
-import { FC, useState, useCallback, useRef } from 'react'
+import { FC, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
@@ -97,30 +97,6 @@ const ActivityCard: FC<ActivityCardProps> = ({
         }}
       />
 
-      {!isAiType && submitted && (() => {
-        const ans = answer
-        if (!ans) return null
-        let isCorrect = false
-        if (activity.type === 'multiple-choice') {
-          const val = ans.value as number[]
-          isCorrect = val.length === activity.correctAnswers.length &&
-            activity.correctAnswers.every(c => val.includes(c))
-        } else if (activity.type === 'true-false') {
-          isCorrect = ans.value === activity.correctAnswer
-        } else if (activity.type === 'fill-blank') {
-          const vals = ans.value as Record<string, string>
-          const norm = activity.caseSensitive
-            ? (s: string) => s
-            : (s: string) => s.toLowerCase()
-          isCorrect = activity.blanks.every(b => {
-            const v = vals?.[b.id] ?? ''
-            return norm(v) === norm(b.correctAnswer) ||
-              (b.alternatives ?? []).some(a => norm(v) === norm(a))
-          })
-        }
-        return null
-      })()}
-
       {activity.hint && !submitted && (
         <>
           {!showHint && (
@@ -144,9 +120,6 @@ export const JourneyPage: FC = () => {
   const [submitted, setSubmitted]         = useState(false)
   const [evalSubmitted, setEvalSubmitted] = useState<Set<string>>(new Set())
   const [evaluatingSet, setEvaluatingSet] = useState<Set<string>>(new Set())
-
-  const evalSubmittedRef = useRef(evalSubmitted)
-  evalSubmittedRef.current = evalSubmitted
 
   const handleSubmitForEval = useCallback(async (activityId: string, value: string) => {
     if (!journey) return
@@ -217,17 +190,18 @@ export const JourneyPage: FC = () => {
   const isLast     = currentCheckpointIdx === journey.checkpoints.length - 1
   const allDone    = completedCheckpoints.length === journey.checkpoints.length
 
-  const nonAiActivities   = checkpoint ? checkpoint.activities.filter(a => !AI_EVALUATED_TYPES.has(a.type)) : []
-  const aiActivities      = checkpoint ? checkpoint.activities.filter(a =>  AI_EVALUATED_TYPES.has(a.type)) : []
+  const nonAiActivities = checkpoint ? checkpoint.activities.filter(a => !AI_EVALUATED_TYPES.has(a.type)) : []
+  const aiActivities    = checkpoint ? checkpoint.activities.filter(a =>  AI_EVALUATED_TYPES.has(a.type)) : []
 
-  const nonAiAnswered = nonAiActivities.filter(a =>
+  const nonAiAnswered  = nonAiActivities.filter(a =>
     answers[a.id]?.value !== undefined && answers[a.id]?.value !== ''
   ).length
-  const aiAllEvaluated = aiActivities.every(a => evalSubmitted.has(a.id))
+  // AI activities are gated by actual Redux isEvaluated flag — not optimistic local state
+  const aiAllEvaluated = aiActivities.every(a => answers[a.id]?.isEvaluated === true)
 
-  const canCheck = nonAiActivities.length === 0
-    ? aiAllEvaluated
-    : nonAiAnswered === nonAiActivities.length
+  const canCheck = nonAiActivities.length > 0
+    ? nonAiAnswered === nonAiActivities.length && aiAllEvaluated
+    : aiAllEvaluated
 
   const handleCheck = () => setSubmitted(true)
 
