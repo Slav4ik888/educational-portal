@@ -483,6 +483,15 @@ export const JourneyPage: FC = () => {
     }
   }
 
+  const handleRetry = () => {
+    if (!checkpoint) return
+    const activityIds = checkpoint.activities.map(a => a.id)
+    dispatch(journeyActions.clearCheckpointAnswers(activityIds))
+    setSubmitted(false)
+    submittedRef.current = false
+    timer.resume()
+  }
+
   const handleNext   = () => finalizeAndAdvance(false)
   const handleFinish = () => finalizeAndAdvance(true)
 
@@ -594,14 +603,21 @@ export const JourneyPage: FC = () => {
                   Ответьте на все задания выше, чтобы продолжить
                 </p>
               )
-            ) : isLast ? (
-              <button className={styles.nextBtn} onClick={handleFinish}>
-                Завершить путешествие →
-              </button>
             ) : (
-              <button className={styles.nextBtn} onClick={handleNext}>
-                Следующий чекпоинт →
-              </button>
+              <>
+                <button className={styles.retryBtn} onClick={handleRetry}>
+                  ↺ Перепройти
+                </button>
+                {isLast ? (
+                  <button className={styles.nextBtn} onClick={handleFinish}>
+                    Завершить путешествие →
+                  </button>
+                ) : (
+                  <button className={styles.nextBtn} onClick={handleNext}>
+                    Следующий чекпоинт →
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

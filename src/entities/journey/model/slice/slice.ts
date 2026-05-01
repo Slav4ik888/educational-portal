@@ -125,6 +125,13 @@ export const journeySlice = createSlice({
       saveToLocalStorage(state)
     },
 
+    clearCheckpointAnswers: (state, action: PayloadAction<string[]>) => {
+      action.payload.forEach(id => {
+        delete state.answers[id]
+      })
+      saveToLocalStorage(state)
+    },
+
     nextCheckpoint: (state) => {
       if (state.current && state.progress.currentCheckpointIdx < state.current.checkpoints.length - 1) {
         state.progress.currentCheckpointIdx += 1

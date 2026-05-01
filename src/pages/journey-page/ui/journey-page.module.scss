@@ -571,6 +571,20 @@
   background: linear-gradient(135deg, #059669, #10b981);
 }
 
+.retryBtn {
+  flex         : 0 0 auto;
+  padding      : 14px 20px;
+  background   : transparent;
+  border       : 2px solid #6366f1;
+  border-radius: 12px;
+  color        : #6366f1;
+  font-size    : 15px;
+  font-weight  : 700;
+  cursor       : pointer;
+  transition   : background 0.2s, color 0.2s;
+  &:hover { background: #6366f120; }
+}
+
 .completedMsg {
   text-align   : center;
   padding      : 20px;
