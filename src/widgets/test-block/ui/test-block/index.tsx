@@ -98,6 +98,8 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
   };
 
   const handleRetry = () => {
+    setAnswers({});
+    setScore(null);
     setSubmitted(false);
     setRetry(true);
   };
