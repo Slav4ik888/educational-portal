@@ -123,6 +123,51 @@
   white-space: nowrap;
 }
 
+@media (prefers-color-scheme: dark) {
+  .articlePreview {
+    background  : #1e293b;
+    border-color: #334155;
+
+    &:hover {
+      box-shadow  : 0 8px 24px rgba(0, 0, 0, 0.4);
+      border-color: #6366f1;
+    }
+  }
+
+  .coverImageContainer { background: #0f172a; }
+
+  .title { color: #e2e8f0; }
+
+  .description { color: #94a3b8; }
+
+  .tag {
+    background: #0f172a;
+    color     : #94a3b8;
+  }
+
+  .duration { color: #64748b; }
+
+  .difficultyBeginner {
+    background: rgba(52, 211, 153, 0.15);
+    color     : #34d399;
+  }
+
+  .difficultyIntermediate {
+    background: rgba(251, 191, 36, 0.15);
+    color     : #fbbf24;
+  }
+
+  .difficultyAdvanced {
+    background: rgba(248, 113, 113, 0.15);
+    color     : #f87171;
+  }
+
+  .difficultyDefault {
+    background: #1e293b;
+    color     : #94a3b8;
+  }
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .coverImageContainer {
