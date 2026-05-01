@@ -48,13 +48,21 @@ export const journeySlice = createSlice({
 
     setAiEvaluation: (
       state,
-      action: PayloadAction<{ activityId: string; score: number; feedback: string }>
+      action: PayloadAction<{
+        activityId   : string
+        score        : number
+        feedback     : string
+        strengths?   : string | null
+        improvements?: string | null
+      }>
     ) => {
       const a = state.answers[action.payload.activityId]
       if (a) {
-        a.aiScore      = action.payload.score
-        a.aiFeedback   = action.payload.feedback
-        a.isEvaluated  = true
+        a.aiScore        = action.payload.score
+        a.aiFeedback     = action.payload.feedback
+        a.aiStrengths    = action.payload.strengths    ?? null
+        a.aiImprovements = action.payload.improvements ?? null
+        a.isEvaluated    = true
       }
     },
 

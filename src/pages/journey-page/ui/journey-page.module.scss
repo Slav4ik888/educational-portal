@@ -128,6 +128,26 @@
   border        : 1px solid #1e293b;
   border-radius : 14px;
   padding       : 20px;
+
+  &.typeblue   { border-left: 3px solid #6366f1; }
+  &.typegreen  { border-left: 3px solid #34d399; }
+  &.typeorange { border-left: 3px solid #f59e0b; }
+  &.typepurple { border-left: 3px solid #a78bfa; }
+  &.typeindigo { border-left: 3px solid #818cf8; }
+  &.typeteal   { border-left: 3px solid #2dd4bf; }
+  &.typeamber  { border-left: 3px solid #fbbf24; }
+  &.typerose   { border-left: 3px solid #fb7185; }
+}
+
+.activityHeader {
+  display     : flex;
+  align-items : center;
+  gap         : 8px;
+  margin-bottom: 10px;
+}
+
+.activityIcon {
+  font-size: 16px;
 }
 
 .activityLabel {
@@ -136,7 +156,7 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   color         : #475569;
-  margin-bottom : 10px;
+  flex          : 1;
 }
 
 .activityQuestion {
@@ -145,6 +165,14 @@
   color        : #e2e8f0;
   margin-bottom: 16px;
   line-height  : 1.5;
+}
+
+.aiHint {
+  font-size  : 13px;
+  color      : #475569;
+  font-style : italic;
+  text-align : center;
+  padding    : 8px;
 }
 
 .options {

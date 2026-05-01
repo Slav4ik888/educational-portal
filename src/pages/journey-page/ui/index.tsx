@@ -1,208 +1,125 @@
-import { FC, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { StateSchema } from 'app/providers/store';
-import { journeyActions, JourneyActivity, ActivityAnswer } from 'entities/journey';
-import { evaluateAnswer } from 'shared/lib/ai';
-import styles from './journey-page.module.scss';
+import { FC, useState, useCallback, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { StateSchema } from 'app/providers/store'
+import {
+  journeyActions,
+  JourneyActivity,
+  ActivityAnswer,
+  AiEvaluatedActivity,
+  ActivityRenderer,
+  AI_EVALUATED_TYPES,
+} from 'entities/journey'
+import { evaluateAnswer } from 'shared/lib/ai'
+import styles from './journey-page.module.scss'
 
-const ACTIVITY_LABELS: Record<string, string> = {
-  'multiple-choice' : 'Выбор ответа',
-  'true-false'      : 'Верно / Неверно',
-  'fill-blank'      : 'Заполни пропуски',
-  'free-response'   : 'Развёрнутый ответ',
-};
-
-interface ActivityProps {
-  activity    : JourneyActivity
-  answer      : ActivityAnswer | undefined
-  submitted   : boolean
-  onAnswer    : (ans: ActivityAnswer) => void
+function isAiEvaluated(a: JourneyActivity): a is AiEvaluatedActivity {
+  return AI_EVALUATED_TYPES.has(a.type)
 }
 
-const ActivityView: FC<ActivityProps> = ({ activity, answer, submitted, onAnswer }) => {
-  const [showHint, setShowHint] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const dispatch = useDispatch();
-  const journey  = useSelector((s: StateSchema) => s.journey.current);
+const ACTIVITY_LABELS: Record<string, string> = {
+  'multiple-choice'      : 'Выбор ответа',
+  'true-false'           : 'Верно / Неверно',
+  'fill-blank'           : 'Заполни пропуски',
+  'free-response'        : 'Развёрнутый ответ',
+  'explain-like-im-five' : 'Объясни просто',
+  'teach-back'           : 'Объясни другу',
+  'give-your-example'    : 'Твой пример',
+  'debug-the-logic'      : 'Найди ошибку',
+}
 
-  const currentCheckpointIdx = useSelector((s: StateSchema) => s.journey.progress.currentCheckpointIdx);
-  const checkpoint = journey?.checkpoints[currentCheckpointIdx];
+const TYPE_ICON: Record<string, string> = {
+  'multiple-choice'      : '🔘',
+  'true-false'           : '✓✗',
+  'fill-blank'           : '✏️',
+  'free-response'        : '📝',
+  'explain-like-im-five' : '🧒',
+  'teach-back'           : '🎓',
+  'give-your-example'    : '💡',
+  'debug-the-logic'      : '🔍',
+}
 
-  const handleFreeResponseEvaluate = useCallback(async (value: string) => {
-    if (!checkpoint || !value.trim() || activity.type !== 'free-response') return;
-    setIsEvaluating(true);
-    try {
-      const result = await evaluateAnswer({
-        concept            : checkpoint.concept,
-        question           : activity.text,
-        exampleAnswer      : activity.exampleAnswer,
-        evaluationCriteria : activity.evaluationCriteria,
-        userAnswer         : value,
-      });
-      dispatch(journeyActions.setAiEvaluation({
-        activityId : activity.id,
-        score      : result.score,
-        feedback   : result.feedback,
-      }));
-    } catch {
-      dispatch(journeyActions.setAiEvaluation({
-        activityId : activity.id,
-        score      : 0,
-        feedback   : 'Не удалось оценить ответ. Сравните с критериями вручную.',
-      }));
-    }
-    setIsEvaluating(false);
-  }, [activity, checkpoint, dispatch]);
+const TYPE_COLOR: Record<string, string> = {
+  'multiple-choice'      : 'blue',
+  'true-false'           : 'green',
+  'fill-blank'           : 'orange',
+  'free-response'        : 'purple',
+  'explain-like-im-five' : 'indigo',
+  'teach-back'           : 'teal',
+  'give-your-example'    : 'amber',
+  'debug-the-logic'      : 'rose',
+}
 
-  const isCorrect = (() => {
-    if (!submitted || !answer) return null;
-    if (activity.type === 'multiple-choice') {
-      const val = answer.value as number[];
-      const correct = activity.correctAnswers;
-      return val?.length === correct?.length && correct.every(c => val.includes(c));
-    }
-    if (activity.type === 'true-false') {
-      return answer.value === activity.correctAnswer;
-    }
-    if (activity.type === 'fill-blank') {
-      const val = answer.value as Record<string, string>;
-      return activity.blanks.every(b => {
-        const userVal = (val?.[b.id] || '').trim();
-        const check = activity.caseSensitive ? (s: string) => s : (s: string) => s.toLowerCase();
-        return check(userVal) === check(b.correctAnswer)
-          || (b.alternatives || []).some(a => check(userVal) === check(a));
-      });
-    }
-    if (activity.type === 'free-response') {
-      return (answer.aiScore ?? 0) >= 60;
-    }
-    return null;
-  })();
+interface ActivityCardProps {
+  activity         : JourneyActivity
+  answer           : ActivityAnswer | undefined
+  globalSubmitted  : boolean
+  evalSubmitted    : Set<string>
+  evaluatingSet    : Set<string>
+  onAnswer         : (ans: ActivityAnswer) => void
+  onSubmitForEval  : (activityId: string, value: string) => void
+}
+
+const ActivityCard: FC<ActivityCardProps> = ({
+  activity,
+  answer,
+  globalSubmitted,
+  evalSubmitted,
+  evaluatingSet,
+  onAnswer,
+  onSubmitForEval,
+}) => {
+  const [showHint, setShowHint] = useState(false)
+  const isAiType   = AI_EVALUATED_TYPES.has(activity.type)
+  const submitted  = globalSubmitted || evalSubmitted.has(activity.id)
+  const evaluating = evaluatingSet.has(activity.id)
+  const colorClass = styles[`type${TYPE_COLOR[activity.type] ?? 'blue'}`] ?? ''
 
   return (
-    <div className={styles.activityCard}>
-      <div className={styles.activityLabel}>{ACTIVITY_LABELS[activity.type]}</div>
-      <div className={styles.pointsBadge}>{activity.points} XP</div>
+    <div className={`${styles.activityCard} ${colorClass}`}>
+      <div className={styles.activityHeader}>
+        <span className={styles.activityIcon}>{TYPE_ICON[activity.type]}</span>
+        <span className={styles.activityLabel}>{ACTIVITY_LABELS[activity.type]}</span>
+        <span className={styles.pointsBadge}>{activity.points} XP</span>
+      </div>
+
       <div className={styles.activityQuestion}>{activity.text}</div>
 
-      {activity.type === 'multiple-choice' && (
-        <div className={styles.options}>
-          {activity.options.map((opt, i) => {
-            const sel  = ((answer?.value as number[]) || []).includes(i);
-            const corr = submitted && activity.correctAnswers.includes(i);
-            const wrong = submitted && sel && !activity.correctAnswers.includes(i);
-            return (
-              <button
-                key={i}
-                disabled={submitted}
-                className={`${styles.option} ${sel ? styles.selected : ''} ${corr ? styles.correct : ''} ${wrong ? styles.wrong : ''}`}
-                onClick={() => {
-                  if (activity.allowMultiple) {
-                    const cur = ((answer?.value as number[]) || []);
-                    const next = cur.includes(i) ? cur.filter(x => x !== i) : [...cur, i];
-                    onAnswer({ activityId: activity.id, type: 'multiple-choice', value: next });
-                  } else {
-                    onAnswer({ activityId: activity.id, type: 'multiple-choice', value: [i] });
-                  }
-                }}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <ActivityRenderer
+        activity       = {activity}
+        answer         = {answer}
+        submitted      = {submitted}
+        isEvaluating   = {evaluating}
+        onAnswer       = {value => onAnswer({ activityId: activity.id, type: activity.type, value })}
+        onSubmitForEval= {value => {
+          onAnswer({ activityId: activity.id, type: activity.type, value })
+          onSubmitForEval(activity.id, value)
+        }}
+      />
 
-      {activity.type === 'true-false' && (
-        <div className={styles.tfOptions}>
-          {[true, false].map(val => {
-            const label = val ? 'Верно' : 'Неверно';
-            const sel   = answer?.value === val;
-            const corr  = submitted && activity.correctAnswer === val;
-            const wrong = submitted && sel && activity.correctAnswer !== val;
-            return (
-              <button
-                key={String(val)}
-                disabled={submitted}
-                className={`${styles.tfBtn} ${sel ? styles.selected : ''} ${corr ? styles.correct : ''} ${wrong ? styles.wrong : ''}`}
-                onClick={() => onAnswer({ activityId: activity.id, type: 'true-false', value: val })}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {activity.type === 'fill-blank' && (
-        <>
-          <p className={styles.blankText}>{activity.textWithBlanks}</p>
-          <div className={styles.blankInputs}>
-            {activity.blanks.map(blank => {
-              const val  = ((answer?.value as Record<string, string>) || {})[blank.id] || '';
-              const corr = submitted && (() => {
-                const check = activity.caseSensitive ? (s: string) => s : (s: string) => s.toLowerCase();
-                return check(val) === check(blank.correctAnswer)
-                  || (blank.alternatives || []).some(a => check(val) === check(a));
-              })();
-              return (
-                <input
-                  key={blank.id}
-                  disabled={submitted}
-                  className={`${styles.blankInput} ${submitted ? (corr ? styles.correct : styles.wrong) : ''}`}
-                  value={val}
-                  placeholder="..."
-                  onChange={e => onAnswer({
-                    activityId : activity.id,
-                    type       : 'fill-blank',
-                    value      : { ...((answer?.value as Record<string, string>) || {}), [blank.id]: e.target.value }
-                  })}
-                />
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {activity.type === 'free-response' && (
-        <>
-          <textarea
-            className={styles.freeTextarea}
-            disabled={submitted}
-            placeholder="Напишите развёрнутый ответ..."
-            value={answer?.value || ''}
-            onChange={e => onAnswer({ activityId: activity.id, type: 'free-response', value: e.target.value })}
-          />
-          {submitted && !answer?.isEvaluated && !isEvaluating && (
-            <button
-              className={styles.checkBtn}
-              style={{ marginTop: 10, flex: 'none', padding: '10px 20px', width: 'auto' }}
-              onClick={() => handleFreeResponseEvaluate(answer?.value || '')}
-            >
-              Проверить с AI →
-            </button>
-          )}
-          {isEvaluating && <p className={styles.aiEvaluating}>AI оценивает ответ...</p>}
-          {answer?.isEvaluated && answer.aiFeedback && (
-            <div className={styles.aiFeedback}>
-              <strong>AI: {answer.aiScore}% — </strong>{answer.aiFeedback}
-            </div>
-          )}
-        </>
-      )}
-
-      {submitted && activity.type !== 'free-response' && isCorrect !== null && (
-        <div className={`${styles.feedback} ${isCorrect ? styles.correct : styles.wrong}`}>
-          {isCorrect ? '✓ Верно!' : '✗ Неверно'}
-          {!isCorrect && activity.type === 'true-false' && (
-            <span> — {activity.explanation}</span>
-          )}
-          {!isCorrect && activity.type === 'multiple-choice' && activity.explanation && (
-            <div style={{ marginTop: 6 }}>{activity.explanation}</div>
-          )}
-        </div>
-      )}
+      {!isAiType && submitted && (() => {
+        const ans = answer
+        if (!ans) return null
+        let isCorrect = false
+        if (activity.type === 'multiple-choice') {
+          const val = ans.value as number[]
+          isCorrect = val.length === activity.correctAnswers.length &&
+            activity.correctAnswers.every(c => val.includes(c))
+        } else if (activity.type === 'true-false') {
+          isCorrect = ans.value === activity.correctAnswer
+        } else if (activity.type === 'fill-blank') {
+          const vals = ans.value as Record<string, string>
+          const norm = activity.caseSensitive
+            ? (s: string) => s
+            : (s: string) => s.toLowerCase()
+          isCorrect = activity.blanks.every(b => {
+            const v = vals?.[b.id] ?? ''
+            return norm(v) === norm(b.correctAnswer) ||
+              (b.alternatives ?? []).some(a => norm(v) === norm(a))
+          })
+        }
+        return null
+      })()}
 
       {activity.hint && !submitted && (
         <>
@@ -215,16 +132,74 @@ const ActivityView: FC<ActivityProps> = ({ activity, answer, submitted, onAnswer
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
 
 export const JourneyPage: FC = () => {
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch();
-  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey);
+  const navigate  = useNavigate()
+  const dispatch  = useDispatch()
+  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey)
 
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted]         = useState(false)
+  const [evalSubmitted, setEvalSubmitted] = useState<Set<string>>(new Set())
+  const [evaluatingSet, setEvaluatingSet] = useState<Set<string>>(new Set())
+
+  const evalSubmittedRef = useRef(evalSubmitted)
+  evalSubmittedRef.current = evalSubmitted
+
+  const handleSubmitForEval = useCallback(async (activityId: string, value: string) => {
+    if (!journey) return
+    const { currentCheckpointIdx } = progress
+    const checkpoint = journey.checkpoints[currentCheckpointIdx]
+    if (!checkpoint) return
+
+    const rawActivity = checkpoint.activities.find(a => a.id === activityId)
+    if (!rawActivity || !isAiEvaluated(rawActivity)) return
+    const activity = rawActivity
+
+    setEvalSubmitted(prev => new Set(prev).add(activityId))
+    setEvaluatingSet(prev => new Set(prev).add(activityId))
+
+    try {
+      const reasoning  = activity.type === 'debug-the-logic' ? activity.reasoning   : undefined
+      const exampleAns = activity.type === 'free-response'   ? activity.exampleAnswer : undefined
+      const forbidden  = activity.type === 'teach-back'      ? activity.forbiddenTerms : undefined
+
+      const result = await evaluateAnswer({
+        concept            : checkpoint.concept,
+        activityType       : activity.type,
+        question           : activity.text,
+        reasoning,
+        exampleAnswer      : exampleAns,
+        evaluationCriteria : activity.evaluationCriteria,
+        userAnswer         : value,
+        forbiddenTerms     : forbidden,
+      })
+
+      dispatch(journeyActions.setAiEvaluation({
+        activityId,
+        score    : result.score,
+        feedback : result.feedback,
+        strengths    : result.strengths ?? null,
+        improvements : result.improvements ?? null,
+      }))
+    } catch {
+      dispatch(journeyActions.setAiEvaluation({
+        activityId,
+        score    : 0,
+        feedback : 'Не удалось оценить ответ. Ознакомьтесь с критериями оценки вручную.',
+        strengths    : null,
+        improvements : null,
+      }))
+    }
+
+    setEvaluatingSet(prev => {
+      const next = new Set(prev)
+      next.delete(activityId)
+      return next
+    })
+  }, [journey, progress, dispatch])
 
   if (!journey) {
     return (
@@ -234,31 +209,40 @@ export const JourneyPage: FC = () => {
           Создать новое
         </button>
       </div>
-    );
+    )
   }
 
-  const { currentCheckpointIdx, completedCheckpoints } = progress;
-  const checkpoint = journey.checkpoints[currentCheckpointIdx];
-  const isLast     = currentCheckpointIdx === journey.checkpoints.length - 1;
-  const allDone    = completedCheckpoints.length === journey.checkpoints.length;
+  const { currentCheckpointIdx, completedCheckpoints } = progress
+  const checkpoint = journey.checkpoints[currentCheckpointIdx]
+  const isLast     = currentCheckpointIdx === journey.checkpoints.length - 1
+  const allDone    = completedCheckpoints.length === journey.checkpoints.length
 
-  const answeredCount = checkpoint
-    ? checkpoint.activities.filter(a => answers[a.id]?.value !== undefined && answers[a.id]?.value !== '').length
-    : 0;
-  const canCheck = answeredCount > 0;
+  const nonAiActivities   = checkpoint ? checkpoint.activities.filter(a => !AI_EVALUATED_TYPES.has(a.type)) : []
+  const aiActivities      = checkpoint ? checkpoint.activities.filter(a =>  AI_EVALUATED_TYPES.has(a.type)) : []
 
-  const handleCheck = () => setSubmitted(true);
+  const nonAiAnswered = nonAiActivities.filter(a =>
+    answers[a.id]?.value !== undefined && answers[a.id]?.value !== ''
+  ).length
+  const aiAllEvaluated = aiActivities.every(a => evalSubmitted.has(a.id))
+
+  const canCheck = nonAiActivities.length === 0
+    ? aiAllEvaluated
+    : nonAiAnswered === nonAiActivities.length
+
+  const handleCheck = () => setSubmitted(true)
 
   const handleNext = () => {
-    dispatch(journeyActions.completeCheckpoint(checkpoint.id));
-    dispatch(journeyActions.nextCheckpoint());
-    setSubmitted(false);
-  };
+    dispatch(journeyActions.completeCheckpoint(checkpoint.id))
+    dispatch(journeyActions.nextCheckpoint())
+    setSubmitted(false)
+    setEvalSubmitted(new Set())
+    setEvaluatingSet(new Set())
+  }
 
   const handleFinish = () => {
-    dispatch(journeyActions.completeCheckpoint(checkpoint.id));
-    navigate(`/journey/${journey.id}/report`);
-  };
+    dispatch(journeyActions.completeCheckpoint(checkpoint.id))
+    navigate(`/journey/${journey.id}/report`)
+  }
 
   return (
     <div className={styles.page}>
@@ -274,17 +258,17 @@ export const JourneyPage: FC = () => {
       <div className={styles.progress} style={{ width: '100%', maxWidth: 720 }}>
         {journey.checkpoints.map((cp, i) => (
           <div
-            key={cp.id}
-            className={`${styles.progressDot} ${completedCheckpoints.includes(cp.id) ? styles.done : ''} ${i === currentCheckpointIdx && !completedCheckpoints.includes(cp.id) ? styles.current : ''}`}
+            key       = {cp.id}
+            className = {`${styles.progressDot}
+              ${completedCheckpoints.includes(cp.id) ? styles.done : ''}
+              ${i === currentCheckpointIdx && !completedCheckpoints.includes(cp.id) ? styles.current : ''}`}
           />
         ))}
       </div>
 
       {allDone ? (
         <div className={styles.checkpoint}>
-          <div className={styles.completedMsg}>
-            Путешествие завершено! 🎉
-          </div>
+          <div className={styles.completedMsg}>Путешествие завершено! 🎉</div>
           <button className={styles.finishBtn} onClick={() => navigate(`/journey/${journey.id}/report`)}>
             Посмотреть финальный отчёт →
           </button>
@@ -301,25 +285,44 @@ export const JourneyPage: FC = () => {
 
           <div className={styles.activities}>
             {checkpoint.activities.map(activity => (
-              <ActivityView
-                key={activity.id}
-                activity={activity}
-                answer={answers[activity.id]}
-                submitted={submitted}
-                onAnswer={ans => dispatch(journeyActions.setActivityAnswer(ans))}
+              <ActivityCard
+                key            = {activity.id}
+                activity       = {activity}
+                answer         = {answers[activity.id]}
+                globalSubmitted= {submitted}
+                evalSubmitted  = {evalSubmitted}
+                evaluatingSet  = {evaluatingSet}
+                onAnswer       = {ans => dispatch(journeyActions.setActivityAnswer(ans))}
+                onSubmitForEval= {handleSubmitForEval}
               />
             ))}
           </div>
 
           <div className={styles.actions}>
             {!submitted ? (
-              <button
-                className={styles.checkBtn}
-                disabled={!canCheck}
-                onClick={handleCheck}
-              >
-                Проверить ответы
-              </button>
+              nonAiActivities.length > 0 ? (
+                <button
+                  className = {styles.checkBtn}
+                  disabled  = {!canCheck}
+                  onClick   = {handleCheck}
+                >
+                  Проверить ответы
+                </button>
+              ) : aiAllEvaluated ? (
+                isLast ? (
+                  <button className={styles.nextBtn} onClick={handleFinish}>
+                    Завершить путешествие →
+                  </button>
+                ) : (
+                  <button className={styles.nextBtn} onClick={handleNext}>
+                    Следующий чекпоинт →
+                  </button>
+                )
+              ) : (
+                <p className={styles.aiHint}>
+                  Ответьте на все задания выше, чтобы продолжить
+                </p>
+              )
             ) : isLast ? (
               <button className={styles.nextBtn} onClick={handleFinish}>
                 Завершить путешествие →
@@ -333,5 +336,5 @@ export const JourneyPage: FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}

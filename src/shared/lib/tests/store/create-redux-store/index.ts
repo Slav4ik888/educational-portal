@@ -5,6 +5,7 @@ import { StateSchema } from 'app/providers/store';
 import { createReducerManager } from 'app/providers/store/config/reducer-manager';
 import { articleReducer } from 'entities/article';
 import { userProgressReducer } from 'entities/user-progress';
+import { journeyReducer } from 'entities/journey';
 
 
 
@@ -14,6 +15,7 @@ export function createReduxStore(initialState: DeepPartial<StateSchema>) {
       ui           : uiReducer,
       article      : articleReducer,
       userProgress : userProgressReducer,
+      journey      : journeyReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {
