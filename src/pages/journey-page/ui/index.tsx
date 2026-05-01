@@ -291,52 +291,100 @@ export const JourneyPage: FC = () => {
 
   // Refs to access current values inside the timer callback without re-creating it
   const timerExpiredRef = useRef(false)
+  const submittedRef    = useRef(false)   // mirrors `submitted` state for use in callbacks
   const checkpointRef   = useRef(checkpoint)
   const answersRef      = useRef(answers)
   checkpointRef.current = checkpoint
   answersRef.current    = answers
 
+  /**
+   * Award XP for the current checkpoint exactly once.
+   * `speedMultiplier` is 1 for a normal finish, 0.5 for a timeout.
+   * The speed *bonus* (1 / 1.5 / 2×) is applied on top only for normal finishes.
+   */
+  const awardCheckpointXP = useCallback((speedMultiplier: number, timerPct: number) => {
+    const cp  = checkpointRef.current
+    const ans = answersRef.current
+    if (!cp) return
+
+    const speedBonus = speedMultiplier < 1
+      ? speedMultiplier                          // timeout: flat 0.5
+      : timerPct > 75 ? 2 : timerPct > 50 ? 1.5 : 1  // normal: time-based
+
+    let anyCorrect  = false
+    let anyAnswered = false
+
+    cp.activities.forEach(activity => {
+      const a = ans[activity.id]
+      if (!a) return
+
+      let correct = false
+      if (AI_EVALUATED_TYPES.has(activity.type)) {
+        correct = (a.aiScore ?? 0) >= 50
+      } else {
+        correct = checkActivityCorrect(activity, a)
+      }
+
+      if (correct) {
+        anyCorrect  = true
+        anyAnswered = true
+        dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
+      } else if (a.value !== undefined && a.value !== '') {
+        anyAnswered = true
+      }
+    })
+
+    // Streak tracks whether the checkpoint ended successfully
+    if (anyAnswered) {
+      if (anyCorrect) {
+        dispatch(gamificationActions.incrementStreak())
+      } else {
+        dispatch(gamificationActions.resetStreak())
+      }
+    }
+  }, [dispatch])
+
   const handleTimeOut = useCallback(() => {
     if (timerExpiredRef.current) return
     timerExpiredRef.current = true
+
+    // If the user already finished manually, the timer was paused — this path
+    // should never fire.  Guard anyway to be safe.
+    if (submittedRef.current) return
+
     setTimedOut(true)
     setSubmitted(true)
+    submittedRef.current = true
 
     const cp = checkpointRef.current
     if (!cp) return
 
-    // Apply 50% XP penalty for all activities in the timed-out checkpoint
-    const TIMEOUT_PENALTY = 0.5
-    cp.activities.forEach(activity => {
-      const ans = answersRef.current[activity.id]
-      if (!ans) return
+    // Award 50% XP (penalised) for whatever the user managed to answer
+    awardCheckpointXP(0.5, 0)
 
-      if (AI_EVALUATED_TYPES.has(activity.type)) {
-        const score = (ans.aiScore ?? 0)
-        if (score >= 50) {
-          dispatch(gamificationActions.addXP({ base: activity.points, speedBonus: TIMEOUT_PENALTY }))
-        }
-      } else {
-        const ok = checkActivityCorrect(activity, ans)
-        if (ok) {
-          dispatch(gamificationActions.addXP({ base: activity.points, speedBonus: TIMEOUT_PENALTY }))
-        }
-      }
-    })
+    // Check lightning achievement based on elapsed time (even on timeout the
+    // user could have answered quickly before time ran out — not applicable here,
+    // so skip lightning on timeout)
 
     // Persist timed-out state to Redux and auto-advance after 2.5s
     dispatch(journeyActions.completeCheckpointTimedOut(cp.id))
     setTimeout(() => {
       dispatch(journeyActions.nextCheckpoint())
     }, 2500)
-  // dispatch is stable, so only include it
-  }, [dispatch])
+  }, [dispatch, awardCheckpointXP])
 
   const timer = useCheckpointTimer(timerTotal, handleTimeOut)
+
+  // Pause the timer (and sync ref) the moment the user finishes the checkpoint
+  useEffect(() => {
+    submittedRef.current = submitted
+    if (submitted) timer.pause()
+  }, [submitted, timer])
 
   // Reset per-checkpoint local state when checkpoint changes
   useEffect(() => {
     timerExpiredRef.current = false
+    submittedRef.current    = false
     timer.reset(timerTotal)
     setSubmitted(false)
     setTimedOut(false)
@@ -385,14 +433,6 @@ export const JourneyPage: FC = () => {
         improvements: result.improvements ?? null,
       }))
 
-      // XP for AI activity
-      const speedBonus = timer.pct > 75 ? 2 : timer.pct > 50 ? 1.5 : 1
-      if (result.score >= 50) {
-        dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
-        dispatch(gamificationActions.incrementStreak())
-      } else {
-        dispatch(gamificationActions.resetStreak())
-      }
     } catch {
       dispatch(journeyActions.setAiEvaluation({
         activityId,
@@ -401,7 +441,6 @@ export const JourneyPage: FC = () => {
         strengths   : null,
         improvements: null,
       }))
-      dispatch(gamificationActions.resetStreak())
     }
 
     setEvaluatingSet(prev => {
@@ -411,22 +450,6 @@ export const JourneyPage: FC = () => {
     })
   }, [journey, checkpoint, timer, dispatch])
 
-  const computeNonAiXP = useCallback(() => {
-    if (!checkpoint) return
-    const speedBonus = timer.pct > 75 ? 2 : timer.pct > 50 ? 1.5 : 1
-
-    checkpoint.activities.forEach(activity => {
-      if (AI_EVALUATED_TYPES.has(activity.type)) return // already handled on evaluation
-      const ans = answers[activity.id]
-      const ok  = checkActivityCorrect(activity, ans)
-      if (ok) {
-        dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
-        dispatch(gamificationActions.incrementStreak())
-      } else {
-        dispatch(gamificationActions.resetStreak())
-      }
-    })
-  }, [checkpoint, answers, timer, dispatch])
 
   if (!journey) {
     return (
@@ -455,30 +478,38 @@ export const JourneyPage: FC = () => {
     : aiAllEvaluated
 
   const handleCheck = () => {
-    computeNonAiXP()
-    // Check lightning achievement (elapsed < 60s)
+    awardCheckpointXP(1, timer.pct)
+    // Lightning: answered everything in under 60s
     const elapsed = timerTotal - timer.remaining
     if (elapsed < 60) {
       dispatch(gamificationActions.unlockAchievement('lightning'))
     }
     setSubmitted(true)
+    submittedRef.current = true
   }
 
-  const advanceCheckpoint = () => {
-    setTransitioning(true)
-    setTimeout(() => {
+  const finalizeAndAdvance = (finish: boolean) => {
+    // Award XP if the user reached here without going through handleCheck
+    // (i.e., pure-AI checkpoint where submitted was never set)
+    if (!submittedRef.current) {
+      awardCheckpointXP(1, timer.pct)
+      submittedRef.current = true
+    }
+    if (finish) {
       dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
-      dispatch(journeyActions.nextCheckpoint())
-      setTransitioning(false)
-    }, 350)
+      navigate(`/journey/${journey.id}/report`)
+    } else {
+      setTransitioning(true)
+      setTimeout(() => {
+        dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
+        dispatch(journeyActions.nextCheckpoint())
+        setTransitioning(false)
+      }, 350)
+    }
   }
 
-  const handleNext = () => advanceCheckpoint()
-
-  const handleFinish = () => {
-    dispatch(journeyActions.completeCheckpoint(checkpoint!.id))
-    navigate(`/journey/${journey.id}/report`)
-  }
+  const handleNext   = () => finalizeAndAdvance(false)
+  const handleFinish = () => finalizeAndAdvance(true)
 
   return (
     <div className={styles.page}>
@@ -564,7 +595,10 @@ export const JourneyPage: FC = () => {
           </div>
 
           <div className={styles.actions}>
-            {!submitted ? (
+            {timedOut ? (
+              /* Auto-advance is pending — block all manual navigation */
+              null
+            ) : !submitted ? (
               nonAiActivities.length > 0 ? (
                 <button
                   className = {styles.checkBtn}
