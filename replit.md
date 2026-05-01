@@ -3,10 +3,17 @@
 ## Overview
 A React + TypeScript educational web app that teaches how LLMs work intuitively. It presents articles split into theory blocks, with interactive tests after each block and a final test unlocked only after completing prior tests.
 
+## User preferences
+- Язык общения и интерфейса: русский.
+- Все задачи (project tasks): заголовок и описание — на русском.
+- Все коммиты, ответы в чате, тексты UI и сообщения об ошибках для пользователя — на русском.
+- Технические идентификаторы (имена файлов, переменных, функций, API-эндпоинтов, npm-пакетов) — оставлять как есть, на английском.
+- Комментарии в коде — на русском.
+
 ## Architecture
 - **Framework:** React 19 + TypeScript
 - **Build tool:** Webpack 5 (custom config in `/config/build/`)
-- **Styling:** SCSS Modules
+- **Styling:** tailwindcss
 - **State management:** Redux Toolkit + react-redux
 - **Routing:** react-router-dom v7
 - **API calls:** axios
