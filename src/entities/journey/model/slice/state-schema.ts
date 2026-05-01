@@ -8,5 +8,6 @@ export interface StateSchemaJourney {
   progress    : {
     currentCheckpointIdx : number
     completedCheckpoints : string[]
+    timedOutCheckpoints  : string[]
   }
 }

@@ -50,8 +50,8 @@ export function useCheckpointTimer(
   }, [paused, remaining])
 
   const phase: TimerPhase =
-    remaining <= 10  ? 'danger' :
-    remaining <= 30  ? 'warning' :
+    remaining <= 30 && remaining > 0  ? 'danger'  :
+    remaining <= 60 && remaining > 30 ? 'warning' :
     'normal'
 
   const pct = Math.round((remaining / initialRef.current) * 100)

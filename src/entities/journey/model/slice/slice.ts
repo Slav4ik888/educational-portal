@@ -9,7 +9,8 @@ const initialState: StateSchemaJourney = {
   answers     : {},
   progress    : {
     currentCheckpointIdx : 0,
-    completedCheckpoints : []
+    completedCheckpoints : [],
+    timedOutCheckpoints  : [],
   }
 }
 
@@ -21,14 +22,14 @@ export const journeySlice = createSlice({
       state.current  = action.payload
       state.error    = null
       state.answers  = {}
-      state.progress = { currentCheckpointIdx: 0, completedCheckpoints: [] }
+      state.progress = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
     },
 
     clearJourney: (state) => {
       state.current      = null
       state.error        = null
       state.answers      = {}
-      state.progress     = { currentCheckpointIdx: 0, completedCheckpoints: [] }
+      state.progress     = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
       state.isGenerating = false
     },
 
@@ -69,6 +70,15 @@ export const journeySlice = createSlice({
     completeCheckpoint: (state, action: PayloadAction<string>) => {
       if (!state.progress.completedCheckpoints.includes(action.payload)) {
         state.progress.completedCheckpoints.push(action.payload)
+      }
+    },
+
+    completeCheckpointTimedOut: (state, action: PayloadAction<string>) => {
+      if (!state.progress.completedCheckpoints.includes(action.payload)) {
+        state.progress.completedCheckpoints.push(action.payload)
+      }
+      if (!state.progress.timedOutCheckpoints.includes(action.payload)) {
+        state.progress.timedOutCheckpoints.push(action.payload)
       }
     },
 

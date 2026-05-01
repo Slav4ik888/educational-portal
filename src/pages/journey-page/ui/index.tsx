@@ -146,7 +146,6 @@ const ActivityCard: FC<ActivityCardProps> = ({
 }
 
 
-// ─── Achievement Toast ────────────────────────────────────────────────────────
 interface ToastProps {
   icon        : string
   title       : string
@@ -174,7 +173,6 @@ const AchievementToast: FC<ToastProps> = ({ icon, title, description, onDismiss 
 }
 
 
-// ─── Timer Ring ───────────────────────────────────────────────────────────────
 interface TimerRingProps {
   remaining : number
   total     : number
@@ -210,7 +208,6 @@ const TimerRing: FC<TimerRingProps> = ({ remaining, total, phase }) => {
 }
 
 
-// ─── HUD ─────────────────────────────────────────────────────────────────────
 interface HudProps {
   xp              : number
   streak          : number
@@ -247,7 +244,6 @@ const JourneyHud: FC<HudProps> = ({ xp, streak, cpIndex, cpTotal, timerRemaining
 }
 
 
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
 interface ProgressBarProps {
   checkpoints        : { id: string }[]
   completedIds       : string[]
@@ -275,7 +271,6 @@ const CheckpointProgress: FC<ProgressBarProps> = ({ checkpoints, completedIds, c
 )
 
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export const JourneyPage: FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -287,28 +282,64 @@ export const JourneyPage: FC = () => {
   const [evaluatingSet, setEvaluatingSet] = useState<Set<string>>(new Set())
   const [transitioning, setTransitioning] = useState(false)
   const [toastKey,      setToastKey]      = useState(0)
+  const [timedOut,      setTimedOut]      = useState(false)
 
   const { currentCheckpointIdx, completedCheckpoints } = progress
   const checkpoint   = journey?.checkpoints[currentCheckpointIdx]
   const cpActivities = checkpoint?.activities ?? []
   const timerTotal   = cpTimerSeconds(cpActivities.length)
 
+  // Refs to access current values inside the timer callback without re-creating it
   const timerExpiredRef = useRef(false)
+  const checkpointRef   = useRef(checkpoint)
+  const answersRef      = useRef(answers)
+  checkpointRef.current = checkpoint
+  answersRef.current    = answers
 
   const handleTimeOut = useCallback(() => {
     if (timerExpiredRef.current) return
     timerExpiredRef.current = true
-    // Auto-submit with a 30% penalty flag (XP already = 0 for un-answered)
+    setTimedOut(true)
     setSubmitted(true)
-  }, [])
+
+    const cp = checkpointRef.current
+    if (!cp) return
+
+    // Apply 50% XP penalty for all activities in the timed-out checkpoint
+    const TIMEOUT_PENALTY = 0.5
+    cp.activities.forEach(activity => {
+      const ans = answersRef.current[activity.id]
+      if (!ans) return
+
+      if (AI_EVALUATED_TYPES.has(activity.type)) {
+        const score = (ans.aiScore ?? 0)
+        if (score >= 50) {
+          dispatch(gamificationActions.addXP({ base: activity.points, speedBonus: TIMEOUT_PENALTY }))
+        }
+      } else {
+        const ok = checkActivityCorrect(activity, ans)
+        if (ok) {
+          dispatch(gamificationActions.addXP({ base: activity.points, speedBonus: TIMEOUT_PENALTY }))
+        }
+      }
+    })
+
+    // Persist timed-out state to Redux and auto-advance after 2.5s
+    dispatch(journeyActions.completeCheckpointTimedOut(cp.id))
+    setTimeout(() => {
+      dispatch(journeyActions.nextCheckpoint())
+    }, 2500)
+  // dispatch is stable, so only include it
+  }, [dispatch])
 
   const timer = useCheckpointTimer(timerTotal, handleTimeOut)
 
-  // Reset timer when checkpoint changes
+  // Reset per-checkpoint local state when checkpoint changes
   useEffect(() => {
     timerExpiredRef.current = false
     timer.reset(timerTotal)
     setSubmitted(false)
+    setTimedOut(false)
     setEvalSubmitted(new Set())
     setEvaluatingSet(new Set())
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -502,10 +533,10 @@ export const JourneyPage: FC = () => {
         </div>
       ) : checkpoint && (
         <div className={`${styles.checkpoint} ${transitioning ? styles.cpTransitionOut : styles.cpTransitionIn}`}>
-          {/* Timed-out warning */}
-          {timer.remaining === 0 && (
+          {/* Timed-out warning — auto-advance fires after 2.5s */}
+          {timedOut && (
             <div className={styles.timerExpiredBanner}>
-              ⏰ Время вышло — штраф к очкам применён
+              ⏰ Время вышло — начислено 50% XP за выполненные задания. Переход к следующему чекпоинту…
             </div>
           )}
 

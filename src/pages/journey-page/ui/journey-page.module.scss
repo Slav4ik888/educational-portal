@@ -198,6 +198,7 @@
 
   &.timer_warning .timerArc { stroke: #f59e0b; }
   &.timer_danger  .timerArc { stroke: #ef4444; }
+  /* pulse activates at <30s (danger phase) as required */
   &.timer_danger  { animation: pulseRed 1s ease-in-out infinite; border-radius: 50%; }
 }
 
