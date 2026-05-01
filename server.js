@@ -58,8 +58,69 @@ setInterval(() => {
   }
 }, RATE_WINDOW_MS);
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MODEL          = 'openai/gpt-4o-mini';
+const OPENAI_API_KEY  = process.env.OPENAI_API_KEY;
+const MODEL           = 'openai/gpt-4o-mini';
+const MIN_CHECKPOINTS = 3;
+const MAX_CHECKPOINTS = 7;
+const VALID_ACTIVITY_TYPES = new Set(['multiple-choice', 'true-false', 'fill-blank', 'free-response']);
+
+/** Normalize and validate a checkpoint's activities, stripping malformed ones */
+function normalizeActivities(rawActs, checkpointIdx) {
+  if (!Array.isArray(rawActs)) return [];
+  return rawActs
+    .filter(a => a && typeof a === 'object' && VALID_ACTIVITY_TYPES.has(a.type))
+    .filter(a => typeof a.text === 'string' && a.text.trim())
+    .map((act, aIdx) => {
+      const base = {
+        id     : `cp${checkpointIdx + 1}_act${aIdx + 1}`,
+        type   : act.type,
+        text   : String(act.text).trim(),
+        points : Number.isFinite(act.points) && act.points > 0 ? act.points : (act.type === 'free-response' ? 20 : 10),
+        hint   : typeof act.hint === 'string' ? act.hint : null,
+      };
+      if (act.type === 'multiple-choice') {
+        const options = Array.isArray(act.options) ? act.options.map(String) : [];
+        const correctAnswers = Array.isArray(act.correctAnswers)
+          ? act.correctAnswers.filter(i => typeof i === 'number' && i < options.length)
+          : [0];
+        if (options.length < 2 || correctAnswers.length === 0) return null;
+        return { ...base, options, correctAnswers, allowMultiple: Boolean(act.allowMultiple), explanation: act.explanation || '' };
+      }
+      if (act.type === 'true-false') {
+        if (typeof act.correctAnswer !== 'boolean') return null;
+        return { ...base, correctAnswer: act.correctAnswer, explanation: String(act.explanation || '') };
+      }
+      if (act.type === 'fill-blank') {
+        const blanks = Array.isArray(act.blanks)
+          ? act.blanks.filter(b => b && typeof b.id === 'string' && typeof b.correctAnswer === 'string')
+          : [];
+        if (blanks.length === 0) return null;
+        return { ...base, textWithBlanks: String(act.textWithBlanks || act.text), blanks, caseSensitive: Boolean(act.caseSensitive) };
+      }
+      if (act.type === 'free-response') {
+        return { ...base, evaluationCriteria: String(act.evaluationCriteria || 'понимание концепции'), exampleAnswer: act.exampleAnswer || '' };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
+/** Validate/normalize parsed decomposition result */
+function normalizeCheckpoints(raw) {
+  if (!Array.isArray(raw)) throw new Error('AI returned invalid checkpoints structure');
+  const valid = raw.filter(cp =>
+    cp && typeof cp.id === 'string' && typeof cp.concept === 'string' && cp.concept.trim()
+  );
+  if (valid.length < MIN_CHECKPOINTS) {
+    throw new Error(`AI returned only ${valid.length} checkpoints (minimum ${MIN_CHECKPOINTS})`);
+  }
+  return valid.slice(0, MAX_CHECKPOINTS).map((cp, i) => ({
+    id          : cp.id || `cp${i + 1}`,
+    concept     : String(cp.concept).trim(),
+    explanation : String(cp.explanation || '').trim(),
+    order       : i + 1,
+  }));
+}
 
 function callOpenRouter(messages, temperature = 0.7) {
   return new Promise((resolve, reject) => {
@@ -141,7 +202,7 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
 }
 
 Правила:
-- 3-6 чекпоинтов
+- 3-7 чекпоинтов (не меньше 3, не больше 7)
 - Порядок от базового к сложному (сначала то, без чего нельзя понять следующее)
 - Каждая концепция — атомарная (одна идея, не несколько)
 - explanation должен быть понятным даже новичку`
@@ -149,7 +210,7 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
       { role: 'user', content: inputContent }
     ], 0.5);
 
-    const checkpoints = decompositionResult.checkpoints || [];
+    const checkpoints = normalizeCheckpoints(decompositionResult.checkpoints);
 
     const activitiesPromises = checkpoints.map(async (cp, idx) => {
       const activities = await callOpenRouter([
@@ -223,12 +284,10 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
         }
       ], 0.8);
 
-      const acts = (activities.activities || []).map((act, aIdx) => ({
-        ...act,
-        id     : `cp${idx + 1}_act${aIdx + 1}`,
-        points : act.points || (act.type === 'free-response' ? 20 : 10),
-        hint   : act.hint || null,
-      }));
+      const acts = normalizeActivities(activities.activities, idx);
+      if (acts.length === 0) {
+        console.warn(`[generate-journey] no valid activities for checkpoint ${idx + 1}, using fallback`);
+      }
 
       return {
         ...cp,
