@@ -1,102 +1,340 @@
+/* ── Base ────────────────────────────────────────────────────────────────── */
 .page {
   min-height     : 100vh;
   background     : linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color          : #e2e8f0;
-  font-family    : 'Segoe UI', sans-serif;
-  padding        : 40px 20px;
+  font-family    : 'Segoe UI', system-ui, sans-serif;
+  padding        : 48px 20px 80px;
   display        : flex;
   flex-direction : column;
   align-items    : center;
+  gap            : 24px;
 }
 
-.card {
-  width         : 100%;
-  max-width     : 720px;
+
+/* ── Print-only heading ──────────────────────────────────────────────────── */
+.printHeading {
+  font-size   : 18px;
+  font-weight : 700;
+  color       : #000;
+  margin-bottom: 8px;
+}
+
+.printOnly { display: none; }
+.noPrint   { display: contents; }
+
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.emptyCard {
   background    : #1e293b;
   border        : 1px solid #334155;
   border-radius : 20px;
-  padding       : 40px;
+  padding       : 48px 32px;
   text-align    : center;
+  max-width     : 480px;
+  width         : 100%;
+}
+
+.emptyIcon  { font-size: 56px; margin-bottom: 12px; }
+.emptyTitle {
+  font-size   : 22px;
+  font-weight : 800;
+  margin      : 0 0 24px;
+}
+
+
+/* ── Hero card ───────────────────────────────────────────────────────────── */
+.heroCard {
+  width         : 100%;
+  max-width     : 760px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 20px;
+  padding       : 36px 40px;
+  display       : flex;
+  align-items   : center;
+  gap           : 32px;
   box-shadow    : 0 25px 50px rgba(0,0,0,0.4);
 }
 
-.emoji { font-size: 64px; margin-bottom: 16px; }
+.ring { flex-shrink: 0; }
 
-.title {
-  font-size   : 28px;
-  font-weight : 800;
-  margin      : 0 0 12px;
-}
+.heroInfo { flex: 1; }
 
-.subtitle {
-  color    : #64748b;
-  font-size: 15px;
-  margin   : 0 0 32px;
-}
-
-.stats {
-  display              : grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap                  : 16px;
-  margin-bottom        : 32px;
-}
-
-.stat {
+.rankBadge {
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 6px;
   background    : #0f172a;
-  border-radius : 12px;
-  padding       : 16px;
+  border        : 1px solid #6366f1;
+  border-radius : 20px;
+  padding       : 4px 14px;
+  font-size     : 13px;
+  font-weight   : 700;
+  color         : #a5b4fc;
+  margin-bottom : 12px;
 }
 
-.statValue {
+.heroTitle {
+  font-size   : 26px;
+  font-weight : 800;
+  margin      : 0 0 6px;
+}
+
+.heroSub {
+  font-size  : 14px;
+  color      : #64748b;
+  margin     : 0;
+}
+
+
+/* ── Stats grid ──────────────────────────────────────────────────────────── */
+.statsGrid {
+  width                : 100%;
+  max-width            : 760px;
+  display              : grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap                  : 14px;
+}
+
+.statCard {
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 14px;
+  padding       : 18px 14px;
+  text-align    : center;
+}
+
+.statVal {
   font-size  : 28px;
   font-weight: 800;
   color      : #a5b4fc;
 }
 
-.statLabel {
-  font-size: 12px;
-  color    : #475569;
+.statKey {
+  font-size : 11px;
+  color     : #475569;
   margin-top: 4px;
 }
 
-.checkpoints {
-  text-align   : left;
-  margin-bottom: 28px;
+
+/* ── Generic section ─────────────────────────────────────────────────────── */
+.section {
+  width    : 100%;
+  max-width: 760px;
 }
 
-.cpTitle {
-  font-size    : 14px;
+.sectionTitle {
+  font-size    : 17px;
   font-weight  : 700;
-  color        : #94a3b8;
-  margin-bottom: 12px;
+  margin       : 0 0 8px;
+  color        : #e2e8f0;
+}
+
+.sectionSub {
+  font-size    : 13px;
+  color        : #64748b;
+  margin       : 0 0 14px;
+}
+
+
+/* ── Achievements ────────────────────────────────────────────────────────── */
+.achievementGrid {
+  display              : grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap                  : 12px;
+}
+
+.achievementCard {
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 14px;
+  padding       : 18px 14px;
+  text-align    : center;
+}
+
+.achIcon  { font-size: 32px; margin-bottom: 8px; }
+.achTitle { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+.achDesc  { font-size: 11px; color: #64748b; }
+
+
+/* ── Recommendations ─────────────────────────────────────────────────────── */
+.recList { display: flex; flex-direction: column; gap: 10px; }
+
+.recCard {
+  display       : flex;
+  align-items   : flex-start;
+  gap           : 16px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 12px;
+  padding       : 14px 16px;
+}
+
+.recAcc  { font-size: 22px; font-weight: 800; flex-shrink: 0; min-width: 52px; }
+.recInfo { flex: 1; }
+.recConcept { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+.recExp     { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+
+/* ── Checkpoint section ──────────────────────────────────────────────────── */
+.cpSection {
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 16px;
+  overflow      : hidden;
+  margin-bottom : 16px;
+  page-break-inside: avoid;
+}
+
+.cpSectionHeader {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.cpSectionMeta {
+  display       : flex;
+  align-items   : center;
+  gap           : 10px;
+  margin-bottom : 4px;
+}
+
+.cpNum {
+  font-size  : 11px;
+  font-weight: 700;
+  color      : #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.cpItem {
-  display       : flex;
-  align-items   : center;
-  gap           : 10px;
-  padding       : 10px 14px;
-  background    : #0f172a;
+.timedBadge {
+  font-size  : 11px;
+  background : #451a03;
+  color      : #fbbf24;
+  padding    : 2px 8px;
+  border-radius: 8px;
+}
+
+.cpConcept {
+  font-size  : 16px;
+  font-weight: 700;
+  margin     : 0 0 10px;
+  color      : #e2e8f0;
+}
+
+.cpBar {
+  height       : 6px;
+  background   : #0f172a;
+  border-radius: 4px;
+  overflow     : hidden;
+  margin-bottom: 6px;
+}
+
+.cpBarFill {
+  height       : 100%;
+  border-radius: 4px;
+  transition   : width 0.4s ease;
+}
+
+.cpAcc {
+  font-size  : 13px;
+  font-weight: 700;
+}
+
+
+/* ── Answers ─────────────────────────────────────────────────────────────── */
+.answers { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.answerRow {
   border-radius : 10px;
-  margin-bottom : 8px;
-  font-size     : 14px;
-  color         : #94a3b8;
+  border        : 1px solid #334155;
+  padding       : 14px;
+  background    : #0f172a;
 }
 
-.cpDot {
-  width        : 8px;
-  height       : 8px;
-  border-radius: 50%;
-  background   : #34d399;
-  flex-shrink  : 0;
+.answerCorrect { border-color: #064e3b; }
+.answerWrong   { border-color: #7f1d1d; }
+
+.answerHeader {
+  display     : flex;
+  align-items : center;
+  gap         : 8px;
+  margin-bottom: 8px;
 }
 
-.actions {
-  display       : flex;
+.actIcon  { font-size: 16px; }
+.actLabel {
+  font-size  : 11px;
+  font-weight: 700;
+  color      : #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex       : 1;
+}
+.actPoints { font-size: 12px; color: #475569; }
+.verdict   {
+  font-size  : 16px;
+  font-weight: 800;
+}
+.answerCorrect .verdict { color: #34d399; }
+.answerWrong   .verdict { color: #f87171; }
+
+.questionText {
+  font-size    : 14px;
+  color        : #e2e8f0;
+  margin       : 0 0 10px;
+  line-height  : 1.5;
+}
+
+.answerBody {
+  display : flex;
+  gap     : 16px;
+  flex-wrap: wrap;
+}
+
+.answerField {
+  display      : flex;
   flex-direction: column;
-  gap           : 12px;
+  gap          : 2px;
+  min-width    : 0;
+  flex         : 1;
+}
+
+.fieldLabel {
+  font-size  : 10px;
+  font-weight: 700;
+  color      : #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fieldValue {
+  font-size  : 13px;
+  color      : #94a3b8;
+  word-break : break-word;
+}
+
+.correctAnswer { color: #34d399; }
+
+.aiFeedback {
+  margin-top    : 10px;
+  border-top    : 1px solid #1e293b;
+  padding-top   : 10px;
+}
+
+.feedbackLabel  { font-size: 11px; font-weight: 700; color: #64748b; }
+.feedbackText   { font-size: 13px; color: #94a3b8; margin: 6px 0 4px; line-height: 1.5; }
+.feedbackStrengths { font-size: 12px; color: #34d399; margin: 4px 0; }
+.feedbackImprove   { font-size: 12px; color: #fbbf24; margin: 4px 0; }
+
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.actions {
+  width     : 100%;
+  max-width : 760px;
+  display   : flex;
+  flex-direction: column;
+  gap       : 12px;
 }
 
 .btn {
@@ -108,7 +346,15 @@
   font-weight   : 700;
   cursor        : pointer;
   transition    : opacity 0.2s;
-  &:hover { opacity: 0.9; }
+  &:hover { opacity: 0.85; }
+}
+
+.printBtn {
+  composes  : btn;
+  background: #0f172a;
+  border    : 1px solid #334155;
+  color     : #94a3b8;
+  &:hover   { border-color: #a5b4fc; color: #a5b4fc; }
 }
 
 .primaryBtn {
@@ -118,8 +364,47 @@
 }
 
 .secondaryBtn {
-  composes   : btn;
-  background : transparent;
-  border     : 1px solid #334155;
-  color      : #94a3b8;
+  composes  : btn;
+  background: transparent;
+  border    : 1px solid #334155;
+  color     : #94a3b8;
+}
+
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+@media print {
+  .page {
+    background : #fff;
+    color      : #0f172a;
+    padding    : 0;
+    gap        : 16px;
+  }
+
+  .printOnly { display: block !important; }
+  .noPrint   { display: none !important; }
+
+  .heroCard, .statCard, .achievementCard, .recCard, .cpSection, .answerRow {
+    background   : #fff;
+    border       : 1px solid #cbd5e1;
+    box-shadow   : none;
+    break-inside : avoid;
+  }
+
+  .heroTitle, .sectionTitle, .cpConcept, .questionText, .recConcept {
+    color: #0f172a;
+  }
+
+  .heroSub, .statKey, .fieldLabel, .cpNum, .actLabel, .feedbackLabel {
+    color: #475569;
+  }
+
+  .statVal, .cpAcc, .recAcc     { color: #4f46e5; }
+  .fieldValue, .achTitle        { color: #334155; }
+  .correctAnswer                { color: #065f46; }
+  .feedbackStrengths            { color: #065f46; }
+  .feedbackImprove              { color: #92400e; }
+
+  .statsGrid { grid-template-columns: repeat(4, 1fr); }
+
+  .cpSection { page-break-inside: avoid; margin-bottom: 12px; }
 }
