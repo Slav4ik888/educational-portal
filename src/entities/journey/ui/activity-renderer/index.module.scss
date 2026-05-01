@@ -128,7 +128,24 @@
 .blankInputs {
   display  : flex;
   flex-wrap: wrap;
-  gap      : 8px;
+  gap      : 12px;
+}
+
+.blankRow {
+  display       : flex;
+  flex-direction: column;
+  gap           : 4px;
+}
+
+.correctHint {
+  font-size  : 0.78rem;
+  color      : #94a3b8;
+  padding-left: 2px;
+
+  strong {
+    color      : #34d399;
+    font-weight: 700;
+  }
 }
 
 .blankInput {

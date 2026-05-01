@@ -306,7 +306,8 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
 {"type":"true-false","text":"Утверждение","correctAnswer":true,"explanation":"Объяснение","hint":"Подсказка"}
 
 3. fill-blank — заполни пропуски:
-{"type":"fill-blank","text":"Вопрос","textWithBlanks":"Текст с ___ пропуском","blanks":[{"id":"b1","correctAnswer":"слово","alternatives":["синоним"]}],"caseSensitive":false}
+{"type":"fill-blank","text":"Вопрос","textWithBlanks":"Текст с ___ пропуском","blanks":[{"id":"b1","correctAnswer":"реестр","alternatives":["реестре","реестрах","реестром","registry","registries"]}],"caseSensitive":false}
+ВАЖНО для fill-blank: поле alternatives ОБЯЗАТЕЛЬНО должно содержать все разумные варианты ответа — разные падежные формы слова (именительный, родительный, дательный, предложный и т.д.), единственное и множественное число, синонимы, английский эквивалент если применимо. Не ограничивайся одной формой.
 
 4. free-response — развёрнутый ответ:
 {"type":"free-response","text":"Развёрнутый вопрос","evaluationCriteria":"Что должен понять студент","exampleAnswer":"Пример хорошего ответа","points":20}

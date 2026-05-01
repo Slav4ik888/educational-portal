@@ -142,46 +142,50 @@ export const ActivityRenderer: FC<Props> = ({
 
     if (activity.type === 'fill-blank') {
       const vals = (answer?.value as Record<string, string> | undefined) ?? {}
+      const norm = activity.caseSensitive
+        ? (s: string) => s.trim()
+        : (s: string) => s.trim().toLowerCase()
+
+      const isBlankCorrect = (blank: typeof activity.blanks[number]) => {
+        const v = vals[blank.id] ?? ''
+        return norm(v) === norm(blank.correctAnswer) ||
+          (blank.alternatives ?? []).some(a => norm(v) === norm(a))
+      }
+
+      const allCorrect = submitted && activity.blanks.every(isBlankCorrect)
+
       return (
         <>
           <p className={styles.blankText}>{activity.textWithBlanks}</p>
           <div className={styles.blankInputs}>
             {activity.blanks.map(blank => {
-              const v = vals[blank.id] ?? ''
-              const corr = submitted && (() => {
-                const norm = activity.caseSensitive
-                  ? (s: string) => s
-                  : (s: string) => s.toLowerCase()
-                return norm(v) === norm(blank.correctAnswer) ||
-                  (blank.alternatives ?? []).some(a => norm(v) === norm(a))
-              })()
+              const corr = submitted && isBlankCorrect(blank)
               return (
-                <input
-                  key      = {blank.id}
-                  disabled = {submitted}
-                  className= {`${styles.blankInput} ${submitted ? (corr ? styles.correct : styles.wrong) : ''}`}
-                  value    = {v}
-                  placeholder="..."
-                  onChange = {e => onAnswer({ ...vals, [blank.id]: e.target.value })}
-                />
+                <div key={blank.id} className={styles.blankRow}>
+                  <input
+                    disabled   = {submitted}
+                    className  = {`${styles.blankInput} ${submitted ? (corr ? styles.correct : styles.wrong) : ''}`}
+                    value      = {vals[blank.id] ?? ''}
+                    placeholder= "..."
+                    onChange   = {e => onAnswer({ ...vals, [blank.id]: e.target.value })}
+                  />
+                  {submitted && !corr && (
+                    <span className={styles.correctHint}>
+                      Верный ответ: <strong>{blank.correctAnswer}</strong>
+                    </span>
+                  )}
+                </div>
               )
             })}
           </div>
-          {submitted && (() => {
-            const norm = activity.caseSensitive
-              ? (s: string) => s
-              : (s: string) => s.toLowerCase()
-            const isCorrect = activity.blanks.every(b => {
-              const v = vals[b.id] ?? ''
-              return norm(v) === norm(b.correctAnswer) ||
-                (b.alternatives ?? []).some(a => norm(v) === norm(a))
-            })
-            return (
-              <div className={`${styles.feedback} ${isCorrect ? styles.correct : styles.wrong}`}>
-                {isCorrect ? '✓ Верно!' : '✗ Есть ошибки в пропусках'}
-              </div>
-            )
-          })()}
+          {submitted && (
+            <div className={`${styles.feedback} ${allCorrect ? styles.correct : styles.wrong}`}>
+              {allCorrect
+                ? '✓ Верно!'
+                : '✗ Есть ошибки — верные ответы показаны под каждым полем'
+              }
+            </div>
+          )}
         </>
       )
     }
