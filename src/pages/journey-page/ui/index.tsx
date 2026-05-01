@@ -290,19 +290,23 @@ export const JourneyPage: FC = () => {
   const timerTotal   = cpTimerSeconds(cpActivities.length)
 
   // Refs to access current values inside the timer callback without re-creating it
-  const timerExpiredRef = useRef(false)
-  const submittedRef    = useRef(false)   // mirrors `submitted` state for use in callbacks
-  const checkpointRef   = useRef(checkpoint)
-  const answersRef      = useRef(answers)
-  checkpointRef.current = checkpoint
-  answersRef.current    = answers
+  const timerExpiredRef  = useRef(false)
+  const submittedRef     = useRef(false)   // mirrors `submitted` state for use in callbacks
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const checkpointRef    = useRef(checkpoint)
+  const answersRef       = useRef(answers)
+  const timerTotalRef    = useRef(timerTotal)
+  checkpointRef.current  = checkpoint
+  answersRef.current     = answers
+  timerTotalRef.current  = timerTotal
 
   /**
    * Award XP for the current checkpoint exactly once.
    * `speedMultiplier` is 1 for a normal finish, 0.5 for a timeout.
    * The speed *bonus* (1 / 1.5 / 2×) is applied on top only for normal finishes.
+   * `elapsed` seconds is used to check the lightning achievement (<60s).
    */
-  const awardCheckpointXP = useCallback((speedMultiplier: number, timerPct: number) => {
+  const awardCheckpointXP = useCallback((speedMultiplier: number, timerPct: number, elapsed: number) => {
     const cp  = checkpointRef.current
     const ans = answersRef.current
     if (!cp) return
@@ -342,6 +346,11 @@ export const JourneyPage: FC = () => {
         dispatch(gamificationActions.resetStreak())
       }
     }
+
+    // Lightning achievement: completed checkpoint in under 60 seconds
+    if (elapsed < 60 && speedMultiplier >= 1) {
+      dispatch(gamificationActions.unlockAchievement('lightning'))
+    }
   }, [dispatch])
 
   const handleTimeOut = useCallback(() => {
@@ -359,16 +368,12 @@ export const JourneyPage: FC = () => {
     const cp = checkpointRef.current
     if (!cp) return
 
-    // Award 50% XP (penalised) for whatever the user managed to answer
-    awardCheckpointXP(0.5, 0)
-
-    // Check lightning achievement based on elapsed time (even on timeout the
-    // user could have answered quickly before time ran out — not applicable here,
-    // so skip lightning on timeout)
+    // Award 50% XP (penalised); lightning never fires on timeout (elapsed ≥ total)
+    awardCheckpointXP(0.5, 0, timerTotalRef.current)
 
     // Persist timed-out state to Redux and auto-advance after 2.5s
     dispatch(journeyActions.completeCheckpointTimedOut(cp.id))
-    setTimeout(() => {
+    autoAdvanceTimer.current = setTimeout(() => {
       dispatch(journeyActions.nextCheckpoint())
     }, 2500)
   }, [dispatch, awardCheckpointXP])
@@ -381,8 +386,12 @@ export const JourneyPage: FC = () => {
     if (submitted) timer.pause()
   }, [submitted, timer])
 
-  // Reset per-checkpoint local state when checkpoint changes
+  // Reset per-checkpoint local state when checkpoint changes; clear pending auto-advance
   useEffect(() => {
+    if (autoAdvanceTimer.current !== null) {
+      clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = null
+    }
     timerExpiredRef.current = false
     submittedRef.current    = false
     timer.reset(timerTotal)
@@ -392,6 +401,11 @@ export const JourneyPage: FC = () => {
     setEvaluatingSet(new Set())
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCheckpointIdx])
+
+  // Clean up auto-advance timer on unmount
+  useEffect(() => () => {
+    if (autoAdvanceTimer.current !== null) clearTimeout(autoAdvanceTimer.current)
+  }, [])
 
   // Show achievement toast when pending
   useEffect(() => {
@@ -478,12 +492,8 @@ export const JourneyPage: FC = () => {
     : aiAllEvaluated
 
   const handleCheck = () => {
-    awardCheckpointXP(1, timer.pct)
-    // Lightning: answered everything in under 60s
     const elapsed = timerTotal - timer.remaining
-    if (elapsed < 60) {
-      dispatch(gamificationActions.unlockAchievement('lightning'))
-    }
+    awardCheckpointXP(1, timer.pct, elapsed)
     setSubmitted(true)
     submittedRef.current = true
   }
@@ -492,7 +502,8 @@ export const JourneyPage: FC = () => {
     // Award XP if the user reached here without going through handleCheck
     // (i.e., pure-AI checkpoint where submitted was never set)
     if (!submittedRef.current) {
-      awardCheckpointXP(1, timer.pct)
+      const elapsed = timerTotal - timer.remaining
+      awardCheckpointXP(1, timer.pct, elapsed)
       submittedRef.current = true
     }
     if (finish) {
