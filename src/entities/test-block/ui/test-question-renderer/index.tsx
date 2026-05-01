@@ -3,6 +3,8 @@ import {
   TestQuestion,
   TestUserAnswer,
   TEST_AI_EVALUATED_TYPES,
+  AiEvaluatedTestQuestion,
+  AiTestUserAnswer,
   DebugTheLogicQuestion,
   TeachBackQuestion,
   FreeResponseQuestion,
@@ -71,28 +73,17 @@ const AI_CONTEXT: Record<string, string> = {
   'debug-the-logic'      : 'Найди, что именно неверно в рассуждении и почему.',
 }
 
-type AiTextAnswer = TestUserAnswer & {
-  type          : 'free-response' | 'explain-like-im-five' | 'teach-back' | 'give-your-example' | 'debug-the-logic'
-  value         : string
-  aiScore?      : number
-  isEvaluated?  : boolean
-  aiFeedback?   : string
-  aiStrengths?  : string
-  aiImprovements?: string
-}
-
-
 /** Компонент для AI-оцениваемых вопросов */
 const AiResponseQuestion: React.FC<{
-  question     : TestQuestion
-  userAnswer?  : TestUserAnswer
+  question     : AiEvaluatedTestQuestion
+  userAnswer?  : AiTestUserAnswer
   isSubmitted  : boolean
   topic?       : string
-  onAnswer     : (answer: TestUserAnswer) => void
+  onAnswer     : (answer: AiTestUserAnswer) => void
 }> = ({ question, userAnswer, isSubmitted, topic, onAnswer }) => {
   const [evaluating, setEvaluating] = useState(false)
 
-  const aiAns = userAnswer as AiTextAnswer | undefined
+  const aiAns = userAnswer
   const text   = aiAns?.value ?? ''
   const score  = aiAns?.aiScore
   const evaluated = aiAns?.isEvaluated ?? false
@@ -108,7 +99,7 @@ const AiResponseQuestion: React.FC<{
     setEvaluating(true)
 
     // Optimistically record the text answer
-    onAnswer({ questionId: question.id, type: question.type as 'free-response', value })
+    onAnswer({ questionId: question.id, type: question.type, value })
 
     try {
       const reasoning      = question.type === 'debug-the-logic'
@@ -134,7 +125,7 @@ const AiResponseQuestion: React.FC<{
 
       onAnswer({
         questionId    : question.id,
-        type          : question.type as 'free-response',
+        type          : question.type,
         value,
         aiScore       : result.score,
         aiFeedback    : result.feedback,
@@ -145,7 +136,7 @@ const AiResponseQuestion: React.FC<{
     } catch {
       onAnswer({
         questionId   : question.id,
-        type         : question.type as 'free-response',
+        type         : question.type,
         value,
         aiScore      : 0,
         aiFeedback   : 'Не удалось оценить ответ. Проверьте подключение.',
@@ -184,7 +175,7 @@ const AiResponseQuestion: React.FC<{
           rows        = {4}
           onChange    = {e => onAnswer({
             questionId : question.id,
-            type       : question.type as 'free-response',
+            type       : question.type,
             value      : e.target.value,
           })}
         />
@@ -250,11 +241,11 @@ export const TestQuestionRenderer: React.FC<TestQuestionRendererProps> = ({
     if (isAiType) {
       return (
         <AiResponseQuestion
-          question    = {question}
-          userAnswer  = {userAnswer}
+          question    = {question as AiEvaluatedTestQuestion}
+          userAnswer  = {userAnswer as AiTestUserAnswer | undefined}
           isSubmitted = {isSubmitted}
           topic       = {topic}
-          onAnswer    = {onAnswer}
+          onAnswer    = {answer => onAnswer(answer as TestUserAnswer)}
         />
       )
     }

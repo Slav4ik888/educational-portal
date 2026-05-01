@@ -146,6 +146,31 @@ export type AiEvaluatedTestQuestion =
   | GiveYourExampleQuestion
   | DebugTheLogicQuestion
 
+/** AI question type union */
+export type AiQuestionType =
+  | 'free-response'
+  | 'explain-like-im-five'
+  | 'teach-back'
+  | 'give-your-example'
+  | 'debug-the-logic'
+
+/** AI answer shape shared by all AI-evaluated questions */
+export interface AiTestUserAnswer {
+  questionId     : string
+  type           : AiQuestionType
+  value          : string
+  aiScore?       : number
+  isEvaluated?   : boolean
+  aiFeedback?    : string
+  aiStrengths?   : string
+  aiImprovements?: string
+}
+
+/** Type guard: narrows a TestQuestion to an AI-evaluated question */
+export function isAiQuestion(q: TestQuestion): q is AiEvaluatedTestQuestion {
+  return TEST_AI_EVALUATED_TYPES.has(q.type)
+}
+
 /** Расширенный тип для ответов пользователя */
 export type TestUserAnswer =
   | { questionId: string; type: 'multiple-choice';       value: number[] }
