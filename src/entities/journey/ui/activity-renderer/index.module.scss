@@ -12,16 +12,18 @@
 .option {
   padding       : 11px 16px;
   text-align    : left;
-  background    : #f8fafc;
-  border        : 1.5px solid #e2e8f0;
+  background    : #1e293b;
+  border        : 1.5px solid #334155;
   border-radius : 10px;
   font-size     : 0.93rem;
+  color         : #cbd5e1;
   cursor        : pointer;
-  transition    : background 0.15s, border-color 0.15s;
+  transition    : background 0.15s, border-color 0.15s, color 0.15s;
 
   &:hover:not(:disabled) {
-    background  : #f0f4ff;
-    border-color: #a5b4fc;
+    background  : #243047;
+    border-color: #6366f1;
+    color       : #e2e8f0;
   }
 
   &:disabled {
@@ -29,44 +31,48 @@
   }
 
   &.selected {
-    background  : #ede9fe;
-    border-color: #7c3aed;
-    color       : #4c1d95;
+    background  : rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    color       : #a5b4fc;
     font-weight : 600;
   }
 
   &.correct {
-    background  : #dcfce7;
-    border-color: #22c55e;
-    color       : #14532d;
+    background  : rgba(52, 211, 153, 0.15);
+    border-color: #34d399;
+    color       : #34d399;
     font-weight : 600;
   }
 
   &.wrong {
-    background  : #fee2e2;
+    background  : rgba(239, 68, 68, 0.1);
     border-color: #ef4444;
-    color       : #7f1d1d;
+    color       : #fca5a5;
   }
 }
 
 .tfOptions {
-  display : flex;
-  gap     : 12px;
+  display  : flex;
+  gap      : 12px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
 .tfBtn {
   padding       : 12px 28px;
-  background    : #f8fafc;
-  border        : 1.5px solid #e2e8f0;
+  background    : #1e293b;
+  border        : 1.5px solid #334155;
   border-radius : 10px;
   font-size     : 0.95rem;
+  color         : #cbd5e1;
   cursor        : pointer;
-  transition    : background 0.15s;
+  font-weight   : 600;
+  transition    : background 0.15s, border-color 0.15s, color 0.15s;
 
   &:hover:not(:disabled) {
-    background: #f0f4ff;
+    background  : #243047;
+    border-color: #6366f1;
+    color       : #e2e8f0;
   }
 
   &:disabled {
@@ -74,23 +80,21 @@
   }
 
   &.selected {
-    background  : #ede9fe;
-    border-color: #7c3aed;
-    color       : #4c1d95;
-    font-weight : 600;
+    background  : rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    color       : #a5b4fc;
   }
 
   &.correct {
-    background  : #dcfce7;
-    border-color: #22c55e;
-    color       : #14532d;
-    font-weight : 600;
+    background  : rgba(52, 211, 153, 0.15);
+    border-color: #34d399;
+    color       : #34d399;
   }
 
   &.wrong {
-    background  : #fee2e2;
+    background  : rgba(239, 68, 68, 0.1);
     border-color: #ef4444;
-    color       : #7f1d1d;
+    color       : #fca5a5;
   }
 }
 
@@ -102,22 +106,22 @@
   font-weight  : 600;
 
   &.correct {
-    background: #dcfce7;
-    color     : #14532d;
-    border    : 1px solid #86efac;
+    background: rgba(52, 211, 153, 0.1);
+    color     : #34d399;
+    border    : 1px solid rgba(52, 211, 153, 0.3);
   }
 
   &.wrong {
-    background: #fee2e2;
-    color     : #7f1d1d;
-    border    : 1px solid #fca5a5;
+    background: rgba(239, 68, 68, 0.08);
+    color     : #fca5a5;
+    border    : 1px solid rgba(239, 68, 68, 0.2);
   }
 }
 
 .blankText {
   font-size  : 0.95rem;
   line-height: 1.7;
-  color      : #374151;
+  color      : #94a3b8;
   margin     : 0 0 10px;
 }
 
@@ -129,26 +133,32 @@
 
 .blankInput {
   padding      : 8px 12px;
-  border       : 1.5px solid #e2e8f0;
+  background   : #1e293b;
+  border       : 1.5px solid #334155;
   border-radius: 8px;
   font-size    : 0.93rem;
   font-family  : inherit;
+  color        : #e2e8f0;
   outline      : none;
   transition   : border-color 0.15s;
+
+  &::placeholder {
+    color: #475569;
+  }
 
   &:focus {
     border-color: #6366f1;
   }
 
   &.correct {
-    border-color: #22c55e;
-    background  : #f0fdf4;
-    color       : #14532d;
+    border-color: #34d399;
+    background  : rgba(52, 211, 153, 0.1);
+    color       : #34d399;
   }
 
   &.wrong {
     border-color: #ef4444;
-    background  : #fff1f2;
-    color       : #7f1d1d;
+    background  : rgba(239, 68, 68, 0.08);
+    color       : #fca5a5;
   }
 }
