@@ -574,7 +574,11 @@ export const JourneyPage: FC = () => {
               Чекпоинт {currentCheckpointIdx + 1} из {journey.checkpoints.length}
             </div>
             <h2 className={styles.cpTitle}>{checkpoint.concept}</h2>
-            <div className={styles.cpExplanation}>{checkpoint.explanation}</div>
+            <div className={styles.cpExplanation}>
+              {checkpoint.explanation.split(/\n\n+/).map((para, i) => (
+                <p key={i} className={styles.cpParagraph}>{para.trim()}</p>
+              ))}
+            </div>
           </div>
 
           <div className={styles.activities}>

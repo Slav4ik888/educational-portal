@@ -198,13 +198,13 @@ function normalizeCheckpoints(raw) {
   }));
 }
 
-function callOpenRouter(messages, temperature = 0.7) {
+function callOpenRouter(messages, temperature = 0.7, maxTokens = 4096) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model          : MODEL,
       messages,
       temperature,
-      max_tokens     : 4096,
+      max_tokens     : maxTokens,
       response_format: { type: 'json_object' }
     });
 
@@ -259,30 +259,32 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
     const decompositionResult = await callOpenRouter([
       {
         role: 'system',
-        content: `Ты — эксперт по педагогическому дизайну. Твоя задача — разбить учебный материал на атомарные концепции для изучения.
+        content: `Ты — автор образовательных статей. Напиши подробную обучающую статью по заданной теме, структурированную на 3–7 разделов (чекпоинтов) — от базового к сложному.
 
 Верни JSON в точно таком формате:
 {
-  "title": "Название путешествия (краткое, ёмкое)",
-  "description": "1-2 предложения о чём это путешествие",
+  "title": "Название статьи (краткое, ёмкое)",
+  "description": "1-2 предложения о чём эта статья",
   "checkpoints": [
     {
       "id": "cp1",
-      "concept": "Название концепции",
-      "explanation": "Краткое объяснение (2-4 предложения) — суть концепции простым языком",
+      "concept": "Название раздела",
+      "explanation": "Полноценный раздел статьи: 3–5 абзацев, разделённых \\n\\n. Каждый абзац — 3–5 предложений. Включи: введение в концепцию, подробное объяснение своими словами, реальные примеры и аналогии, практическое применение. Пиши так, чтобы понял человек без опыта в теме.",
       "order": 1
     }
   ]
 }
 
 Правила:
-- 3-7 чекпоинтов (не меньше 3, не больше 7)
+- 3-7 разделов (не меньше 3, не больше 7)
+- explanation каждого раздела: минимум 3 абзаца, разделённых \\n\\n
+- Каждый абзац — полноценный, 3-5 предложений
 - Порядок от базового к сложному
-- Каждая концепция — атомарная (одна идея)
-- explanation должен быть понятным даже новичку`
+- Используй примеры, аналогии, сравнения из реальной жизни
+- Пиши понятно и увлекательно, без лишнего академизма`
       },
       { role: 'user', content: inputContent }
-    ], 0.5);
+    ], 0.6, 8192);
 
     const checkpoints = normalizeCheckpoints(decompositionResult.checkpoints);
 
@@ -333,7 +335,7 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
         },
         {
           role: 'user',
-          content: `Концепция: ${cp.concept}\nОбъяснение: ${cp.explanation}\n\nСоздай 4-5 разнообразных заданий.`
+          content: `Концепция: ${cp.concept}\nОбъяснение: ${String(cp.explanation).slice(0, 2000)}\n\nСоздай 4-5 разнообразных заданий.`
         }
       ], 0.8);
 
