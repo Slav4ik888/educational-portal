@@ -4,6 +4,7 @@ import { Action, EnhancedStore, Reducer, ReducersMapObject } from '@reduxjs/tool
 import { StateSchemaUI } from 'entities/ui';
 import { StateSchemaArticle } from 'entities/article';
 import { StateSchemaUserProgress } from 'entities/user-progress';
+import { StateSchemaJourney } from 'entities/journey';
 
 
 
@@ -12,6 +13,7 @@ export interface StateSchema {
   ui           : StateSchemaUI
   article      : StateSchemaArticle
   userProgress : StateSchemaUserProgress
+  journey      : StateSchemaJourney
 
   // Async reducer
   // dashboardData?      : StateSchemaDashboardData

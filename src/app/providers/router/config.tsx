@@ -1,13 +1,19 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { ArticlesListPage } from 'pages/articles-list-page';
 import { ArticlePage } from 'pages/article-page';
+import { JourneyNewPage } from 'pages/journey-new-page';
+import { JourneyPage } from 'pages/journey-page';
+import { JourneyReportPage } from 'pages/journey-report-page';
 
 
 
 export const router = createBrowserRouter(
   [
-    { path: '/', element: <ArticlesListPage /> },
-    { path: '/articles/:id', element: <ArticlePage /> },
+    { path: '/',                         element: <ArticlesListPage /> },
+    { path: '/articles/:id',             element: <ArticlePage /> },
+    { path: '/journey/new',              element: <JourneyNewPage /> },
+    { path: '/journey/:id',              element: <JourneyPage /> },
+    { path: '/journey/:id/report',       element: <JourneyReportPage /> },
   ],
   {
     basename: __IS_DEV__ ? '/' : '/educational-portal' // Название репозитория должно быть таким же, как в publicPath

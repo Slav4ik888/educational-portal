@@ -27,12 +27,16 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx vite --host 0.0.0.0 --port 5000"
+args = "node server.js & npx vite --host 0.0.0.0 --port 5000"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 7575
+externalPort = 3001
 
 [deployment]
 deploymentTarget = "static"

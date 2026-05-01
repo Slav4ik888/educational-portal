@@ -58,6 +58,24 @@ export const ArticlesListPage: FC = () => {
       <header className={styles.header}>
         <h1>Образовательный портал</h1>
         <p>Выберите статью для изучения</p>
+        <button
+          type    = 'button'
+          onClick = {() => navigate('/journey/new')}
+          style   = {{
+            marginTop     : 16,
+            padding       : '12px 28px',
+            background    : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            border        : 'none',
+            borderRadius  : 12,
+            color         : '#fff',
+            fontSize      : 15,
+            fontWeight    : 700,
+            cursor        : 'pointer',
+            letterSpacing : '0.3px',
+          }}
+        >
+          ✨ Создать Knowledge Journey
+        </button>
       </header>
 
       {/* <div className={styles.controls}>

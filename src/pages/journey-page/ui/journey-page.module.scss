@@ -1,0 +1,366 @@
+.page {
+  min-height     : 100vh;
+  background     : linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color          : #e2e8f0;
+  font-family    : 'Segoe UI', sans-serif;
+  padding        : 40px 20px;
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+}
+
+.header {
+  width         : 100%;
+  max-width     : 720px;
+  margin-bottom : 32px;
+}
+
+.nav {
+  display         : flex;
+  justify-content : space-between;
+  align-items     : center;
+  margin-bottom   : 24px;
+}
+
+.back {
+  background  : transparent;
+  border      : none;
+  color       : #94a3b8;
+  cursor      : pointer;
+  font-size   : 14px;
+  padding     : 0;
+  transition  : color 0.2s;
+  &:hover { color: #e2e8f0; }
+}
+
+.badge {
+  background    : linear-gradient(90deg, #6366f1, #8b5cf6);
+  color         : #fff;
+  font-size     : 11px;
+  font-weight   : 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding       : 3px 12px;
+  border-radius : 20px;
+}
+
+.title {
+  font-size   : clamp(22px, 4vw, 36px);
+  font-weight : 800;
+  margin      : 0 0 8px;
+  line-height : 1.2;
+}
+
+.description {
+  color      : #64748b;
+  font-size  : 15px;
+  line-height: 1.6;
+}
+
+.progress {
+  display      : flex;
+  gap          : 6px;
+  margin-bottom: 32px;
+  flex-wrap    : wrap;
+}
+
+.progressDot {
+  flex           : 1;
+  min-width      : 40px;
+  height         : 6px;
+  border-radius  : 3px;
+  background     : #1e293b;
+  border         : 1px solid #334155;
+  transition     : background 0.4s;
+
+  &.done    { background: #34d399; border-color: #34d399; }
+  &.current { background: linear-gradient(90deg, #6366f1, #8b5cf6); border-color: #6366f1; }
+}
+
+.checkpoint {
+  width         : 100%;
+  max-width     : 720px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 20px;
+  padding       : 32px;
+  box-shadow    : 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.cpHeader {
+  margin-bottom: 20px;
+}
+
+.cpNum {
+  font-size     : 12px;
+  color         : #6366f1;
+  font-weight   : 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom : 8px;
+}
+
+.cpTitle {
+  font-size  : 22px;
+  font-weight: 700;
+  margin     : 0 0 12px;
+}
+
+.cpExplanation {
+  background    : #0f172a;
+  border-left   : 3px solid #6366f1;
+  border-radius : 0 10px 10px 0;
+  padding       : 14px 18px;
+  font-size     : 15px;
+  color         : #94a3b8;
+  line-height   : 1.7;
+  margin-bottom : 28px;
+}
+
+.activities {
+  display        : flex;
+  flex-direction : column;
+  gap            : 20px;
+}
+
+.activityCard {
+  background    : #0f172a;
+  border        : 1px solid #1e293b;
+  border-radius : 14px;
+  padding       : 20px;
+}
+
+.activityLabel {
+  font-size     : 11px;
+  font-weight   : 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color         : #475569;
+  margin-bottom : 10px;
+}
+
+.activityQuestion {
+  font-size    : 16px;
+  font-weight  : 500;
+  color        : #e2e8f0;
+  margin-bottom: 16px;
+  line-height  : 1.5;
+}
+
+.options {
+  display        : flex;
+  flex-direction : column;
+  gap            : 8px;
+}
+
+.option {
+  padding       : 12px 16px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 10px;
+  color         : #94a3b8;
+  font-size     : 14px;
+  cursor        : pointer;
+  text-align    : left;
+  transition    : all 0.2s;
+
+  &:hover:not(:disabled) { border-color: #6366f1; color: #e2e8f0; }
+  &.selected { background: rgba(99,102,241,0.15); border-color: #6366f1; color: #a5b4fc; }
+  &.correct  { background: rgba(52,211,153,0.15); border-color: #34d399; color: #34d399; }
+  &.wrong    { background: rgba(239,68,68,0.1);   border-color: #ef4444; color: #fca5a5; }
+  &:disabled { cursor: default; }
+}
+
+.tfOptions {
+  display: flex;
+  gap    : 12px;
+}
+
+.tfBtn {
+  flex          : 1;
+  padding       : 14px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 10px;
+  color         : #94a3b8;
+  font-size     : 15px;
+  font-weight   : 600;
+  cursor        : pointer;
+  transition    : all 0.2s;
+
+  &:hover:not(:disabled) { border-color: #6366f1; color: #e2e8f0; }
+  &.selected { background: rgba(99,102,241,0.15); border-color: #6366f1; color: #a5b4fc; }
+  &.correct  { background: rgba(52,211,153,0.15); border-color: #34d399; color: #34d399; }
+  &.wrong    { background: rgba(239,68,68,0.1);   border-color: #ef4444; color: #fca5a5; }
+  &:disabled { cursor: default; }
+}
+
+.blankText {
+  font-size  : 15px;
+  color      : #94a3b8;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.blankInputs {
+  display  : flex;
+  flex-wrap: wrap;
+  gap      : 10px;
+}
+
+.blankInput {
+  padding       : 8px 12px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 8px;
+  color         : #e2e8f0;
+  font-size     : 14px;
+  outline       : none;
+  min-width     : 120px;
+  transition    : border-color 0.2s;
+
+  &:focus { border-color: #6366f1; }
+  &.correct { border-color: #34d399; }
+  &.wrong   { border-color: #ef4444; }
+  &:disabled { cursor: default; }
+}
+
+.freeTextarea {
+  width         : 100%;
+  min-height    : 100px;
+  padding       : 12px 14px;
+  background    : #1e293b;
+  border        : 1px solid #334155;
+  border-radius : 10px;
+  color         : #e2e8f0;
+  font-size     : 14px;
+  outline       : none;
+  resize        : vertical;
+  font-family   : inherit;
+  line-height   : 1.6;
+  box-sizing    : border-box;
+  transition    : border-color 0.2s;
+
+  &:focus { border-color: #6366f1; }
+  &:disabled { cursor: default; opacity: 0.7; }
+}
+
+.aiFeedback {
+  margin-top    : 12px;
+  padding       : 12px 16px;
+  background    : rgba(99,102,241,0.08);
+  border        : 1px solid rgba(99,102,241,0.3);
+  border-radius : 10px;
+  font-size     : 13px;
+  color         : #a5b4fc;
+  line-height   : 1.6;
+}
+
+.aiEvaluating {
+  margin-top  : 10px;
+  font-size   : 13px;
+  color       : #475569;
+  font-style  : italic;
+}
+
+.feedback {
+  margin-top    : 12px;
+  padding       : 10px 14px;
+  border-radius : 8px;
+  font-size     : 13px;
+  line-height   : 1.5;
+}
+
+.correct { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+.wrong   { background: rgba(239,68,68,0.08); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+
+.hint {
+  margin-top    : 8px;
+  padding       : 8px 12px;
+  background    : rgba(251,191,36,0.08);
+  border        : 1px solid rgba(251,191,36,0.2);
+  border-radius : 8px;
+  font-size     : 13px;
+  color         : #fcd34d;
+}
+
+.hintBtn {
+  background  : transparent;
+  border      : none;
+  color       : #475569;
+  font-size   : 13px;
+  cursor      : pointer;
+  padding     : 6px 0;
+  margin-top  : 4px;
+  transition  : color 0.2s;
+  &:hover { color: #fcd34d; }
+}
+
+.actions {
+  display        : flex;
+  justify-content: space-between;
+  align-items    : center;
+  margin-top     : 28px;
+  gap            : 12px;
+}
+
+.checkBtn {
+  flex          : 1;
+  padding       : 14px;
+  background    : linear-gradient(135deg, #6366f1, #8b5cf6);
+  border        : none;
+  border-radius : 12px;
+  color         : #fff;
+  font-size     : 15px;
+  font-weight   : 700;
+  cursor        : pointer;
+  transition    : opacity 0.2s;
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover:not(:disabled) { opacity: 0.9; }
+}
+
+.nextBtn {
+  composes  : checkBtn;
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.score {
+  font-size  : 14px;
+  color      : #64748b;
+  text-align : center;
+}
+
+.pointsBadge {
+  display       : inline-block;
+  background    : rgba(99,102,241,0.15);
+  border        : 1px solid rgba(99,102,241,0.3);
+  border-radius : 6px;
+  padding       : 2px 8px;
+  font-size     : 11px;
+  font-weight   : 700;
+  color         : #a5b4fc;
+  margin-bottom : 8px;
+}
+
+.completedMsg {
+  text-align    : center;
+  padding       : 20px;
+  color         : #34d399;
+  font-size     : 18px;
+  font-weight   : 700;
+  margin-bottom : 16px;
+}
+
+.finishBtn {
+  width         : 100%;
+  padding       : 16px;
+  background    : linear-gradient(135deg, #059669, #10b981);
+  border        : none;
+  border-radius : 14px;
+  color         : #fff;
+  font-size     : 16px;
+  font-weight   : 700;
+  cursor        : pointer;
+  transition    : opacity 0.2s;
+  &:hover { opacity: 0.9; }
+}

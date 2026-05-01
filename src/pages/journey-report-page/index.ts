@@ -1,0 +1,1 @@
+export { JourneyReportPage } from './ui'
