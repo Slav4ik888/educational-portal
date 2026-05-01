@@ -53,9 +53,18 @@ const TYPE_COLOR: Record<string, string> = {
   'debug-the-logic'      : 'rose',
 }
 
-/** Seconds for a checkpoint based on activity count */
-function cpTimerSeconds(activityCount: number): number {
-  return Math.min(300, Math.max(180, 120 + activityCount * 40))
+/** Seconds for a checkpoint based on text length and activity XP.
+ *  - 1 minute per 100 characters of explanation + activity texts
+ *  - 12 seconds per XP point (10 XP → 2 min, 20 XP → 4 min)
+ */
+function cpTimerSeconds(
+  explanation: string,
+  activities: JourneyActivity[],
+): number {
+  const allText    = explanation + activities.map(a => a.text).join('')
+  const textSecs   = Math.ceil(allText.length / 100) * 60
+  const testSecs   = activities.reduce((sum, a) => sum + (a.points / 10) * 120, 0)
+  return Math.round(textSecs + testSecs)
 }
 
 interface ActivityCardProps {
@@ -260,8 +269,8 @@ export const JourneyPage: FC = () => {
 
   const { currentCheckpointIdx, completedCheckpoints } = progress
   const checkpoint   = journey?.checkpoints[currentCheckpointIdx]
-  const cpActivities = checkpoint?.activities ?? []
-  const timerTotal   = cpTimerSeconds(cpActivities.length)
+  const cpActivities  = checkpoint?.activities ?? []
+  const timerTotal    = cpTimerSeconds(checkpoint?.explanation ?? '', cpActivities)
 
   // Refs to access current values inside the timer callback without re-creating it
   const timerExpiredRef  = useRef(false)
