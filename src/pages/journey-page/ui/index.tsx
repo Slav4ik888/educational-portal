@@ -308,35 +308,35 @@ export const JourneyPage: FC = () => {
     if (!cp) return
 
     const speedBonus = speedMultiplier < 1
-      ? speedMultiplier                          // timeout: flat 0.5
-      : timerPct > 75 ? 2 : timerPct > 50 ? 1.5 : 1  // normal: time-based
+      ? speedMultiplier                                         // timeout: flat 0.5
+      : timerPct > 75 ? 2 : timerPct > 50 ? 1.5 : 1           // normal: time-based
 
-    let anyCorrect  = false
-    let anyAnswered = false
+    let anyAnswered       = false
+    let allAnsweredCorrect = true   // flipped to false on first wrong answer
 
     cp.activities.forEach(activity => {
       const a = ans[activity.id]
-      if (!a) return
+      // Skip activities the user never touched
+      if (!a || a.value === undefined || a.value === '') return
 
-      let correct = false
-      if (AI_EVALUATED_TYPES.has(activity.type)) {
-        correct = (a.aiScore ?? 0) >= 50
-      } else {
-        correct = checkActivityCorrect(activity, a)
-      }
+      anyAnswered = true
+
+      const correct = AI_EVALUATED_TYPES.has(activity.type)
+        ? (a.aiScore ?? 0) >= 50
+        : checkActivityCorrect(activity, a)
 
       if (correct) {
-        anyCorrect  = true
-        anyAnswered = true
         dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
-      } else if (a.value !== undefined && a.value !== '') {
-        anyAnswered = true
+      } else {
+        // Any wrong answer means streak must reset
+        allAnsweredCorrect = false
       }
     })
 
-    // Streak tracks whether the checkpoint ended successfully
+    // Streak: increment only if every answered activity was correct;
+    // reset the moment any answer is wrong (per spec).
     if (anyAnswered) {
-      if (anyCorrect) {
+      if (allAnsweredCorrect) {
         dispatch(gamificationActions.incrementStreak())
       } else {
         dispatch(gamificationActions.resetStreak())
