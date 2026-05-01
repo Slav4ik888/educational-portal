@@ -56,8 +56,8 @@ setInterval(() => {
   }
 }, RATE_WINDOW_MS);
 
-const OPENAI_API_KEY  = process.env.OPENAI_API_KEY;
-const MODEL           = 'openai/gpt-4o-mini';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const MODEL            = 'deepseek-chat';
 const MIN_CHECKPOINTS = 3;
 const MAX_CHECKPOINTS = 7;
 
@@ -209,14 +209,12 @@ function callOpenRouter(messages, temperature = 0.7) {
     });
 
     const options = {
-      hostname : 'openrouter.ai',
-      path     : '/api/v1/chat/completions',
+      hostname : 'api.deepseek.com',
+      path     : '/v1/chat/completions',
       method   : 'POST',
       headers  : {
         'Content-Type'  : 'application/json',
-        'Authorization' : `Bearer ${OPENAI_API_KEY}`,
-        'HTTP-Referer'  : 'https://knowledge-journey.replit.app',
-        'X-Title'       : 'Knowledge Journey',
+        'Authorization' : `Bearer ${DEEPSEEK_API_KEY}`,
       }
     };
 
@@ -245,8 +243,8 @@ function callOpenRouter(messages, temperature = 0.7) {
 
 app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
   try {
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
+    if (!DEEPSEEK_API_KEY) {
+      return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
     }
 
     const { topic, text } = req.body;
@@ -464,8 +462,8 @@ const EVAL_SYSTEM_PROMPTS = {
 
 app.post('/api/ai/evaluate-answer', rateLimit, async (req, res) => {
   try {
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
+    if (!DEEPSEEK_API_KEY) {
+      return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
     }
 
     const {
@@ -527,5 +525,5 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`[server] API backend running on port ${PORT} (localhost-only)`);
-  console.log(`[server] OpenAI key: ${OPENAI_API_KEY ? 'configured' : 'MISSING'}`);
+  console.log(`[server] DeepSeek key: ${DEEPSEEK_API_KEY ? 'configured' : 'MISSING'}`);
 });
