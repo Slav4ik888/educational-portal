@@ -2,17 +2,54 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { StateSchemaJourney } from './state-schema'
 import { Journey, ActivityAnswer } from '../../types'
 
-const initialState: StateSchemaJourney = {
-  current     : null,
-  isGenerating: false,
-  error       : null,
-  answers     : {},
-  progress    : {
-    currentCheckpointIdx : 0,
-    completedCheckpoints : [],
-    timedOutCheckpoints  : [],
+const LS_KEY = 'journeyState'
+
+function loadFromLocalStorage(): StateSchemaJourney {
+  try {
+    const saved = localStorage.getItem(LS_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<StateSchemaJourney>
+      return {
+        current      : parsed.current      ?? null,
+        isGenerating : false,
+        error        : null,
+        answers      : parsed.answers      ?? {},
+        progress     : parsed.progress     ?? {
+          currentCheckpointIdx : 0,
+          completedCheckpoints : [],
+          timedOutCheckpoints  : [],
+        },
+      }
+    }
+  } catch {
+    // ignore corrupted data
+  }
+  return {
+    current      : null,
+    isGenerating : false,
+    error        : null,
+    answers      : {},
+    progress     : {
+      currentCheckpointIdx : 0,
+      completedCheckpoints : [],
+      timedOutCheckpoints  : [],
+    },
   }
 }
+
+function saveToLocalStorage(state: StateSchemaJourney) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      current  : state.current,
+      answers  : state.answers,
+      progress : state.progress,
+    }))
+  } catch {
+    // quota exceeded or private mode — silently skip
+  }
+}
+
+const initialState: StateSchemaJourney = loadFromLocalStorage()
 
 export const journeySlice = createSlice({
   name: 'journey',
@@ -23,6 +60,7 @@ export const journeySlice = createSlice({
       state.error    = null
       state.answers  = {}
       state.progress = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
+      saveToLocalStorage(state)
     },
 
     clearJourney: (state) => {
@@ -31,6 +69,7 @@ export const journeySlice = createSlice({
       state.answers      = {}
       state.progress     = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
       state.isGenerating = false
+      try { localStorage.removeItem(LS_KEY) } catch { /* ignore */ }
     },
 
     setGenerating: (state, action: PayloadAction<boolean>) => {
@@ -45,6 +84,7 @@ export const journeySlice = createSlice({
 
     setActivityAnswer: (state, action: PayloadAction<ActivityAnswer>) => {
       state.answers[action.payload.activityId] = action.payload
+      saveToLocalStorage(state)
     },
 
     setAiEvaluation: (
@@ -65,12 +105,14 @@ export const journeySlice = createSlice({
         a.aiImprovements = action.payload.improvements ?? null
         a.isEvaluated    = true
       }
+      saveToLocalStorage(state)
     },
 
     completeCheckpoint: (state, action: PayloadAction<string>) => {
       if (!state.progress.completedCheckpoints.includes(action.payload)) {
         state.progress.completedCheckpoints.push(action.payload)
       }
+      saveToLocalStorage(state)
     },
 
     completeCheckpointTimedOut: (state, action: PayloadAction<string>) => {
@@ -80,12 +122,14 @@ export const journeySlice = createSlice({
       if (!state.progress.timedOutCheckpoints.includes(action.payload)) {
         state.progress.timedOutCheckpoints.push(action.payload)
       }
+      saveToLocalStorage(state)
     },
 
     nextCheckpoint: (state) => {
       if (state.current && state.progress.currentCheckpointIdx < state.current.checkpoints.length - 1) {
         state.progress.currentCheckpointIdx += 1
       }
+      saveToLocalStorage(state)
     },
   }
 })

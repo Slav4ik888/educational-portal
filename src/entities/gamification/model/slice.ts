@@ -1,14 +1,49 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { GamificationState, Achievement, ACHIEVEMENTS } from '../types'
 
-const initialState: GamificationState = {
-  totalXP              : 0,
-  sessionXP            : 0,
-  streak               : 0,
-  maxStreak            : 0,
-  unlockedAchievements : [],
-  pendingAchievement   : null,
+const LS_KEY = 'gamificationState'
+
+function loadFromLocalStorage(): GamificationState {
+  try {
+    const saved = localStorage.getItem(LS_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<GamificationState>
+      return {
+        totalXP              : parsed.totalXP              ?? 0,
+        sessionXP            : 0,
+        streak               : parsed.streak               ?? 0,
+        maxStreak            : parsed.maxStreak            ?? 0,
+        unlockedAchievements : parsed.unlockedAchievements ?? [],
+        pendingAchievement   : null,
+      }
+    }
+  } catch {
+    // ignore corrupted data
+  }
+  return {
+    totalXP              : 0,
+    sessionXP            : 0,
+    streak               : 0,
+    maxStreak            : 0,
+    unlockedAchievements : [],
+    pendingAchievement   : null,
+  }
 }
+
+function saveToLocalStorage(state: GamificationState) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      totalXP              : state.totalXP,
+      streak               : state.streak,
+      maxStreak            : state.maxStreak,
+      unlockedAchievements : state.unlockedAchievements,
+    }))
+  } catch {
+    // quota exceeded or private mode — silently skip
+  }
+}
+
+const initialState: GamificationState = loadFromLocalStorage()
 
 const gamificationSlice = createSlice({
   name    : 'gamification',
@@ -20,30 +55,31 @@ const gamificationSlice = createSlice({
       const earned     = Math.round(base * multiplier * speedBonus)
       state.totalXP   += earned
       state.sessionXP += earned
+      saveToLocalStorage(state)
     },
 
     incrementStreak(state) {
       state.streak++
       if (state.streak > state.maxStreak) state.maxStreak = state.streak
 
-      // streak5: fires when streak reaches exactly 5
       if (state.streak === 5 && !state.unlockedAchievements.includes('streak5')) {
         state.unlockedAchievements.push('streak5')
         if (!state.pendingAchievement) {
           state.pendingAchievement = ACHIEVEMENTS.find(a => a.id === 'streak5') ?? null
         }
       }
-      // unstoppable: fires when streak reaches 10
       if (state.streak === 10 && !state.unlockedAchievements.includes('unstoppable')) {
         state.unlockedAchievements.push('unstoppable')
         if (!state.pendingAchievement) {
           state.pendingAchievement = ACHIEVEMENTS.find(a => a.id === 'unstoppable') ?? null
         }
       }
+      saveToLocalStorage(state)
     },
 
     resetStreak(state) {
       state.streak = 0
+      saveToLocalStorage(state)
     },
 
     unlockAchievement(state, action: PayloadAction<string>) {
@@ -53,6 +89,7 @@ const gamificationSlice = createSlice({
         const ach = ACHIEVEMENTS.find(a => a.id === id)
         if (ach) state.pendingAchievement = ach
       }
+      saveToLocalStorage(state)
     },
 
     clearPendingAchievement(state) {
@@ -62,6 +99,7 @@ const gamificationSlice = createSlice({
     resetSession(state) {
       state.sessionXP = 0
       state.streak    = 0
+      saveToLocalStorage(state)
     },
   },
 })
