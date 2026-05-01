@@ -1,6 +1,7 @@
 export { createReduxStore } from './config/store'
 export type { AppDispatch } from './config/store'
-export { errorHandlers, CustomAxiosError } from './config/error-handlers'
+export { errorHandlers } from './config/error-handlers'
+export type { CustomAxiosError } from './config/error-handlers'
 
 export type {
   StateKey,

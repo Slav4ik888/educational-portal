@@ -1,6 +1,6 @@
 import { getValidResult, isHasField, isFieldValueUndefined, isNotHasField, isNotNum, isNotUndefined } from '../../base';
 import { ErrorText } from '../../errors-texts';
-import { ContainsField, ValidateNumberOptions } from '../types';
+import type { ContainsField, ValidateNumberOptions } from '../types';
 import { Validation } from '../../types';
 
 

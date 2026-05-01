@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { isNotUndefined, isStr } from '../../validators';
-import { UseValue } from './types';
+import type { UseValue } from './types';
 
-export { UseValue };
+export type { UseValue };
 
 /**
  * v.2023-09-19

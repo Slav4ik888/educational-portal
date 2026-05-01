@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { isNotUndefined, isObj } from '../../validators';
 import { cloneObj } from '../../../helpers/objects';
-import { UseGroup, TuplesGroup, UseGroupConfig } from './types';
+import type { UseGroup, TuplesGroup, UseGroupConfig } from './types';
 import { __devLog } from '../../tests/__dev-log';
 
-export { UseGroup, TuplesGroup };
+export type { UseGroup, TuplesGroup };
 
 
 const trueIfUndefined = (v: boolean | undefined): boolean => isNotUndefined(v) ? v as boolean : true;

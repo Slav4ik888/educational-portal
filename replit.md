@@ -1,7 +1,7 @@
 # Educational Portal
 
 ## Overview
-A React + TypeScript educational web app that teaches how LLMs work intuitively. It presents articles split into theory blocks, with interactive tests after each block and a final test unlocked only after completing prior tests.
+Образовательный веб-портал на React + TypeScript для изучения принципов работы LLM. Статьи разбиты на теоретические блоки с интерактивными тестами после каждого; финальный тест доступен только после прохождения всех промежуточных.
 
 ## User preferences
 - Язык общения и интерфейса: русский.
@@ -12,36 +12,52 @@ A React + TypeScript educational web app that teaches how LLMs work intuitively.
 
 ## Architecture
 - **Framework:** React 19 + TypeScript
-- **Build tool:** Webpack 5 (custom config in `/config/build/`)
-- **Styling:** tailwindcss
+- **Build tool:** Vite 6 (`vite.config.ts`)
+- **Styling:** SCSS Modules (старые компоненты) + Tailwind CSS (новые компоненты)
 - **State management:** Redux Toolkit + react-redux
 - **Routing:** react-router-dom v7
 - **API calls:** axios
 - **Architecture pattern:** Feature-Sliced Design (FSD)
 
+## Important notes
+- TypeScript interfaces/types при реэкспорте должны использовать `export type { ... }`, а при импорте — `import type { ... }`. Это обязательно для Vite/esbuild (isolatedModules).
+- Tailwind CSS — подключён через `src/tailwind.css`, импортируется в `src/index.tsx`. В новых компонентах использовать Tailwind, в старых оставить SCSS Modules.
+
 ## Project Structure
 ```
 src/
-  app/         - App initialization, providers (router, store, error boundary)
-  pages/       - Route-level pages
-  widgets/     - Reusable page sections (article reader, test blocks)
-  features/    - Feature modules (e.g., glossary)
-  entities/    - Domain entities (article, glossary, test-block, user-progress)
-  shared/      - Shared UI, lib, config, helpers
+  app/         - Инициализация приложения, провайдеры (router, store, error boundary)
+  pages/       - Страницы маршрутов
+  widgets/     - Переиспользуемые секции страниц
+  features/    - Фичи (например, glossary)
+  entities/    - Доменные сущности (article, glossary, test-block, user-progress)
+  shared/      - Общие UI компоненты, хелперы, хуки, validators
+  tailwind.css - Tailwind CSS точка входа
 config/
-  build/       - Custom webpack configuration builders
-  jest/        - Jest test configurations
-public/        - Static HTML template and favicon
+  jest/        - Конфигурации Jest
+index.html     - Корневой HTML для Vite
+vite.config.ts - Конфигурация Vite
+tailwind.config.js - Конфигурация Tailwind CSS
+postcss.config.js  - Конфигурация PostCSS
+public/        - Статические файлы (favicon.png)
 ```
 
 ## Development
-- **Dev server:** `npm run dev` (port 5000, host 0.0.0.0)
-- **Production build:** `npm run build:prod`
+- **Dev server:** `npx vite --host 0.0.0.0 --port 5000`
+- **Production build:** `npx vite build` (output → `dist/`)
+
+## Path aliases (vite.config.ts)
+- `app/*` → `src/app/*`
+- `pages/*` → `src/pages/*`
+- `widgets/*` → `src/widgets/*`
+- `features/*` → `src/features/*`
+- `entities/*` → `src/entities/*`
+- `shared/*` → `src/shared/*`
 
 ## Deployment
 - **Type:** Static site
-- **Build command:** `npm run build:prod`
-- **Output directory:** `build/`
+- **Build command:** `npx vite build`
+- **Output directory:** `dist/`
 
 ## Workflow
-- **Start application** — runs `npm run dev`, serves on port 5000
+- **Start application** — `npx vite --host 0.0.0.0 --port 5000`, порт 5000

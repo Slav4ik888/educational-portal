@@ -1,5 +1,5 @@
 import { cloneObj, setValueByScheme } from '../../../../helpers/objects';
-import { TuplesGroup, UseGroup } from '../types';
+import type { TuplesGroup, UseGroup } from '../types';
 
 
 /**
