@@ -10,11 +10,12 @@ function loadFromLocalStorage(): StateSchemaJourney {
     if (saved) {
       const parsed = JSON.parse(saved) as Partial<StateSchemaJourney>
       return {
-        current      : parsed.current      ?? null,
-        isGenerating : false,
-        error        : null,
-        answers      : parsed.answers      ?? {},
-        progress     : parsed.progress     ?? {
+        current                : parsed.current                ?? null,
+        isGenerating           : false,
+        error                  : null,
+        answers                : parsed.answers                ?? {},
+        submittedCheckpointIds : parsed.submittedCheckpointIds ?? [],
+        progress               : parsed.progress               ?? {
           currentCheckpointIdx : 0,
           completedCheckpoints : [],
           timedOutCheckpoints  : [],
@@ -25,11 +26,12 @@ function loadFromLocalStorage(): StateSchemaJourney {
     // ignore corrupted data
   }
   return {
-    current      : null,
-    isGenerating : false,
-    error        : null,
-    answers      : {},
-    progress     : {
+    current                : null,
+    isGenerating           : false,
+    error                  : null,
+    answers                : {},
+    submittedCheckpointIds : [],
+    progress               : {
       currentCheckpointIdx : 0,
       completedCheckpoints : [],
       timedOutCheckpoints  : [],
@@ -40,9 +42,10 @@ function loadFromLocalStorage(): StateSchemaJourney {
 function saveToLocalStorage(state: StateSchemaJourney) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
-      current  : state.current,
-      answers  : state.answers,
-      progress : state.progress,
+      current                : state.current,
+      answers                : state.answers,
+      submittedCheckpointIds : state.submittedCheckpointIds,
+      progress               : state.progress,
     }))
   } catch {
     // quota exceeded or private mode — silently skip
@@ -56,19 +59,21 @@ export const journeySlice = createSlice({
   initialState,
   reducers: {
     setJourney: (state, action: PayloadAction<Journey>) => {
-      state.current  = action.payload
-      state.error    = null
-      state.answers  = {}
-      state.progress = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
+      state.current                = action.payload
+      state.error                  = null
+      state.answers                = {}
+      state.submittedCheckpointIds = []
+      state.progress               = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
       saveToLocalStorage(state)
     },
 
     clearJourney: (state) => {
-      state.current      = null
-      state.error        = null
-      state.answers      = {}
-      state.progress     = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
-      state.isGenerating = false
+      state.current                = null
+      state.error                  = null
+      state.answers                = {}
+      state.submittedCheckpointIds = []
+      state.progress               = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
+      state.isGenerating           = false
       try { localStorage.removeItem(LS_KEY) } catch { /* ignore */ }
     },
 
@@ -129,6 +134,18 @@ export const journeySlice = createSlice({
       action.payload.forEach(id => {
         delete state.answers[id]
       })
+      saveToLocalStorage(state)
+    },
+
+    markCheckpointSubmitted: (state, action: PayloadAction<string>) => {
+      if (!state.submittedCheckpointIds.includes(action.payload)) {
+        state.submittedCheckpointIds.push(action.payload)
+      }
+      saveToLocalStorage(state)
+    },
+
+    unmarkCheckpointSubmitted: (state, action: PayloadAction<string>) => {
+      state.submittedCheckpointIds = state.submittedCheckpointIds.filter(id => id !== action.payload)
       saveToLocalStorage(state)
     },
 

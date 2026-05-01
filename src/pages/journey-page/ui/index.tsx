@@ -259,10 +259,12 @@ const CheckpointProgress: FC<ProgressBarProps> = ({ checkpoints, completedIds, c
 export const JourneyPage: FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey)
+  const { current: journey, answers, progress, submittedCheckpointIds } = useSelector((s: StateSchema) => s.journey)
   const gamification = useSelector((s: StateSchema) => s.gamification)
 
-  const [submitted,     setSubmitted]     = useState(false)
+  const checkpoint   = journey?.checkpoints[progress.currentCheckpointIdx]
+
+  const [submitted,     setSubmitted]     = useState(() => submittedCheckpointIds.includes(checkpoint?.id ?? ''))
   const [evalSubmitted, setEvalSubmitted] = useState<Set<string>>(new Set())
   const [evaluatingSet, setEvaluatingSet] = useState<Set<string>>(new Set())
   const [transitioning, setTransitioning] = useState(false)
@@ -270,7 +272,6 @@ export const JourneyPage: FC = () => {
   const [timedOut,      setTimedOut]      = useState(false)
 
   const { currentCheckpointIdx, completedCheckpoints } = progress
-  const checkpoint   = journey?.checkpoints[currentCheckpointIdx]
   const cpActivities  = checkpoint?.activities ?? []
   const timerTotal    = cpTimerSeconds(checkpoint?.explanation ?? '', cpActivities)
 
@@ -356,12 +357,14 @@ export const JourneyPage: FC = () => {
     if (submitted) timer.pause()
   }, [submitted, timer])
 
-  // Reset per-checkpoint local state when checkpoint changes
+  // Reset per-checkpoint local state when checkpoint changes,
+  // restoring submitted status from persisted Redux state.
   useEffect(() => {
     timerExpiredRef.current = false
-    submittedRef.current    = false
-    timer.reset(timerTotal)
-    setSubmitted(false)
+    const alreadySubmitted  = submittedCheckpointIds.includes(checkpoint?.id ?? '')
+    submittedRef.current    = alreadySubmitted
+    if (!alreadySubmitted) timer.reset(timerTotal)
+    setSubmitted(alreadySubmitted)
     setTimedOut(false)
     setEvalSubmitted(new Set())
     setEvaluatingSet(new Set())
@@ -458,6 +461,7 @@ export const JourneyPage: FC = () => {
     awardCheckpointXP(speedMult, timedOut ? 0 : timer.pct, elapsed)
     setSubmitted(true)
     submittedRef.current = true
+    if (checkpoint) dispatch(journeyActions.markCheckpointSubmitted(checkpoint.id))
   }
 
   const finalizeAndAdvance = (finish: boolean) => {
@@ -489,6 +493,7 @@ export const JourneyPage: FC = () => {
     if (!checkpoint) return
     const activityIds = checkpoint.activities.map(a => a.id)
     dispatch(journeyActions.clearCheckpointAnswers(activityIds))
+    dispatch(journeyActions.unmarkCheckpointSubmitted(checkpoint.id))
     setSubmitted(false)
     submittedRef.current = false
     timer.resume()
