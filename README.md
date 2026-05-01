@@ -99,7 +99,9 @@ npm install
 echo "OPENAI_API_KEY=sk-..." > .env
 ```
 
-### Запуск (dev)
+### Запуск (два варианта)
+
+**Вариант A — Vite** (используется в Replit, быстрее HMR):
 
 ```bash
 # Терминал 1 — backend (порт 7575)
@@ -109,15 +111,22 @@ node server.js
 npx vite --host 0.0.0.0 --port 5000
 ```
 
-Откройте [http://localhost:5000](http://localhost:5000).
+**Вариант B — Webpack** (канонические скрипты из `package.json`):
 
-> В Replit оба процесса запускаются одной командой workflow:
-> `node server.js & npx vite --host 0.0.0.0 --port 5000`
+```bash
+# Терминал 1 — backend
+node server.js
+
+# Терминал 2 — Webpack dev-сервер
+npm run dev     # → webpack serve на порту 5000
+```
+
+Откройте [http://localhost:5000](http://localhost:5000).
 
 ### Production-сборка
 
 ```bash
-npm run build:prod     # Webpack-сборка → dist/ (package.json script)
+npm run build:prod     # Webpack → dist/
 node server.js         # backend на порту 7575
 # Раздайте dist/ через nginx или любой статик-сервер
 ```
