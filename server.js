@@ -5,20 +5,69 @@ const https   = require('https');
 const app  = express();
 const PORT = 7575;
 
-app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+// Allow requests only from the same machine (Vite proxy + local dev)
+const ALLOWED_ORIGINS = [
+  'http://localhost:5000',
+  'http://localhost:3000',
+  `https://${process.env.REPLIT_DEV_DOMAIN}`,
+].filter(Boolean);
 
-const OPENAI_API_KEY  = process.env.OPENAI_API_KEY;
-const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
-const MODEL           = 'openai/gpt-4o-mini';
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow no-origin (same-origin requests through Vite proxy, curl, health checks)
+    if (!origin || ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
+      cb(null, true);
+    } else {
+      cb(new Error('CORS: origin not allowed'));
+    }
+  },
+  methods: ['GET', 'POST'],
+}));
+
+app.use(express.json({ limit: '100kb' }));
+
+// --- Simple in-memory rate limiter ---
+const rateLimitMap = new Map();
+const RATE_WINDOW_MS  = 60_000; // 1 minute
+const RATE_MAX_REQ    = 10;     // max 10 AI calls per minute per IP
+
+function rateLimit(req, res, next) {
+  const ip  = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const rec = rateLimitMap.get(ip) || { count: 0, start: now };
+
+  if (now - rec.start > RATE_WINDOW_MS) {
+    rec.count = 0;
+    rec.start = now;
+  }
+
+  rec.count += 1;
+  rateLimitMap.set(ip, rec);
+
+  if (rec.count > RATE_MAX_REQ) {
+    return res.status(429).json({ error: 'Слишком много запросов — подождите минуту' });
+  }
+  return next();
+}
+
+// Clear stale rate-limit entries every minute
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, rec] of rateLimitMap) {
+    if (now - rec.start > RATE_WINDOW_MS * 2) rateLimitMap.delete(ip);
+  }
+}, RATE_WINDOW_MS);
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const MODEL          = 'openai/gpt-4o-mini';
 
 function callOpenRouter(messages, temperature = 0.7) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model       : MODEL,
+      model          : MODEL,
       messages,
       temperature,
-      max_tokens  : 4096,
+      max_tokens     : 4096,
       response_format: { type: 'json_object' }
     });
 
@@ -36,7 +85,7 @@ function callOpenRouter(messages, temperature = 0.7) {
 
     const req = https.request(options, (res) => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         try {
           const parsed = JSON.parse(data);
@@ -57,7 +106,7 @@ function callOpenRouter(messages, temperature = 0.7) {
 }
 
 
-app.post('/api/ai/generate-journey', async (req, res) => {
+app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
   try {
     if (!OPENAI_API_KEY) {
       return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
@@ -69,8 +118,8 @@ app.post('/api/ai/generate-journey', async (req, res) => {
     }
 
     const inputContent = text
-      ? `Текст для изучения:\n${text.slice(0, 8000)}`
-      : `Тема для изучения: ${topic}`;
+      ? `Текст для изучения:\n${String(text).slice(0, 8000)}`
+      : `Тема для изучения: ${String(topic).slice(0, 200)}`;
 
     const decompositionResult = await callOpenRouter([
       {
@@ -176,15 +225,15 @@ app.post('/api/ai/generate-journey', async (req, res) => {
 
       const acts = (activities.activities || []).map((act, aIdx) => ({
         ...act,
-        id: `cp${idx + 1}_act${aIdx + 1}`,
-        points: act.points || (act.type === 'free-response' ? 20 : 10),
-        hint: act.hint || null,
+        id     : `cp${idx + 1}_act${aIdx + 1}`,
+        points : act.points || (act.type === 'free-response' ? 20 : 10),
+        hint   : act.hint || null,
       }));
 
       return {
         ...cp,
         activities: acts,
-        timeLimit: 240 + acts.length * 30
+        timeLimit : 240 + acts.length * 30
       };
     });
 
@@ -199,21 +248,24 @@ app.post('/api/ai/generate-journey', async (req, res) => {
       createdAt   : new Date().toISOString()
     };
 
-    res.json({ journey });
+    return res.json({ journey });
   } catch (err) {
     console.error('[generate-journey] error:', err.message);
-    res.status(500).json({ error: err.message || 'AI generation failed' });
+    return res.status(500).json({ error: err.message || 'AI generation failed' });
   }
 });
 
 
-app.post('/api/ai/evaluate-answer', async (req, res) => {
+app.post('/api/ai/evaluate-answer', rateLimit, async (req, res) => {
   try {
     if (!OPENAI_API_KEY) {
       return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
     }
 
     const { concept, question, exampleAnswer, userAnswer, evaluationCriteria } = req.body;
+    if (!question || !userAnswer) {
+      return res.status(400).json({ error: 'question and userAnswer required' });
+    }
 
     const result = await callOpenRouter([
       {
@@ -238,25 +290,25 @@ app.post('/api/ai/evaluate-answer', async (req, res) => {
       },
       {
         role: 'user',
-        content: `Концепция: ${concept}
-Вопрос: ${question}
-Критерии оценки: ${evaluationCriteria || 'понимание концепции'}
-Пример хорошего ответа: ${exampleAnswer || 'не указан'}
-Ответ студента: ${userAnswer}`
+        content: `Концепция: ${String(concept || '').slice(0, 200)}
+Вопрос: ${String(question).slice(0, 500)}
+Критерии оценки: ${String(evaluationCriteria || 'понимание концепции').slice(0, 500)}
+Пример хорошего ответа: ${String(exampleAnswer || 'не указан').slice(0, 500)}
+Ответ студента: ${String(userAnswer).slice(0, 2000)}`
       }
     ], 0.3);
 
-    res.json(result);
+    return res.json(result);
   } catch (err) {
     console.error('[evaluate-answer] error:', err.message);
-    res.status(500).json({ error: err.message || 'Evaluation failed' });
+    return res.status(500).json({ error: err.message || 'Evaluation failed' });
   }
 });
 
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
-app.listen(PORT, () => {
-  console.log(`[server] API backend running on port ${PORT}`);
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`[server] API backend running on port ${PORT} (localhost-only)`);
   console.log(`[server] OpenAI key: ${OPENAI_API_KEY ? 'configured' : 'MISSING'}`);
 });

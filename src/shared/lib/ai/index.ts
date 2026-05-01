@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { Journey } from 'entities/journey'
 
 const aiApi = axios.create({
@@ -19,9 +19,26 @@ export interface AiEvaluationResult {
   improvements?: string
 }
 
+interface ApiErrorBody {
+  error?: string
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof AxiosError) {
+    const body = err.response?.data as ApiErrorBody | undefined;
+    return body?.error || err.message || fallback;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 export async function generateJourney(params: GenerateJourneyParams): Promise<Journey> {
-  const { data } = await aiApi.post<{ journey: Journey }>('/generate-journey', params)
-  return data.journey
+  try {
+    const { data } = await aiApi.post<{ journey: Journey }>('/generate-journey', params)
+    return data.journey
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка генерации путешествия'));
+  }
 }
 
 export async function evaluateAnswer(params: {
@@ -31,6 +48,10 @@ export async function evaluateAnswer(params: {
   evaluationCriteria : string
   userAnswer         : string
 }): Promise<AiEvaluationResult> {
-  const { data } = await aiApi.post<AiEvaluationResult>('/evaluate-answer', params)
-  return data
+  try {
+    const { data } = await aiApi.post<AiEvaluationResult>('/evaluate-answer', params)
+    return data
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка оценки ответа'));
+  }
 }

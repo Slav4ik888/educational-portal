@@ -57,9 +57,10 @@ export const JourneyNewPage: FC = () => {
       setStep(LOADING_STEPS.length - 1);
       dispatch(journeyActions.setJourney(journey));
       setTimeout(() => navigate(`/journey/${journey.id}`), 400);
-    } catch (err: any) {
+    } catch (err) {
       clearInterval(stepInterval);
-      dispatch(journeyActions.setError(err?.response?.data?.error || err.message || 'Ошибка генерации'));
+      const msg = err instanceof Error ? err.message : 'Ошибка генерации';
+      dispatch(journeyActions.setError(msg));
       setStep(-1);
     }
   };

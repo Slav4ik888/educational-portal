@@ -67,12 +67,18 @@ export interface Journey {
   createdAt   : string
 }
 
+export type ActivityAnswerValue =
+  | number[]             // multiple-choice: selected option indices
+  | boolean              // true-false
+  | Record<string, string> // fill-blank: { blankId -> userInput }
+  | string               // free-response: text
+
 export interface ActivityAnswer {
-  activityId : string
-  type       : ActivityType
-  value      : any
-  aiScore?   : number | null
-  aiFeedback?: string | null
+  activityId  : string
+  type        : ActivityType
+  value       : ActivityAnswerValue
+  aiScore?    : number | null
+  aiFeedback? : string | null
   isEvaluated?: boolean
 }
 

@@ -8,6 +8,7 @@ export type {
   FreeResponseActivity,
   ActivityAnswer,
   ActivityAnswers,
+  ActivityAnswerValue,
   ActivityType
 } from './types'
 
