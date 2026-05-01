@@ -1,9 +1,9 @@
 .questionCard {
-  background   : #ffffff;
+  background   : #1e293b;
   border-radius: 12px;
   padding      : 20px;
   margin       : 20px 0;
-  box-shadow   : 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow   : 0 2px 8px rgba(0, 0, 0, 0.3);
 
   .questionHeader {
     display        : flex;
@@ -11,7 +11,7 @@
     gap            : 12px;
     margin-bottom  : 16px;
     padding-bottom : 12px;
-    border-bottom  : 2px solid #e5e7eb;
+    border-bottom  : 2px solid #334155;
   }
 
   .typeIcon {
@@ -30,47 +30,48 @@
   .pointsBadge {
     font-size  : 11px;
     font-weight: 700;
-    color      : #6b7280;
+    color      : #94a3b8;
     white-space: nowrap;
   }
 
   .explanation {
     margin-top   : 12px;
     padding      : 10px 14px;
-    background   : #f0f9ff;
+    background   : rgba(56, 189, 248, 0.1);
     border-left  : 3px solid #38bdf8;
     border-radius: 0 8px 8px 0;
     font-size    : 0.88rem;
-    color        : #0c4a6e;
+    color        : #7dd3fc;
     line-height  : 1.5;
   }
 
   &.typeblue {
-    border-left: 4px solid #3498db;
-    .typeBadge { background: #3498db20; color: #3498db; }
+    border-left: 4px solid #3b82f6;
+    .typeBadge { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
   }
 
   &.typegreen {
-    border-left: 4px solid #2ecc71;
-    .typeBadge { background: #2ecc7120; color: #2ecc71; }
+    border-left: 4px solid #34d399;
+    .typeBadge { background: rgba(52, 211, 153, 0.15); color: #34d399; }
   }
 
   &.typeorange {
-    border-left: 4px solid #e67e22;
-    .typeBadge { background: #e67e2220; color: #e67e22; }
+    border-left: 4px solid #f59e0b;
+    .typeBadge { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
   }
 
   &.typepurple {
-    border-left: 4px solid #9b59b6;
-    .typeBadge { background: #9b59b620; color: #9b59b6; }
+    border-left: 4px solid #a855f7;
+    .typeBadge { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
   }
 
   &.typeteal {
-    border-left: 4px solid #1abc9c;
-    .typeBadge { background: #1abc9c20; color: #1abc9c; }
+    border-left: 4px solid #14b8a6;
+    .typeBadge { background: rgba(20, 184, 166, 0.15); color: #2dd4bf; }
   }
 
   &.wrongAnswer {
-    background: #f5d4ce;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
   }
 }
