@@ -100,7 +100,7 @@ const ActivityCard: FC<ActivityCardProps> = ({
         <span className={styles.pointsBadge}>{activity.points} XP</span>
       </div>
 
-      {activity.type !== 'fill-blank' && (
+      {activity.type !== 'fill-blank' && activity.type !== 'debug-the-logic' && (
         <div className={styles.activityQuestion}>{activity.text}</div>
       )}
 
@@ -278,6 +278,7 @@ export const JourneyPage: FC = () => {
   // Refs to access current values inside the timer callback without re-creating it
   const timerExpiredRef  = useRef(false)
   const submittedRef     = useRef(false)   // mirrors `submitted` state for use in callbacks
+  const xpAwardedRef     = useRef(false)   // ensures XP is awarded only once per attempt
 
   const checkpointRef    = useRef(checkpoint)
   const answersRef       = useRef(answers)
@@ -294,6 +295,8 @@ export const JourneyPage: FC = () => {
     const cp  = checkpointRef.current
     const ans = answersRef.current
     if (!cp) return
+    if (xpAwardedRef.current) return
+    xpAwardedRef.current = true
 
     const speedBonus = speedMultiplier < 1
       ? speedMultiplier                                         // timeout: flat 0.5
@@ -361,6 +364,7 @@ export const JourneyPage: FC = () => {
   // restoring submitted status from persisted Redux state.
   useEffect(() => {
     timerExpiredRef.current = false
+    xpAwardedRef.current    = false
     const alreadySubmitted  = submittedCheckpointIds.includes(checkpoint?.id ?? '')
     submittedRef.current    = alreadySubmitted
     if (!alreadySubmitted) timer.reset(timerTotal)
@@ -496,6 +500,9 @@ export const JourneyPage: FC = () => {
     dispatch(journeyActions.unmarkCheckpointSubmitted(checkpoint.id))
     setSubmitted(false)
     submittedRef.current = false
+    xpAwardedRef.current = false
+    setEvalSubmitted(new Set())
+    setEvaluatingSet(new Set())
     timer.resume()
   }
 

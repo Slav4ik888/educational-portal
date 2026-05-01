@@ -161,7 +161,7 @@ const AiResponseQuestion: React.FC<{
         </div>
       )}
 
-      {contextHint && (
+      {contextHint && question.type !== 'debug-the-logic' && (
         <div className={aiStyles.contextHint}>💬 {contextHint}</div>
       )}
 
