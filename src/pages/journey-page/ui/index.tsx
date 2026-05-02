@@ -527,14 +527,18 @@ export const JourneyPage: FC = () => {
       const overallAcc = totalPts > 0 ? Math.round((earnedPts / totalPts) * 100) : 0
 
       const checkpointResults: CheckpointRecord[] = journey.checkpoints.map(cp => {
+        // All activity points go in the denominator; unanswered = 0 earned
         const { earned, total } = cp.activities.reduce(
           (acc, a) => {
             const ans = answers[a.id]
-            if (!ans || ans.value === undefined || ans.value === '') return acc
-            if (AI_EVALUATED_TYPES.has(a.type)) {
-              return { earned: acc.earned + Math.round(((ans.aiScore ?? 0) / 100) * a.points), total: acc.total + a.points }
+            const pts = a.points
+            if (!ans || ans.value === undefined || ans.value === '') {
+              return { earned: acc.earned, total: acc.total + pts }
             }
-            return { earned: acc.earned + (checkActivityCorrect(a, ans) ? a.points : 0), total: acc.total + a.points }
+            if (AI_EVALUATED_TYPES.has(a.type)) {
+              return { earned: acc.earned + Math.round(((ans.aiScore ?? 0) / 100) * pts), total: acc.total + pts }
+            }
+            return { earned: acc.earned + (checkActivityCorrect(a, ans) ? pts : 0), total: acc.total + pts }
           },
           { earned: 0, total: 0 },
         )

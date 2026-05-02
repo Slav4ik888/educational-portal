@@ -46,17 +46,18 @@ export const ProgressPage: FC = () => {
   const navigate  = useNavigate()
   const dispatch  = useDispatch()
   const history   = useSelector((s: StateSchema) => s.personalContext.journeyHistory)
-  const totalXP   = useSelector((s: StateSchema) => s.gamification.totalXP)
 
   const [confirmClear, setConfirmClear] = useState(false)
 
-  const topics      = topicStats(history)
-  const strong      = getStrongTopics(history)
-  const weak        = getWeakTopics(history)
-  const avgAcc      = history.length
+  const topics       = topicStats(history)
+  const strong       = getStrongTopics(history)
+  const weak         = getWeakTopics(history)
+  const avgAcc       = history.length
     ? Math.round(history.reduce((s, r) => s + r.accuracy, 0) / history.length)
     : 0
   const totalTimeSec = history.reduce((s, r) => s + (r.durationSec ?? 0), 0)
+  // Derive XP from history so it stays consistent after clearing data
+  const totalXP      = history.reduce((s, r) => s + r.xpEarned, 0)
 
   const handleClear = () => {
     dispatch(personalContextActions.clearAllHistory())

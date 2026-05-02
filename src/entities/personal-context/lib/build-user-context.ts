@@ -22,6 +22,9 @@ function topicAccuracy(history: JourneyRecord[]): { topic: string; accuracy: num
     .sort((a, b) => b.accuracy - a.accuracy)
 }
 
+// ~300 tokens ≈ 1 500 chars (conservative: 5 chars/token for Cyrillic)
+const SUMMARY_CHAR_LIMIT = 1_500
+
 export function buildUserContextSummary(history: JourneyRecord[]): string {
   if (history.length === 0) {
     return 'Пользователь ещё не завершил ни одного путешествия.'
@@ -56,7 +59,12 @@ export function buildUserContextSummary(history: JourneyRecord[]): string {
   const ago = lastAgo === 0 ? 'сегодня' : `${lastAgo} дн. назад`
   lines.push(`Последнее путешествие: "${last.title}" (${ago}, ${last.accuracy}% точность, ${formatMinutes(last.durationSec ?? 0)}).`)
 
-  return lines.join(' ')
+  const full = lines.join(' ')
+  if (full.length <= SUMMARY_CHAR_LIMIT) return full
+  // Graceful truncation: keep whole sentences up to the limit
+  const truncated = full.slice(0, SUMMARY_CHAR_LIMIT)
+  const lastDot   = truncated.lastIndexOf('.')
+  return lastDot > 0 ? truncated.slice(0, lastDot + 1) : truncated
 }
 
 export function getWeakTopics(history: JourneyRecord[]): string[] {
