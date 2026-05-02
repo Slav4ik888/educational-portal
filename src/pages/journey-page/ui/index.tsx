@@ -499,6 +499,7 @@ export const JourneyPage: FC = () => {
     const activityIds = checkpoint.activities.map(a => a.id)
     dispatch(journeyActions.clearCheckpointAnswers(activityIds))
     dispatch(journeyActions.unmarkCheckpointSubmitted(checkpoint.id))
+    dispatch(gamificationActions.resetSessionXP())
     setSubmitted(false)
     submittedRef.current = false
     xpAwardedRef.current = false
