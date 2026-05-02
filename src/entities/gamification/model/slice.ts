@@ -54,7 +54,10 @@ const gamificationSlice = createSlice({
       const multiplier = 1 + (state.streak >= 5 ? 1 : state.streak >= 3 ? 0.5 : state.streak >= 2 ? 0.25 : 0)
       const earned     = Math.round(base * multiplier * speedBonus)
       state.totalXP   += earned
-      state.sessionXP += earned
+      // sessionXP tracks raw base points only so the HUD matches the stated
+      // per-activity point values; the streak/speed multipliers are already
+      // shown separately in the HUD and only affect totalXP.
+      state.sessionXP += base
       saveToLocalStorage(state)
     },
 
