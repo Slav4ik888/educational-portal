@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { userProgressActions } from 'entities/user-progress';
@@ -29,6 +29,7 @@ export const ArticleReader: FC<Props> = ({
   const [finalTestSubmitted, setFinalTestSubmitted] = useState(false);
   const [finalTestCompleted, setFinalTestCompleted] = useState(false);
   const [finalTestScore, setFinalTestScore] = useState<number | null>(null);
+  const restoredRef = useRef(false);
 
   // Получаем сохраненный прогресс из Redux
   const savedProgress = useSelector(
@@ -36,18 +37,28 @@ export const ArticleReader: FC<Props> = ({
   );
 
 
-  // Восстанавливаем прогресс при загрузке
+  // Восстанавливаем прогресс при загрузке и прокручиваем к нужному блоку
   useEffect(() => {
-    if (savedProgress) {
+    if (savedProgress && !restoredRef.current) {
+      restoredRef.current = true;
       setCompletedBlocks(new Set(savedProgress.completedBlockIds || []));
       setTestResults(savedProgress.testResults || {});
       setFinalTestCompleted(savedProgress.finalTestCompleted || false);
       setFinalTestScore(savedProgress.finalTestScore || null);
+
+      const lastIndex = savedProgress.lastBlockIndex ?? 0;
+      if (lastIndex > 0 && blocks[lastIndex]) {
+        const targetId = `block-${blocks[lastIndex].id}`;
+        setTimeout(() => {
+          const el = document.getElementById(targetId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
     }
-  }, [savedProgress]);
+  }, [savedProgress, blocks]);
 
 
-  const handleTestComplete = (blockId: string, score: number) => {
+  const handleTestComplete = (blockId: string, score: number, blockIndex: number) => {
     const isCompleted = isTestCompleted(score);
 
     if (isCompleted) {
@@ -76,6 +87,11 @@ export const ArticleReader: FC<Props> = ({
       completed: isCompleted,
       score,
     }));
+
+    const nextIndex = blockIndex + 1;
+    if (nextIndex < blocks.length) {
+      dispatch(userProgressActions.updateLastBlockIndex({ articleId, blockIndex: nextIndex }));
+    }
   };
 
   const handleFinalTestComplete = (score: number) => {
@@ -146,7 +162,7 @@ export const ArticleReader: FC<Props> = ({
                     questions   = {block.questions}
                     isCompleted = {isCompleted}
                     savedScore  = {testResults[block.id]}
-                    onComplete  = {(score: number) => handleTestComplete(block.id, score)}
+                    onComplete  = {(score: number) => handleTestComplete(block.id, score, index)}
                   />
                 )}
               </div>
