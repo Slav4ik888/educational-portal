@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { cfg } from 'app/config/index';
 import { StateSchemaUserProgress } from './state-schema';
 
 
@@ -7,8 +6,11 @@ import { StateSchemaUserProgress } from './state-schema';
 const loadFromLocalStorage = (): StateSchemaUserProgress => {
   const saved = localStorage.getItem('userProgress');
   if (saved) {
-    // На время разработки прогресс начинаем с нуля
-    return cfg.IS_DEV ? { articlesProgress: {} } : JSON.parse(saved);
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { articlesProgress: {} };
+    }
   }
   return { articlesProgress: {} };
 };
@@ -58,10 +60,18 @@ export const slice = createSlice({
       action: PayloadAction<{ articleId: string; blockIndex: number }>
     ) => {
       const { articleId, blockIndex } = action.payload;
-      if (state.articlesProgress[articleId]) {
-        state.articlesProgress[articleId].lastBlockIndex = blockIndex;
-        localStorage.setItem('userProgress', JSON.stringify(state));
+      if (!state.articlesProgress[articleId]) {
+        state.articlesProgress[articleId] = {
+          lastBlockIndex     : 0,
+          blockResults       : {},
+          completedBlockIds  : [],
+          testResults        : {},
+          finalTestCompleted : false,
+          finalTestScore     : null,
+        };
       }
+      state.articlesProgress[articleId].lastBlockIndex = blockIndex;
+      localStorage.setItem('userProgress', JSON.stringify(state));
     },
 
     completeArticle: (
