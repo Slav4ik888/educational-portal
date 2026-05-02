@@ -742,6 +742,158 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
 });
 
 
+// ─── AI Feature: Analyze Progress ──────────────────────────────────────────
+app.post('/api/ai/analyze-progress', rateLimit, async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+
+    const { contextSummary, weakTopics = [], checkpointResults = [] } = req.body;
+    if (!contextSummary) return res.status(400).json({ error: 'contextSummary required' });
+
+    const result = await callOpenRouter([
+      {
+        role: 'system',
+        content: `Ты — персональный наставник образовательной платформы. Проанализируй прогресс студента и выяви конкретные слабые места.
+
+Верни JSON:
+{
+  "summary": "Общий вывод об уровне студента (2-3 предложения)",
+  "weakAreas": [
+    {
+      "topic": "Название темы",
+      "issue": "Конкретная проблема или пробел в знаниях (1-2 предложения)",
+      "advice": "Практический совет что сделать (1-2 предложения)"
+    }
+  ],
+  "strengths": "Что студент делает хорошо (1-2 предложения)",
+  "nextFocus": "Что стоит изучить следующим (1 предложение)"
+}
+
+Правила:
+- weakAreas: 2-4 конкретных пункта, основанных на данных
+- Если слабых тем нет — всё равно найди что можно улучшить
+- Будь конкретным, опирайся на цифры из контекста
+- Пиши на русском языке`
+      },
+      {
+        role: 'user',
+        content: `Прогресс студента:\n${String(contextSummary).slice(0, 1200)}\n\nСлабые темы: ${weakTopics.slice(0, 5).join(', ') || 'нет данных'}\n\nПоследние результаты по концепциям: ${JSON.stringify(checkpointResults.slice(0, 10))}`
+      }
+    ], 0.5, 1024);
+
+    return res.json({
+      summary   : String(result.summary   || '').trim(),
+      weakAreas : Array.isArray(result.weakAreas) ? result.weakAreas.slice(0, 4) : [],
+      strengths : String(result.strengths  || '').trim(),
+      nextFocus : String(result.nextFocus  || '').trim(),
+    });
+  } catch (err) {
+    console.error('[analyze-progress] error:', err.message);
+    return res.status(500).json({ error: err.message || 'Analysis failed' });
+  }
+});
+
+// ─── AI Feature: Recommend Next ─────────────────────────────────────────────
+app.post('/api/ai/recommend-next', rateLimit, async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+
+    const { contextSummary, completedTopics = [], weakTopics = [] } = req.body;
+    if (!contextSummary) return res.status(400).json({ error: 'contextSummary required' });
+
+    const result = await callOpenRouter([
+      {
+        role: 'system',
+        content: `Ты — советник по обучению. На основе прогресса студента предложи 3 конкретные темы для следующего изучения.
+
+Верни JSON:
+{
+  "recommendations": [
+    {
+      "title": "Название темы для изучения",
+      "reason": "Почему именно эта тема сейчас (1-2 предложения)",
+      "difficulty": "beginner | intermediate | advanced",
+      "estimatedMinutes": 25
+    }
+  ],
+  "advice": "Общий совет как двигаться дальше (2-3 предложения)"
+}
+
+Правила:
+- Ровно 3 рекомендации
+- Темы должны логично продолжать изученное или закрывать пробелы
+- estimatedMinutes: реалистичная оценка 15-60 минут
+- Избегай повторять уже пройденные темы (если только не нужно повторение)
+- Пиши на русском языке`
+      },
+      {
+        role: 'user',
+        content: `Прогресс студента:\n${String(contextSummary).slice(0, 1200)}\n\nПройденные темы: ${completedTopics.slice(0, 10).join(', ') || 'нет'}\n\nСлабые темы: ${weakTopics.slice(0, 5).join(', ') || 'нет'}`
+      }
+    ], 0.6, 1024);
+
+    const recs = Array.isArray(result.recommendations)
+      ? result.recommendations.slice(0, 3).map(r => ({
+          title            : String(r.title || '').trim(),
+          reason           : String(r.reason || '').trim(),
+          difficulty       : ['beginner','intermediate','advanced'].includes(r.difficulty) ? r.difficulty : 'intermediate',
+          estimatedMinutes : Math.max(10, Math.min(90, Number(r.estimatedMinutes) || 25)),
+        }))
+      : [];
+
+    return res.json({
+      recommendations: recs,
+      advice: String(result.advice || '').trim(),
+    });
+  } catch (err) {
+    console.error('[recommend-next] error:', err.message);
+    return res.status(500).json({ error: err.message || 'Recommendation failed' });
+  }
+});
+
+// ─── AI Feature: Explain Simpler ────────────────────────────────────────────
+app.post('/api/ai/explain', rateLimit, async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+
+    const { content, concept } = req.body;
+    if (!content) return res.status(400).json({ error: 'content required' });
+
+    const result = await callOpenRouter([
+      {
+        role: 'system',
+        content: `Ты — учитель, который умеет объяснять сложные вещи простыми словами. Перепиши предоставленный текст понятнее и доступнее.
+
+Верни JSON:
+{
+  "explanation": "Упрощённое объяснение (4-8 предложений)",
+  "keyPoints": ["ключевой момент 1", "ключевой момент 2", "ключевой момент 3"],
+  "analogy": "Простая аналогия или пример из жизни"
+}
+
+Правила:
+- Объяснение без технического жаргона (или с минимальным объяснением терминов)
+- Используй аналогии, сравнения, примеры из реальной жизни
+- 3 ключевых момента — самое важное
+- Пиши на русском языке`
+      },
+      {
+        role: 'user',
+        content: `${concept ? `Концепция: ${String(concept).slice(0, 200)}\n\n` : ''}Текст для упрощения:\n${String(content).slice(0, 3000)}`
+      }
+    ], 0.5, 1024);
+
+    return res.json({
+      explanation : String(result.explanation || '').trim(),
+      keyPoints   : Array.isArray(result.keyPoints) ? result.keyPoints.slice(0, 3).map(String) : [],
+      analogy     : String(result.analogy || '').trim(),
+    });
+  } catch (err) {
+    console.error('[explain] error:', err.message);
+    return res.status(500).json({ error: err.message || 'Explain failed' });
+  }
+});
+
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, '127.0.0.1', () => {

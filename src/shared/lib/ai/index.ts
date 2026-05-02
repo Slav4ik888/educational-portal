@@ -77,6 +77,79 @@ export async function evaluateAnswer(params: {
   }
 }
 
+// ── AI Feature Types ────────────────────────────────────────────────────────
+
+export interface WeakArea {
+  topic  : string
+  issue  : string
+  advice : string
+}
+
+export interface ProgressAnalysis {
+  summary   : string
+  weakAreas : WeakArea[]
+  strengths : string
+  nextFocus : string
+}
+
+export interface Recommendation {
+  title            : string
+  reason           : string
+  difficulty       : 'beginner' | 'intermediate' | 'advanced'
+  estimatedMinutes : number
+}
+
+export interface RecommendNextResult {
+  recommendations : Recommendation[]
+  advice          : string
+}
+
+export interface ExplainResult {
+  explanation : string
+  keyPoints   : string[]
+  analogy     : string
+}
+
+// ── AI Feature Functions ─────────────────────────────────────────────────────
+
+export async function analyzeProgress(params: {
+  contextSummary    : string
+  weakTopics?       : string[]
+  checkpointResults?: Array<{ concept: string; accuracy: number }>
+}): Promise<ProgressAnalysis> {
+  try {
+    const { data } = await aiApi.post<ProgressAnalysis>('/analyze-progress', params)
+    return data
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка анализа прогресса'))
+  }
+}
+
+export async function recommendNext(params: {
+  contextSummary   : string
+  completedTopics? : string[]
+  weakTopics?      : string[]
+}): Promise<RecommendNextResult> {
+  try {
+    const { data } = await aiApi.post<RecommendNextResult>('/recommend-next', params)
+    return data
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка получения рекомендаций'))
+  }
+}
+
+export async function explainSimpler(params: {
+  content  : string
+  concept? : string
+}): Promise<ExplainResult> {
+  try {
+    const { data } = await aiApi.post<ExplainResult>('/explain', params)
+    return data
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка объяснения'))
+  }
+}
+
 export async function ragSearch(params: {
   query: string
 }): Promise<RagSearchResult> {

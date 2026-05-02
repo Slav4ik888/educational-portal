@@ -9,6 +9,12 @@ import {
   getWeakTopics,
   JourneyRecord,
 } from 'entities/personal-context'
+import {
+  analyzeProgress,
+  recommendNext,
+  ProgressAnalysis,
+  RecommendNextResult,
+} from 'shared/lib/ai'
 import styles from './progress-page.module.scss'
 
 
@@ -41,6 +47,12 @@ function accClass(acc: number): string {
   return styles.historyAccLow
 }
 
+const DIFF_LABEL: Record<string, string> = {
+  beginner     : 'начальный',
+  intermediate : 'средний',
+  advanced     : 'продвинутый',
+}
+
 
 export const ProgressPage: FC = () => {
   const navigate  = useNavigate()
@@ -49,6 +61,16 @@ export const ProgressPage: FC = () => {
 
   const [confirmClear, setConfirmClear] = useState(false)
 
+  // ── AI: analyze-progress ────────────────────────────────────────────────
+  const [analyzing, setAnalyzing]   = useState(false)
+  const [analysis, setAnalysis]     = useState<ProgressAnalysis | null>(null)
+  const [analyzeErr, setAnalyzeErr] = useState<string | null>(null)
+
+  // ── AI: recommend-next ──────────────────────────────────────────────────
+  const [recommending, setRecommending]   = useState(false)
+  const [recommend, setRecommend]         = useState<RecommendNextResult | null>(null)
+  const [recommendErr, setRecommendErr]   = useState<string | null>(null)
+
   const topics       = topicStats(history)
   const strong       = getStrongTopics(history)
   const weak         = getWeakTopics(history)
@@ -56,12 +78,55 @@ export const ProgressPage: FC = () => {
     ? Math.round(history.reduce((s, r) => s + r.accuracy, 0) / history.length)
     : 0
   const totalTimeSec = history.reduce((s, r) => s + (r.durationSec ?? 0), 0)
-  // Derive XP from history so it stays consistent after clearing data
   const totalXP      = history.reduce((s, r) => s + r.xpEarned, 0)
+
+  const contextSummary = buildUserContextSummary(history)
+
+  const checkpointResults = history.flatMap(r =>
+    r.checkpointResults.map(cp => ({ concept: cp.concept, accuracy: cp.accuracy }))
+  )
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true)
+    setAnalyzeErr(null)
+    setAnalysis(null)
+    try {
+      const res = await analyzeProgress({
+        contextSummary,
+        weakTopics: weak,
+        checkpointResults,
+      })
+      setAnalysis(res)
+    } catch (err) {
+      setAnalyzeErr(err instanceof Error ? err.message : 'Ошибка анализа')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const handleRecommend = async () => {
+    setRecommending(true)
+    setRecommendErr(null)
+    setRecommend(null)
+    try {
+      const res = await recommendNext({
+        contextSummary,
+        completedTopics: topics.map(t => t.topic),
+        weakTopics: weak,
+      })
+      setRecommend(res)
+    } catch (err) {
+      setRecommendErr(err instanceof Error ? err.message : 'Ошибка рекомендаций')
+    } finally {
+      setRecommending(false)
+    }
+  }
 
   const handleClear = () => {
     dispatch(personalContextActions.clearAllHistory())
     setConfirmClear(false)
+    setAnalysis(null)
+    setRecommend(null)
   }
 
   return (
@@ -117,6 +182,130 @@ export const ProgressPage: FC = () => {
             </div>
           </div>
 
+          {/* ── AI: Analyze Progress ── */}
+          <section className={styles.section}>
+            <div className={styles.aiSectionHeader}>
+              <h2 className={styles.sectionTitle}>🔍 Анализ слабых мест</h2>
+              <button
+                className={styles.aiBtn}
+                onClick={handleAnalyze}
+                disabled={analyzing}
+              >
+                {analyzing ? '⏳ Анализирую...' : '🤖 Проанализировать'}
+              </button>
+            </div>
+
+            {analyzing && (
+              <div className={styles.aiLoading}>
+                <div className={styles.loadingDots}><span /><span /><span /></div>
+                <span>AI анализирует ваш прогресс...</span>
+              </div>
+            )}
+
+            {analyzeErr && !analyzing && (
+              <div className={styles.aiError}>⚠️ {analyzeErr}</div>
+            )}
+
+            {analysis && !analyzing && (
+              <div className={styles.aiCard}>
+                <p className={styles.aiCardSummary}>{analysis.summary}</p>
+
+                {analysis.weakAreas.length > 0 && (
+                  <div className={styles.weakAreasList}>
+                    {analysis.weakAreas.map((wa, i) => (
+                      <div key={i} className={styles.weakAreaItem}>
+                        <div className={styles.weakAreaTopic}>⚠️ {wa.topic}</div>
+                        <p className={styles.weakAreaIssue}>{wa.issue}</p>
+                        <p className={styles.weakAreaAdvice}>💡 {wa.advice}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {analysis.strengths && (
+                  <div className={styles.strengthsRow}>
+                    <span className={styles.strengthsLabel}>✅ Сильные стороны:</span>
+                    <span>{analysis.strengths}</span>
+                  </div>
+                )}
+
+                {analysis.nextFocus && (
+                  <div className={styles.nextFocusRow}>
+                    <span className={styles.nextFocusLabel}>➡️ Следующий фокус:</span>
+                    <span>{analysis.nextFocus}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!analysis && !analyzing && !analyzeErr && (
+              <div className={styles.aiHint}>
+                Нажмите «Проанализировать» — AI изучит ваши результаты и найдёт конкретные пробелы в знаниях.
+              </div>
+            )}
+          </section>
+
+          {/* ── AI: Recommend Next ── */}
+          <section className={styles.section}>
+            <div className={styles.aiSectionHeader}>
+              <h2 className={styles.sectionTitle}>🗺️ Что изучить дальше</h2>
+              <button
+                className={styles.aiBtn}
+                onClick={handleRecommend}
+                disabled={recommending}
+              >
+                {recommending ? '⏳ Думаю...' : '🤖 Получить рекомендации'}
+              </button>
+            </div>
+
+            {recommending && (
+              <div className={styles.aiLoading}>
+                <div className={styles.loadingDots}><span /><span /><span /></div>
+                <span>AI подбирает темы для вас...</span>
+              </div>
+            )}
+
+            {recommendErr && !recommending && (
+              <div className={styles.aiError}>⚠️ {recommendErr}</div>
+            )}
+
+            {recommend && !recommending && (
+              <div className={styles.aiCard}>
+                {recommend.advice && (
+                  <p className={styles.aiCardSummary}>{recommend.advice}</p>
+                )}
+
+                <div className={styles.recGrid}>
+                  {recommend.recommendations.map((r, i) => (
+                    <div key={i} className={styles.recCard}>
+                      <div className={styles.recTop}>
+                        <span className={styles.recNum}>{i + 1}</span>
+                        <span className={`${styles.recDiff} ${styles[`diff_${r.difficulty}`]}`}>
+                          {DIFF_LABEL[r.difficulty] ?? r.difficulty}
+                        </span>
+                      </div>
+                      <div className={styles.recTitle}>{r.title}</div>
+                      <p className={styles.recReason}>{r.reason}</p>
+                      <div className={styles.recMeta}>⏱ ~{r.estimatedMinutes} мин</div>
+                      <button
+                        className={styles.recStartBtn}
+                        onClick={() => navigate(`/journey/new`)}
+                      >
+                        Начать →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!recommend && !recommending && !recommendErr && (
+              <div className={styles.aiHint}>
+                Нажмите «Получить рекомендации» — AI предложит 3 темы, которые логично продолжат ваш прогресс.
+              </div>
+            )}
+          </section>
+
           {/* ── Topics ── */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>📈 Темы</h2>
@@ -168,7 +357,7 @@ export const ProgressPage: FC = () => {
             <h2 className={styles.sectionTitle}>🤖 AI-резюме прогресса</h2>
             <div className={styles.topicBox} style={{ gridColumn: 'span 2' }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#94a3b8' }}>
-                {buildUserContextSummary(history)}
+                {contextSummary}
               </p>
             </div>
           </section>
