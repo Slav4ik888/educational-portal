@@ -16,17 +16,12 @@ export interface RagSource {
   articleTitle : string
   heading      : string
   url          : string
+  type?        : 'article' | 'journey'
 }
 
 export interface RagSearchResult {
   answer  : string
   sources : RagSource[]
-}
-
-export interface RagJourneyChunk {
-  title    : string
-  topic    : string
-  concepts : string[]
 }
 
 export interface GenerateJourneyParams {
@@ -83,13 +78,20 @@ export async function evaluateAnswer(params: {
 }
 
 export async function ragSearch(params: {
-  query         : string
-  journeyChunks?: RagJourneyChunk[]
+  query: string
 }): Promise<RagSearchResult> {
   try {
     const { data } = await ragApi.post<RagSearchResult>('/search', params)
     return data
   } catch (err) {
     throw new Error(extractErrorMessage(err, 'Ошибка поиска'))
+  }
+}
+
+export async function ragIndexJourney(journey: Journey): Promise<void> {
+  try {
+    await ragApi.post('/index-journey', { journey })
+  } catch {
+    // Non-critical: silently ignore indexing failures
   }
 }

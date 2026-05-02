@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { journeyActions } from 'entities/journey';
-import { generateJourney } from 'shared/lib/ai';
+import { generateJourney, ragIndexJourney } from 'shared/lib/ai';
 import { MOCK_JOURNEY, MOCK_ANSWERS } from 'shared/lib/mock-journey';
 import styles from './journey-new-page.module.scss';
 
@@ -77,6 +77,7 @@ export const JourneyNewPage: FC = () => {
       clearInterval(stepInterval);
       setStep(LOADING_STEPS.length - 1);
       dispatch(journeyActions.setJourney(journey));
+      ragIndexJourney(journey);
       setTimeout(() => navigate(`/journey/${journey.id}`), 400);
     } catch (err) {
       clearInterval(stepInterval);

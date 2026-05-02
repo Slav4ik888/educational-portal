@@ -30,12 +30,6 @@ export const SearchPage: FC = () => {
   const [result, setResult]   = useState<RagSearchResult | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const journeyChunks = journeyHistory.slice(0, 10).map(r => ({
-    title   : r.title,
-    topic   : r.topic,
-    concepts: r.checkpointResults.map(cp => cp.concept),
-  }))
-
   const handleSearch = async (q?: string) => {
     const finalQuery = (q ?? query).trim()
     if (!finalQuery) return
@@ -44,7 +38,7 @@ export const SearchPage: FC = () => {
     setError(null)
     setResult(null)
     try {
-      const res = await ragSearch({ query: finalQuery, journeyChunks })
+      const res = await ragSearch({ query: finalQuery })
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка поиска')
@@ -187,7 +181,7 @@ export const SearchPage: FC = () => {
 
           {journeyHistory.length > 0 && (
             <div className={styles.hint}>
-              <p className={styles.hintTitle}>Ваши путешествия учитываются в поиске</p>
+              <p className={styles.hintTitle}>Ваши путешествия проиндексированы и учитываются в поиске</p>
               <div className={styles.hintGrid}>
                 {journeyHistory.slice(0, 4).map(r => (
                   <div key={r.completionId} className={styles.hintCard} style={{ cursor: 'default' }}>

@@ -551,8 +551,13 @@ function normalizeText(text) {
     .trim();
 }
 
-/** Tokenize into unique terms, filtering short/stop words */
-const STOP_WORDS = new Set(['и','в','на','с','по','для','из','это','что','как','не','а','но','от','до','при','за','по','к','о','об','или','то','же','он','она','они','мы','вы','я','его','её','их','нет','да','есть','так','уже','всё','все','был','была','было','были','быть','can','the','and','for','are','is','in','on','of','to','a','an','be','not','have','it','this','that','with','as','at','by']);
+const STOP_WORDS = new Set([
+  'и','в','на','с','по','для','из','это','что','как','не','а','но','от','до',
+  'при','за','к','о','об','или','то','же','он','она','они','мы','вы','я','его',
+  'её','их','нет','да','есть','так','уже','всё','все','был','была','было','были',
+  'быть','can','the','and','for','are','is','in','on','of','to','a','an','be',
+  'not','have','it','this','that','with','as','at','by',
+]);
 
 function tokenize(text) {
   return [...new Set(
@@ -560,23 +565,59 @@ function tokenize(text) {
   )];
 }
 
-/** TF-IDF-style score: count query term hits in chunk text */
+/** TF-IDF-style score for any chunk with { heading, text, articleTitle } */
 function scoreChunk(queryTokens, chunk) {
-  const chunkText = normalizeText(chunk.heading + ' ' + chunk.text + ' ' + chunk.articleTitle);
-  const chunkTokens = chunkText.split(' ');
+  const chunkText  = normalizeText((chunk.heading || '') + ' ' + (chunk.text || '') + ' ' + (chunk.articleTitle || ''));
+  const chunkWords = chunkText.split(' ');
   let score = 0;
   for (const qt of queryTokens) {
-    for (const ct of chunkTokens) {
+    for (const ct of chunkWords) {
       if (ct === qt) { score += 2; break; }
-      if (ct.includes(qt) || qt.includes(ct)) { score += 1; break; }
+      if (ct.length > 3 && qt.length > 3 && (ct.includes(qt) || qt.includes(ct))) { score += 1; break; }
     }
-    // Bonus: heading match
-    if (normalizeText(chunk.heading).includes(qt)) score += 3;
-    // Bonus: article title match
-    if (normalizeText(chunk.articleTitle).includes(qt)) score += 1;
+    if (normalizeText(chunk.heading || '').includes(qt)) score += 3;
+    if (normalizeText(chunk.articleTitle || '').includes(qt)) score += 1;
   }
   return score;
 }
+
+// ── In-memory journey index (server-side) ───────────────────────────────────
+// Chunks: { id, journeyId, journeyTitle, topic, heading, text, url, type:'journey' }
+const journeyIndex = new Map(); // journeyId → chunk[]
+
+/** Build chunks from a journey object (id, title, topic, checkpoints[]) */
+function indexJourney(journey) {
+  if (!journey || !journey.id) return;
+  const chunks = journey.checkpoints.map((cp, i) => ({
+    id           : `${journey.id}_cp${i}`,
+    journeyId    : journey.id,
+    journeyTitle : journey.title,
+    topic        : journey.topic,
+    heading      : cp.concept || `Checkpoint ${i + 1}`,
+    text         : (cp.explanation || '').slice(0, 800),
+    articleTitle : journey.title,   // used by scorer
+    url          : `/journey/${journey.id}`,
+    type         : 'journey',
+  }));
+  journeyIndex.set(journey.id, chunks);
+}
+
+/** Flatten all journey chunks into array */
+function allJourneyChunks() {
+  const result = [];
+  for (const chunks of journeyIndex.values()) result.push(...chunks);
+  return result;
+}
+
+/** POST /api/rag/index-journey — called from client after generating a journey */
+app.post('/api/rag/index-journey', (req, res) => {
+  const { journey } = req.body;
+  if (!journey || !journey.id || !Array.isArray(journey.checkpoints)) {
+    return res.status(400).json({ error: 'journey with checkpoints required' });
+  }
+  indexJourney(journey);
+  return res.json({ ok: true, chunks: (journeyIndex.get(journey.id) || []).length });
+});
 
 app.post('/api/rag/search', rateLimit, async (req, res) => {
   try {
@@ -584,45 +625,47 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
       return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
     }
 
-    const { query, journeyChunks = [] } = req.body;
+    const { query } = req.body;
     if (!query || typeof query !== 'string' || !query.trim()) {
       return res.status(400).json({ error: 'query is required' });
     }
 
-    const cleanQuery = String(query).slice(0, 500).trim();
+    const cleanQuery  = String(query).slice(0, 500).trim();
     const queryTokens = tokenize(cleanQuery);
 
-    // ── Score article chunks ────────────────────────────────────────────────
-    const scoredChunks = ARTICLE_CHUNKS
-      .map(chunk => ({ chunk, score: scoreChunk(queryTokens, chunk) }))
+    // ── Score article chunks ─────────────────────────────────────────────────
+    const scoredArticles = ARTICLE_CHUNKS
+      .map(chunk => ({ chunk, score: scoreChunk(queryTokens, chunk), type: 'article' }))
       .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4);
+
+    // ── Score journey chunks (server-side in-memory index) ───────────────────
+    const scoredJourneys = allJourneyChunks()
+      .map(chunk => ({ chunk, score: scoreChunk(queryTokens, chunk), type: 'journey' }))
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    // ── Merge: top-5 across both corpora by score ────────────────────────────
+    const allScored = [...scoredArticles, ...scoredJourneys]
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    // ── Include user's journey chunks (sent from client) ───────────────────
-    const journeyContext = Array.isArray(journeyChunks)
-      ? journeyChunks.slice(0, 5).map(jc => ({
-          text: `Journey: "${jc.title}" (тема: ${jc.topic}). Концепции: ${(jc.concepts || []).join(', ')}.`,
-          source: { articleId: 'journey', articleTitle: jc.title, heading: jc.topic, url: '/journey/new' },
-        }))
-      : [];
-
-    // ── Build context for AI prompt ────────────────────────────────────────
-    const contextBlocks = [
-      ...scoredChunks.map(({ chunk }) =>
-        `[Статья: "${chunk.articleTitle}" / Раздел: "${chunk.heading}"]\n${chunk.text}`
-      ),
-      ...journeyContext.map(jc => `[${jc.text}]`),
-    ];
-
-    if (contextBlocks.length === 0) {
+    if (allScored.length === 0) {
       return res.json({
-        answer : 'К сожалению, по вашему запросу не найдено релевантных материалов в базе платформы. Попробуйте переформулировать вопрос или воспользуйтесь статьями.',
+        answer : 'К сожалению, по вашему запросу не найдено релевантных материалов в базе платформы. Попробуйте переформулировать вопрос.',
         sources: [],
       });
     }
 
-    const contextText = contextBlocks.join('\n\n');
+    // ── Build context for AI prompt ──────────────────────────────────────────
+    const contextText = allScored.map(({ chunk, type }) => {
+      if (type === 'article') {
+        return `[Статья: "${chunk.articleTitle}" / Раздел: "${chunk.heading}"]\n${chunk.text}`;
+      }
+      return `[Journey: "${chunk.journeyTitle}" (тема: ${chunk.topic}) / Концепция: "${chunk.heading}"]\n${chunk.text}`;
+    }).join('\n\n');
 
     const aiAnswer = await callOpenRouter([
       {
@@ -650,14 +693,35 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
 
     const answer = String(aiAnswer.answer || '').trim() || 'Ответ не сформирован.';
 
-    const sources = scoredChunks.map(({ chunk }) => ({
-      articleId    : chunk.articleId,
-      articleTitle : chunk.articleTitle,
-      heading      : chunk.heading,
-      url          : chunk.url,
-    }));
+    // ── Sources: include both article and journey hits ────────────────────────
+    const sources = allScored.map(({ chunk, type }) => {
+      if (type === 'article') {
+        return {
+          articleId    : chunk.articleId,
+          articleTitle : chunk.articleTitle,
+          heading      : chunk.heading,
+          url          : chunk.url,
+          type         : 'article',
+        };
+      }
+      return {
+        articleId    : chunk.journeyId,
+        articleTitle : chunk.journeyTitle,
+        heading      : chunk.heading,
+        url          : chunk.url,
+        type         : 'journey',
+      };
+    });
 
-    return res.json({ answer, sources });
+    // Deduplicate sources by url
+    const seen = new Set();
+    const dedupedSources = sources.filter(s => {
+      if (seen.has(s.url)) return false;
+      seen.add(s.url);
+      return true;
+    });
+
+    return res.json({ answer, sources: dedupedSources });
   } catch (err) {
     console.error('[rag/search] error:', err.message);
     return res.status(500).json({ error: err.message || 'RAG search failed' });
