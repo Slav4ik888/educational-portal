@@ -69,6 +69,8 @@ export const journeySlice = createSlice({
       state.error                  = null
       state.answers                = {}
       state.submittedCheckpointIds = []
+      state.checkpointDurations    = {}
+      state.journeyStartedAt       = new Date().toISOString()
       state.progress               = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
       saveToLocalStorage(state)
     },
@@ -78,6 +80,8 @@ export const journeySlice = createSlice({
       state.error                  = null
       state.answers                = {}
       state.submittedCheckpointIds = []
+      state.checkpointDurations    = {}
+      state.journeyStartedAt       = null
       state.progress               = { currentCheckpointIdx: 0, completedCheckpoints: [], timedOutCheckpoints: [] }
       state.isGenerating           = false
       try { localStorage.removeItem(LS_KEY) } catch { /* ignore */ }
@@ -164,6 +168,11 @@ export const journeySlice = createSlice({
 
     bulkSetAnswers: (state, action: PayloadAction<ActivityAnswers>) => {
       state.answers = { ...state.answers, ...action.payload }
+      saveToLocalStorage(state)
+    },
+
+    recordCheckpointDuration: (state, action: PayloadAction<{ checkpointId: string; durationSec: number }>) => {
+      state.checkpointDurations[action.payload.checkpointId] = action.payload.durationSec
       saveToLocalStorage(state)
     },
   }

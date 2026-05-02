@@ -29,6 +29,12 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function formatDuration(sec: number): string {
+  if (!sec || sec <= 0) return ''
+  const m = Math.round(sec / 60)
+  return m < 1 ? '<1 мин' : `${m} мин`
+}
+
 function accClass(acc: number): string {
   if (acc >= 75) return styles.historyAccHigh
   if (acc >= 50) return styles.historyAccMid
@@ -44,12 +50,13 @@ export const ProgressPage: FC = () => {
 
   const [confirmClear, setConfirmClear] = useState(false)
 
-  const topics  = topicStats(history)
-  const strong  = getStrongTopics(history)
-  const weak    = getWeakTopics(history)
-  const avgAcc  = history.length
+  const topics      = topicStats(history)
+  const strong      = getStrongTopics(history)
+  const weak        = getWeakTopics(history)
+  const avgAcc      = history.length
     ? Math.round(history.reduce((s, r) => s + r.accuracy, 0) / history.length)
     : 0
+  const totalTimeSec = history.reduce((s, r) => s + (r.durationSec ?? 0), 0)
 
   const handleClear = () => {
     dispatch(personalContextActions.clearAllHistory())
@@ -104,8 +111,8 @@ export const ProgressPage: FC = () => {
               <div className={styles.statKey}>Ср. точность</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statVal}>{topics.length}</div>
-              <div className={styles.statKey}>Изученных тем</div>
+              <div className={styles.statVal}>{formatDuration(totalTimeSec) || topics.length}</div>
+              <div className={styles.statKey}>{totalTimeSec > 0 ? 'Время обучения' : 'Изученных тем'}</div>
             </div>
           </div>
 
@@ -178,6 +185,7 @@ export const ProgressPage: FC = () => {
                     <div className={styles.historyTitle}>{r.title}</div>
                     <div className={styles.historyMeta}>
                       {r.topic} · {formatDate(r.completedAt)}
+                      {r.durationSec > 0 && ` · ${formatDuration(r.durationSec)}`}
                     </div>
                   </div>
                   <div className={styles.historyXP}>+{r.xpEarned} XP</div>

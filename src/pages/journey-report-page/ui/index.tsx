@@ -251,11 +251,11 @@ const CheckpointSection: FC<CheckpointSectionProps> = ({ cp, index, answers, tim
 /* ─── Main page ───────────────────────────────────────────────────────────── */
 
 export const JourneyReportPage: FC = () => {
-  const navigate    = useNavigate();
-  const dispatch    = useDispatch();
-  const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey);
+  const navigate     = useNavigate();
+  const dispatch     = useDispatch();
+  const { current: journey, answers, progress, checkpointDurations, journeyStartedAt } = useSelector((s: StateSchema) => s.journey);
   const gamification = useSelector((s: StateSchema) => s.gamification);
-  const savedRef    = useRef(false);
+  const savedRef     = useRef(false);
 
   // ─── Record completed journey to personal context ──────────────────────────
   useEffect(() => {
@@ -274,6 +274,13 @@ export const JourneyReportPage: FC = () => {
     }, 0)
     const overallAcc = totalPts > 0 ? Math.round((earnedPts / totalPts) * 100) : 0
 
+    // Total journey duration in seconds
+    const totalDurationSec = journeyStartedAt
+      ? Math.round((Date.now() - new Date(journeyStartedAt).getTime()) / 1000)
+      : Object.values(checkpointDurations ?? {}).reduce((s, d) => s + d, 0)
+
+    const timedSet = new Set(progress.timedOutCheckpoints ?? [])
+
     const checkpointResults: CheckpointRecord[] = journey.checkpoints.map(cp => {
       const acc = cpAccuracy(cp, answers)
       const mistakes = cp.activities
@@ -284,7 +291,13 @@ export const JourneyReportPage: FC = () => {
           return !checkActivityCorrect(a, ans)
         })
         .map(a => a.type)
-      return { concept: cp.concept, accuracy: acc, mistakeTypes: mistakes }
+      return {
+        concept     : cp.concept,
+        accuracy    : acc,
+        mistakeTypes: mistakes,
+        durationSec : checkpointDurations?.[cp.id] ?? 0,
+        timedOut    : timedSet.has(cp.id),
+      }
     })
 
     const record: JourneyRecord = {
@@ -294,11 +307,12 @@ export const JourneyReportPage: FC = () => {
       completedAt       : new Date().toISOString(),
       accuracy          : overallAcc,
       xpEarned          : gamification?.sessionXP ?? 0,
+      durationSec       : totalDurationSec,
       checkpointResults,
     }
 
     dispatch(personalContextActions.addJourneyRecord(record))
-  }, [journey, answers, gamification, dispatch])
+  }, [journey, answers, gamification, checkpointDurations, journeyStartedAt, progress, dispatch])
 
   if (!journey) {
     return (

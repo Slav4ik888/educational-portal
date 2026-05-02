@@ -480,6 +480,16 @@ export const JourneyPage: FC = () => {
       awardCheckpointXP(speedMult, timedOut ? 0 : timer.pct, elapsed)
       submittedRef.current = true
     }
+
+    // Record checkpoint duration
+    if (checkpoint) {
+      const elapsed = timerTotal - timer.remaining
+      dispatch(journeyActions.recordCheckpointDuration({
+        checkpointId: checkpoint.id,
+        durationSec : Math.max(1, elapsed),
+      }))
+    }
+
     const completeAction = timedOut
       ? journeyActions.completeCheckpointTimedOut
       : journeyActions.completeCheckpoint
