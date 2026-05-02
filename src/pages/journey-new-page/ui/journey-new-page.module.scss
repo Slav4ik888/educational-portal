@@ -246,3 +246,133 @@
   font-size     : 14px;
   line-height   : 1.5;
 }
+
+// ─── Demo mode ───────────────────────────────────────────────────────────────
+
+.demoActive {
+  display       : flex;
+  align-items   : flex-start;
+  gap           : 14px;
+  padding       : 18px 20px;
+  background    : rgba(99, 102, 241, 0.08);
+  border        : 1px solid rgba(99, 102, 241, 0.35);
+  border-radius : 14px;
+  margin-bottom : 4px;
+}
+
+.demoActiveIcon {
+  font-size   : 28px;
+  line-height : 1;
+  flex-shrink : 0;
+}
+
+.demoActiveText {
+  display        : flex;
+  flex-direction : column;
+  gap            : 4px;
+
+  strong {
+    color     : #a5b4fc;
+    font-size : 15px;
+  }
+
+  span {
+    color       : #64748b;
+    font-size   : 13px;
+    line-height : 1.5;
+  }
+}
+
+.generateBtnDemo {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+// ─── Dev settings panel ──────────────────────────────────────────────────────
+
+.devPanel {
+  margin-top    : 24px;
+  width         : 100%;
+  max-width     : 640px;
+  padding       : 16px 20px;
+  background    : rgba(15, 23, 42, 0.6);
+  border        : 1px solid #1e293b;
+  border-radius : 14px;
+}
+
+.devPanelHeader {
+  display       : flex;
+  align-items   : center;
+  gap           : 6px;
+  margin-bottom : 12px;
+}
+
+.devPanelIcon {
+  font-size : 13px;
+  color     : #475569;
+}
+
+.devPanelTitle {
+  font-size      : 11px;
+  font-weight    : 600;
+  color          : #475569;
+  text-transform : uppercase;
+  letter-spacing : 0.8px;
+}
+
+.devToggle {
+  display     : flex;
+  align-items : flex-start;
+  gap         : 12px;
+  cursor      : pointer;
+  user-select : none;
+}
+
+.devToggleInput {
+  display : none;
+}
+
+.devToggleTrack {
+  position      : relative;
+  width         : 40px;
+  height        : 22px;
+  border-radius : 11px;
+  background    : #334155;
+  flex-shrink   : 0;
+  margin-top    : 2px;
+  transition    : background 0.2s;
+
+  &.devToggleOn {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  }
+}
+
+.devToggleThumb {
+  position      : absolute;
+  top           : 3px;
+  left          : 3px;
+  width         : 16px;
+  height        : 16px;
+  border-radius : 50%;
+  background    : #fff;
+  transition    : transform 0.2s;
+
+  .devToggleOn & {
+    transform: translateX(18px);
+  }
+}
+
+.devToggleLabel {
+  display        : flex;
+  flex-direction : column;
+  gap            : 2px;
+  font-size      : 14px;
+  color          : #94a3b8;
+  font-weight    : 500;
+}
+
+.devToggleDesc {
+  font-size   : 12px;
+  color       : #475569;
+  font-weight : 400;
+  line-height : 1.4;
+}

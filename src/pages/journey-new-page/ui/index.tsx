@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { journeyActions } from 'entities/journey';
 import { generateJourney } from 'shared/lib/ai';
+import { MOCK_JOURNEY, MOCK_ANSWERS } from 'shared/lib/mock-journey';
 import styles from './journey-new-page.module.scss';
+
+const DEMO_MODE_KEY = 'devDemoMode';
 
 const EXAMPLE_TOPICS = [
   'Нейросети и глубокое обучение',
@@ -32,10 +35,28 @@ export const JourneyNewPage: FC = () => {
   const [text, setText]   = useState('');
   const [step, setStep]   = useState(-1);
 
-  const canGenerate = tab === 'topic' ? topic.trim().length > 2 : text.trim().length > 50;
+  const [demoMode, setDemoMode] = useState<boolean>(
+    () => localStorage.getItem(DEMO_MODE_KEY) === 'true'
+  );
+
+  const toggleDemoMode = () => {
+    const next = !demoMode;
+    setDemoMode(next);
+    localStorage.setItem(DEMO_MODE_KEY, String(next));
+  };
+
+  const canGenerate = demoMode || (tab === 'topic' ? topic.trim().length > 2 : text.trim().length > 50);
 
   const handleGenerate = async () => {
     if (!canGenerate || isGenerating) return;
+
+    if (demoMode) {
+      dispatch(journeyActions.setJourney(MOCK_JOURNEY));
+      dispatch(journeyActions.bulkSetAnswers(MOCK_ANSWERS));
+      navigate(`/journey/${MOCK_JOURNEY.id}`);
+      return;
+    }
+
     dispatch(journeyActions.setGenerating(true));
     setStep(0);
 
@@ -99,72 +120,108 @@ export const JourneyNewPage: FC = () => {
           </div>
         ) : (
           <>
-            <div className={styles.tabs}>
-              <button
-                className={`${styles.tab} ${tab === 'topic' ? styles.active : ''}`}
-                onClick={() => setTab('topic')}
-              >
-                По теме
-              </button>
-              <button
-                className={`${styles.tab} ${tab === 'text' ? styles.active : ''}`}
-                onClick={() => setTab('text')}
-              >
-                По тексту
-              </button>
-            </div>
-
-            {tab === 'topic' ? (
-              <div>
-                <label className={styles.label}>Тема</label>
-                <input
-                  className={styles.input}
-                  placeholder="Например: Как работают трансформеры в ML"
-                  value={topic}
-                  onChange={e => setTopic(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-                />
-                <p className={styles.hint}>
-                  Чем точнее тема — тем глубже и качественнее будут задания
-                </p>
-                <div className={styles.exampleTopics}>
-                  {EXAMPLE_TOPICS.map(t => (
-                    <button
-                      key={t}
-                      className={styles.exampleBtn}
-                      onClick={() => setTopic(t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
+            {demoMode ? (
+              <div className={styles.demoActive}>
+                <div className={styles.demoActiveIcon}>⚡</div>
+                <div className={styles.demoActiveText}>
+                  <strong>Демо-режим активен</strong>
+                  <span>Загрузится готовая статья «Основы HTTP протокола» с 3 чекпоинтами и заполненными ответами</span>
                 </div>
               </div>
             ) : (
-              <div>
-                <label className={styles.label}>Текст для изучения</label>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="Вставьте статью, конспект, документацию или любой учебный текст (минимум 50 символов)..."
-                  value={text}
-                  onChange={e => setText(e.target.value)}
-                />
-                <p className={styles.hint}>
-                  {text.length} символов{text.length < 50 ? ` (нужно ещё ${50 - text.length})` : ' — готово'}
-                </p>
-              </div>
+              <>
+                <div className={styles.tabs}>
+                  <button
+                    className={`${styles.tab} ${tab === 'topic' ? styles.active : ''}`}
+                    onClick={() => setTab('topic')}
+                  >
+                    По теме
+                  </button>
+                  <button
+                    className={`${styles.tab} ${tab === 'text' ? styles.active : ''}`}
+                    onClick={() => setTab('text')}
+                  >
+                    По тексту
+                  </button>
+                </div>
+
+                {tab === 'topic' ? (
+                  <div>
+                    <label className={styles.label}>Тема</label>
+                    <input
+                      className={styles.input}
+                      placeholder="Например: Как работают трансформеры в ML"
+                      value={topic}
+                      onChange={e => setTopic(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                    />
+                    <p className={styles.hint}>
+                      Чем точнее тема — тем глубже и качественнее будут задания
+                    </p>
+                    <div className={styles.exampleTopics}>
+                      {EXAMPLE_TOPICS.map(t => (
+                        <button
+                          key={t}
+                          className={styles.exampleBtn}
+                          onClick={() => setTopic(t)}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className={styles.label}>Текст для изучения</label>
+                    <textarea
+                      className={styles.textarea}
+                      placeholder="Вставьте статью, конспект, документацию или любой учебный текст (минимум 50 символов)..."
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                    />
+                    <p className={styles.hint}>
+                      {text.length} символов{text.length < 50 ? ` (нужно ещё ${50 - text.length})` : ' — готово'}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             {error && <div className={styles.error}>Ошибка: {error}</div>}
 
             <button
-              className={styles.generateBtn}
+              className={`${styles.generateBtn} ${demoMode ? styles.generateBtnDemo : ''}`}
               disabled={!canGenerate}
               onClick={handleGenerate}
             >
-              Сгенерировать путешествие →
+              {demoMode ? '⚡ Запустить демо' : 'Сгенерировать путешествие →'}
             </button>
           </>
         )}
+      </div>
+
+      <div className={styles.devPanel}>
+        <div className={styles.devPanelHeader}>
+          <span className={styles.devPanelIcon}>⚙</span>
+          <span className={styles.devPanelTitle}>Dev-настройки</span>
+        </div>
+        <label className={styles.devToggle}>
+          <div className={`${styles.devToggleTrack} ${demoMode ? styles.devToggleOn : ''}`}>
+            <div className={styles.devToggleThumb} />
+          </div>
+          <input
+            type="checkbox"
+            checked={demoMode}
+            onChange={toggleDemoMode}
+            className={styles.devToggleInput}
+          />
+          <span className={styles.devToggleLabel}>
+            Демо-режим
+            <span className={styles.devToggleDesc}>
+              Моковая статья с готовыми ответами — без AI-запросов
+            </span>
+          </span>
+        </label>
       </div>
     </div>
   );

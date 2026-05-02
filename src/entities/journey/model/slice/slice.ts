@@ -155,6 +155,11 @@ export const journeySlice = createSlice({
       }
       saveToLocalStorage(state)
     },
+
+    bulkSetAnswers: (state, action: PayloadAction<ActivityAnswers>) => {
+      state.answers = { ...state.answers, ...action.payload }
+      saveToLocalStorage(state)
+    },
   }
 })
 
