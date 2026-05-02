@@ -54,16 +54,16 @@ const TYPE_COLOR: Record<string, string> = {
 }
 
 /** Seconds for a checkpoint based on text length and activity XP.
- *  - 1 minute per 100 characters of explanation + activity texts
- *  - 12 seconds per XP point (10 XP → 2 min, 20 XP → 4 min)
+ *  - 1 minute per 300 characters of explanation + activity texts
+ *  - 12 seconds per XP point (10 XP → 1 min, 20 XP → 2 min)
  */
 function cpTimerSeconds(
   explanation: string,
   activities: JourneyActivity[],
 ): number {
   const allText    = explanation + activities.map(a => a.text).join('')
-  const textSecs   = Math.ceil(allText.length / 100) * 60
-  const testSecs   = activities.reduce((sum, a) => sum + (a.points / 10) * 120, 0)
+  const textSecs   = Math.ceil(allText.length / 300) * 60
+  const testSecs   = activities.reduce((sum, a) => sum + (a.points / 10) * 60, 0)
   return Math.round(textSecs + testSecs)
 }
 
