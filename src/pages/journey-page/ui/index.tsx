@@ -492,6 +492,7 @@ export const JourneyPage: FC = () => {
         dispatch(completeAction(checkpoint!.id))
         dispatch(journeyActions.nextCheckpoint())
         setTransitioning(false)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       }, 350)
     }
   }
