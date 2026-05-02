@@ -99,9 +99,14 @@ export const JourneyNewPage: FC = () => {
 
   return (
     <div className={styles.page}>
-      <button className={styles.back} onClick={() => navigate('/')}>
-        ← Назад
-      </button>
+      <div className={styles.topNav}>
+        <button className={styles.back} onClick={() => navigate('/')}>
+          ← Назад
+        </button>
+        <button className={styles.searchLink} onClick={() => navigate('/search')}>
+          🔍 AI-поиск
+        </button>
+      </div>
 
       <div className={styles.hero}>
         <div className={styles.badge}>Knowledge Journey</div>

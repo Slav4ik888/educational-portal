@@ -1,0 +1,107 @@
+.loading {
+  display    : flex;
+  gap        : 6px;
+  margin-top : 12px;
+
+  span {
+    width            : 8px;
+    height           : 8px;
+    border-radius    : 50%;
+    background       : #6366f1;
+    animation        : bounce 1.2s infinite;
+
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40%           { transform: scale(1);   opacity: 1;   }
+}
+
+.error {
+  margin-top    : 10px;
+  padding       : 10px 14px;
+  background    : rgba(239, 68, 68, 0.1);
+  border        : 1px solid rgba(239, 68, 68, 0.3);
+  border-radius : 8px;
+  color         : #fca5a5;
+  font-size     : 14px;
+}
+
+.card {
+  margin-top    : 14px;
+  background    : rgba(99, 102, 241, 0.06);
+  border        : 1px solid rgba(99, 102, 241, 0.2);
+  border-radius : 10px;
+  padding       : 16px;
+}
+
+.cardHeader {
+  display      : flex;
+  align-items  : center;
+  gap          : 8px;
+  margin-bottom: 10px;
+}
+
+.icon {
+  font-size : 18px;
+}
+
+.title {
+  font-weight : 600;
+  font-size   : 14px;
+  flex        : 1;
+}
+
+.badge {
+  font-size     : 10px;
+  font-weight   : 700;
+  letter-spacing: 0.5px;
+  padding       : 2px 7px;
+  border-radius : 4px;
+  background    : rgba(99, 102, 241, 0.2);
+  color         : #a5b4fc;
+  border        : 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.text {
+  font-size   : 14px;
+  line-height : 1.6;
+  margin      : 0 0 12px;
+}
+
+.keyPoints {
+  margin-top : 10px;
+}
+
+.keyPointsLabel {
+  font-size   : 12px;
+  font-weight : 600;
+  opacity     : 0.7;
+  margin-bottom: 6px;
+}
+
+.keyPointsList {
+  margin      : 0;
+  padding-left: 18px;
+  font-size   : 13px;
+  line-height : 1.7;
+}
+
+.analogy {
+  display     : flex;
+  gap         : 8px;
+  align-items : flex-start;
+  margin-top  : 12px;
+  padding     : 10px 12px;
+  background  : rgba(99, 102, 241, 0.08);
+  border-radius: 8px;
+  font-size   : 13px;
+  line-height : 1.5;
+}
+
+.analogyIcon {
+  flex-shrink : 0;
+}

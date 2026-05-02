@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { llmGlossaryTerms } from 'entities/glossary';
 import { RichTextRenderer } from 'shared/ui/rich-text-render';
 import { explainSimpler, ExplainResult } from 'shared/lib/ai';
+import { AiBlock } from 'shared/ui/ai-block';
 import styles from './theory-block.module.scss';
 
 
@@ -62,44 +63,7 @@ export const TheoryBlock: FC<TheoryBlockProps> = ({ content, concept }) => {
         )}
       </div>
 
-      {error && (
-        <div className={styles.explainerError}>⚠️ {error}</div>
-      )}
-
-      {loading && (
-        <div className={styles.explainerLoading}>
-          <span /><span /><span />
-        </div>
-      )}
-
-      {result && expanded && (
-        <div className={styles.explainerCard}>
-          <div className={styles.explainerHeader}>
-            <span className={styles.explainerIcon}>🤖</span>
-            <span className={styles.explainerTitle}>Простое объяснение</span>
-          </div>
-
-          <p className={styles.explainerText}>{result.explanation}</p>
-
-          {result.keyPoints.length > 0 && (
-            <div className={styles.keyPoints}>
-              <div className={styles.keyPointsLabel}>Главные мысли:</div>
-              <ul className={styles.keyPointsList}>
-                {result.keyPoints.map((kp, i) => (
-                  <li key={i}>{kp}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {result.analogy && (
-            <div className={styles.analogy}>
-              <span className={styles.analogyIcon}>🔗</span>
-              <span className={styles.analogyText}>{result.analogy}</span>
-            </div>
-          )}
-        </div>
-      )}
+      <AiBlock loading={loading} error={error} result={result} expanded={expanded} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { FC, useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { explainSimpler, ExplainResult } from 'shared/lib/ai'
+import { AiBlock } from 'shared/ui/ai-block'
 import { useDispatch, useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
 import {
@@ -198,37 +199,7 @@ const CheckpointExplainer: FC<CheckpointExplainerProps> = ({ explanation, concep
         )}
       </div>
 
-      {error && <div className={styles.cpExplainerError}>⚠️ {error}</div>}
-
-      {loading && (
-        <div className={styles.cpExplainerLoading}>
-          <span /><span /><span />
-        </div>
-      )}
-
-      {result && expanded && (
-        <div className={styles.cpExplainerCard}>
-          <div className={styles.cpExplainerHeader}>
-            <span>🤖</span>
-            <span>Простое объяснение</span>
-          </div>
-          <p className={styles.cpExplainerText}>{result.explanation}</p>
-          {result.keyPoints.length > 0 && (
-            <div className={styles.cpKeyPoints}>
-              <div className={styles.cpKeyPointsLabel}>Главные мысли:</div>
-              <ul className={styles.cpKeyPointsList}>
-                {result.keyPoints.map((kp, i) => <li key={i}>{kp}</li>)}
-              </ul>
-            </div>
-          )}
-          {result.analogy && (
-            <div className={styles.cpAnalogy}>
-              <span>🔗</span>
-              <span>{result.analogy}</span>
-            </div>
-          )}
-        </div>
-      )}
+      <AiBlock loading={loading} error={error} result={result} expanded={expanded} />
     </div>
   )
 }
@@ -721,10 +692,14 @@ export const JourneyPage: FC = () => {
 
       <div className={styles.header}>
         <div className={styles.nav}>
-          <button className={styles.back} onClick={() => navigate('/journey/new')}>← Создать новое</button>
+          <div className={styles.navLeft}>
+            <button className={styles.back} onClick={() => navigate('/journey/new')}>← Создать новое</button>
+            <button className={styles.searchLink} onClick={() => navigate('/search')}>🔍 AI-поиск</button>
+          </div>
           <span className={styles.badge}>Knowledge Journey</span>
         </div>
         <h1 className={styles.title}>{journey.title}</h1>
+        <div className={styles.aiBadge}>✦ Создано AI</div>
         {journey.description && <p className={styles.description}>{journey.description}</p>}
       </div>
 

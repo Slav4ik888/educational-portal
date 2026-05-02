@@ -9,21 +9,40 @@
   color           : #e2e8f0;
 }
 
-.back {
+.topNav {
   align-self      : flex-start;
-  background      : transparent;
-  border          : none;
-  color           : #94a3b8;
-  cursor          : pointer;
-  font-size       : 14px;
-  margin-bottom   : 32px;
-  padding         : 8px 0;
   display         : flex;
   align-items     : center;
-  gap             : 6px;
-  transition      : color 0.2s;
+  gap             : 14px;
+  margin-bottom   : 32px;
+}
+
+.back {
+  background  : transparent;
+  border      : none;
+  color       : #94a3b8;
+  cursor      : pointer;
+  font-size   : 14px;
+  padding     : 8px 0;
+  display     : flex;
+  align-items : center;
+  gap         : 6px;
+  transition  : color 0.2s;
 
   &:hover { color: #e2e8f0; }
+}
+
+.searchLink {
+  background    : transparent;
+  border        : 1px solid #0e7490;
+  color         : #67e8f9;
+  cursor        : pointer;
+  font-size     : 13px;
+  padding       : 6px 12px;
+  border-radius : 6px;
+  transition    : background 0.2s;
+
+  &:hover { background: rgba(14, 116, 144, 0.15); }
 }
 
 .hero {

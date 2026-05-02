@@ -50,6 +50,12 @@
   margin-bottom   : 24px;
 }
 
+.navLeft {
+  display     : flex;
+  align-items : center;
+  gap         : 16px;
+}
+
 .back {
   background : transparent;
   border     : none;
@@ -59,6 +65,27 @@
   padding    : 0;
   transition : color 0.2s;
   &:hover { color: #e2e8f0; }
+}
+
+.searchLink {
+  background  : transparent;
+  border      : 1px solid #0e7490;
+  color       : #67e8f9;
+  cursor      : pointer;
+  font-size   : 13px;
+  padding     : 4px 10px;
+  border-radius: 6px;
+  transition  : background 0.2s, color 0.2s;
+  &:hover { background: rgba(14, 116, 144, 0.15); }
+}
+
+.aiBadge {
+  display      : inline-block;
+  font-size    : 11px;
+  color        : #818cf8;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  opacity      : 0.8;
 }
 
 .badge {
