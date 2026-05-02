@@ -38,7 +38,7 @@ export const JourneyNewPage: FC = () => {
   useEffect(() => {
     const prefill = searchParams.get('topic');
     if (prefill) {
-      setTopic(decodeURIComponent(prefill));
+      setTopic(prefill);
       setTab('topic');
     }
   }, [searchParams]);
