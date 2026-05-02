@@ -1,0 +1,22 @@
+[Unit]
+Description=NodeJS Server for Edu-Journey
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+# RestartSec=5
+PIDFile=/run/edu-journey.pid
+
+# You have to change absolute path in next two lines when deploying to another server !!!
+# WorkingDirectory=/var/www/vtempe/data/edu-journey
+# ExecStart=/root/.nvm/versions/node/v20.19.2/bin/node /var/www/vtempe/data/edu-journey/server.js
+
+# Environment=NODE_PATH=server/
+
+WorkingDirectory=/var/www/vtempe/data/edu-journey
+# ExecStart=NODE_PATH=server/ /root/.nvm/versions/node/v20.19.2/bin/node /var/www/vtempe/data/edu-journey/server.js
+ExecStart=/root/.nvm/versions/node/v20.19.2/bin/node /var/www/vtempe/data/edu-journey/server.js
+
+[Install]
+WantedBy=multi-user.target
