@@ -6,6 +6,8 @@ export interface StateSchemaJourney {
   error                  : string | null
   answers                : ActivityAnswers
   submittedCheckpointIds : string[]
+  checkpointDurations    : Record<string, number>
+  journeyStartedAt       : string | null
   progress               : {
     currentCheckpointIdx : number
     completedCheckpoints : string[]

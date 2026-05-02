@@ -1,9 +1,11 @@
 import { ActivityType } from 'entities/journey'
 
 export interface CheckpointRecord {
-  concept      : string
-  accuracy     : number
-  mistakeTypes : ActivityType[]
+  concept         : string
+  accuracy        : number
+  mistakeTypes    : ActivityType[]
+  durationSec     : number
+  timedOut        : boolean
 }
 
 export interface JourneyRecord {
@@ -13,6 +15,7 @@ export interface JourneyRecord {
   completedAt       : string
   accuracy          : number
   xpEarned          : number
+  durationSec       : number
   checkpointResults : CheckpointRecord[]
 }
 

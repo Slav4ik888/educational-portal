@@ -15,6 +15,8 @@ function loadFromLocalStorage(): StateSchemaJourney {
         error                  : null,
         answers                : parsed.answers                ?? {},
         submittedCheckpointIds : parsed.submittedCheckpointIds ?? [],
+        checkpointDurations    : parsed.checkpointDurations    ?? {},
+        journeyStartedAt       : parsed.journeyStartedAt       ?? null,
         progress               : parsed.progress               ?? {
           currentCheckpointIdx : 0,
           completedCheckpoints : [],
@@ -31,6 +33,8 @@ function loadFromLocalStorage(): StateSchemaJourney {
     error                  : null,
     answers                : {},
     submittedCheckpointIds : [],
+    checkpointDurations    : {},
+    journeyStartedAt       : null,
     progress               : {
       currentCheckpointIdx : 0,
       completedCheckpoints : [],
@@ -45,6 +49,8 @@ function saveToLocalStorage(state: StateSchemaJourney) {
       current                : state.current,
       answers                : state.answers,
       submittedCheckpointIds : state.submittedCheckpointIds,
+      checkpointDurations    : state.checkpointDurations,
+      journeyStartedAt       : state.journeyStartedAt,
       progress               : state.progress,
     }))
   } catch {
