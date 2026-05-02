@@ -289,7 +289,8 @@ export const ProgressPage: FC = () => {
                       <div className={styles.recMeta}>⏱ ~{r.estimatedMinutes} мин</div>
                       <button
                         className={styles.recStartBtn}
-                        onClick={() => navigate(`/journey/new`)}
+                        onClick={() => navigate(`/journey/new?topic=${encodeURIComponent(r.title)}`)}
+                        title={`Создать путешествие по теме: ${r.title}`}
                       >
                         Начать →
                       </button>

@@ -1,5 +1,6 @@
 import { FC, useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { explainSimpler, ExplainResult } from 'shared/lib/ai'
 import { useDispatch, useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
 import {
@@ -126,6 +127,107 @@ const ActivityCard: FC<ActivityCardProps> = ({
           )}
           {showHint && <div className={styles.hint}>💡 {activity.hint}</div>}
         </>
+      )}
+    </div>
+  )
+}
+
+
+interface CheckpointExplainerProps {
+  explanation : string
+  concept     : string
+  cpIndex     : number
+  cpTotal     : number
+}
+
+const CheckpointExplainer: FC<CheckpointExplainerProps> = ({ explanation, concept, cpIndex, cpTotal }) => {
+  const [loading,  setLoading]  = useState(false)
+  const [result,   setResult]   = useState<ExplainResult | null>(null)
+  const [error,    setError]    = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    setResult(null)
+    setError(null)
+    setExpanded(false)
+  }, [cpIndex])
+
+  const handleExplain = async () => {
+    if (loading) return
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await explainSimpler({ content: explanation, concept })
+      setResult(res)
+      setExpanded(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка объяснения')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className={styles.cpHeader}>
+      <div className={styles.cpNum}>
+        Чекпоинт {cpIndex + 1} из {cpTotal}
+      </div>
+      <h2 className={styles.cpTitle}>{concept}</h2>
+      <div className={styles.cpExplanation}>
+        {explanation.split(/\n\n+/).map((para, i) => (
+          <p key={i} className={styles.cpParagraph}>{para.trim()}</p>
+        ))}
+      </div>
+
+      <div className={styles.cpExplainerRow}>
+        <button
+          className={styles.cpExplainBtn}
+          onClick={handleExplain}
+          disabled={loading}
+          title="Объясни этот раздел простыми словами"
+        >
+          {loading ? '⏳ Упрощаю...' : '💡 Объясни проще'}
+        </button>
+        {result && (
+          <button
+            className={styles.cpToggleBtn}
+            onClick={() => setExpanded(e => !e)}
+          >
+            {expanded ? '▲ Скрыть' : '▼ Показать'}
+          </button>
+        )}
+      </div>
+
+      {error && <div className={styles.cpExplainerError}>⚠️ {error}</div>}
+
+      {loading && (
+        <div className={styles.cpExplainerLoading}>
+          <span /><span /><span />
+        </div>
+      )}
+
+      {result && expanded && (
+        <div className={styles.cpExplainerCard}>
+          <div className={styles.cpExplainerHeader}>
+            <span>🤖</span>
+            <span>Простое объяснение</span>
+          </div>
+          <p className={styles.cpExplainerText}>{result.explanation}</p>
+          {result.keyPoints.length > 0 && (
+            <div className={styles.cpKeyPoints}>
+              <div className={styles.cpKeyPointsLabel}>Главные мысли:</div>
+              <ul className={styles.cpKeyPointsList}>
+                {result.keyPoints.map((kp, i) => <li key={i}>{kp}</li>)}
+              </ul>
+            </div>
+          )}
+          {result.analogy && (
+            <div className={styles.cpAnalogy}>
+              <span>🔗</span>
+              <span>{result.analogy}</span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
@@ -664,17 +766,12 @@ export const JourneyPage: FC = () => {
             </div>
           )}
 
-          <div className={styles.cpHeader}>
-            <div className={styles.cpNum}>
-              Чекпоинт {currentCheckpointIdx + 1} из {journey.checkpoints.length}
-            </div>
-            <h2 className={styles.cpTitle}>{checkpoint.concept}</h2>
-            <div className={styles.cpExplanation}>
-              {checkpoint.explanation.split(/\n\n+/).map((para, i) => (
-                <p key={i} className={styles.cpParagraph}>{para.trim()}</p>
-              ))}
-            </div>
-          </div>
+          <CheckpointExplainer
+            explanation={checkpoint.explanation}
+            concept={checkpoint.concept}
+            cpIndex={currentCheckpointIdx}
+            cpTotal={journey.checkpoints.length}
+          />
 
           <div className={styles.activities}>
             {checkpoint.activities.map(activity => (

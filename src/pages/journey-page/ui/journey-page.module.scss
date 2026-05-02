@@ -621,3 +621,138 @@
   color     : #64748b;
   text-align: center;
 }
+
+
+/* ── Checkpoint explainer ───────────────────────────────────────── */
+.cpExplainerRow {
+  display    : flex;
+  align-items: center;
+  gap        : 10px;
+  margin-top : 12px;
+  flex-wrap  : wrap;
+}
+
+.cpExplainBtn {
+  padding      : 6px 14px;
+  background   : rgba(99, 102, 241, 0.12);
+  border       : 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 8px;
+  color        : #818cf8;
+  font-size    : 13px;
+  font-weight  : 600;
+  cursor       : pointer;
+  transition   : background 0.2s, color 0.2s;
+  &:hover:not(:disabled) { background: rgba(99, 102, 241, 0.22); color: #a5b4fc; }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+.cpToggleBtn {
+  padding      : 6px 12px;
+  background   : transparent;
+  border       : 1px solid #334155;
+  border-radius: 8px;
+  color        : #64748b;
+  font-size    : 12px;
+  cursor       : pointer;
+  transition   : color 0.2s;
+  &:hover { color: #94a3b8; }
+}
+
+.cpExplainerLoading {
+  display   : flex;
+  gap       : 5px;
+  margin-top: 8px;
+
+  span {
+    width        : 7px;
+    height       : 7px;
+    border-radius: 50%;
+    background   : #6366f1;
+    animation    : cpDot 1.4s infinite ease-in-out both;
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes cpDot {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+  40%           { transform: scale(1);   opacity: 1;   }
+}
+
+.cpExplainerError {
+  margin-top: 8px;
+  font-size : 13px;
+  color     : #f87171;
+}
+
+.cpExplainerCard {
+  margin-top   : 12px;
+  padding      : 14px 16px;
+  background   : rgba(99, 102, 241, 0.07);
+  border       : 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 10px;
+  animation    : fadeIn 0.3s ease;
+}
+
+.cpExplainerHeader {
+  display    : flex;
+  align-items: center;
+  gap        : 8px;
+  font-weight: 700;
+  color      : #a5b4fc;
+  font-size  : 13px;
+  margin-bottom: 8px;
+}
+
+.cpExplainerText {
+  font-size  : 14px;
+  color      : #cbd5e1;
+  line-height: 1.6;
+  margin     : 0 0 10px;
+}
+
+.cpKeyPoints {
+  margin-bottom: 10px;
+}
+
+.cpKeyPointsLabel {
+  font-size  : 12px;
+  font-weight: 700;
+  color      : #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom : 4px;
+}
+
+.cpKeyPointsList {
+  list-style   : none;
+  padding      : 0;
+  margin       : 0;
+  display      : flex;
+  flex-direction: column;
+  gap          : 4px;
+
+  li {
+    font-size: 13px;
+    color    : #cbd5e1;
+    padding-left: 14px;
+    position : relative;
+    &::before {
+      content  : '·';
+      position : absolute;
+      left     : 4px;
+      color    : #818cf8;
+    }
+  }
+}
+
+.cpAnalogy {
+  display    : flex;
+  gap        : 8px;
+  align-items: flex-start;
+  font-size  : 13px;
+  color      : #94a3b8;
+  font-style : italic;
+  padding-top: 8px;
+  border-top : 1px solid rgba(99,102,241,0.15);
+}

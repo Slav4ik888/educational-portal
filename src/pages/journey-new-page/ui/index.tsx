@@ -1,5 +1,5 @@
-import { FC, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FC, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import { journeyActions } from 'entities/journey';
@@ -28,11 +28,21 @@ const LOADING_STEPS = [
 export const JourneyNewPage: FC = () => {
   const navigate  = useNavigate();
   const dispatch  = useDispatch();
+  const [searchParams] = useSearchParams();
   const { isGenerating, error } = useSelector((s: StateSchema) => s.journey);
 
   const [tab, setTab]   = useState<'topic' | 'text'>('topic');
   const [topic, setTopic] = useState('');
   const [text, setText]   = useState('');
+
+  useEffect(() => {
+    const prefill = searchParams.get('topic');
+    if (prefill) {
+      setTopic(decodeURIComponent(prefill));
+      setTab('topic');
+    }
+  }, [searchParams]);
+
   const [step, setStep]   = useState(-1);
 
   const [demoMode, setDemoMode] = useState<boolean>(
