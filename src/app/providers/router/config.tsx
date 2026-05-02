@@ -4,6 +4,7 @@ import { ArticlePage } from 'pages/article-page';
 import { JourneyNewPage } from 'pages/journey-new-page';
 import { JourneyPage } from 'pages/journey-page';
 import { JourneyReportPage } from 'pages/journey-report-page';
+import { ProgressPage } from 'pages/progress-page';
 
 
 
@@ -14,6 +15,7 @@ export const router = createBrowserRouter(
     { path: '/journey/new',              element: <JourneyNewPage /> },
     { path: '/journey/:id',              element: <JourneyPage /> },
     { path: '/journey/:id/report',       element: <JourneyReportPage /> },
+    { path: '/progress',                 element: <ProgressPage /> },
   ],
   {
     basename: __IS_DEV__ ? '/' : '/educational-portal' // Название репозитория должно быть таким же, как в publicPath

@@ -6,16 +6,18 @@ import { StateSchemaArticle } from 'entities/article';
 import { StateSchemaUserProgress } from 'entities/user-progress';
 import { StateSchemaJourney } from 'entities/journey';
 import { GamificationState } from 'entities/gamification';
+import { PersonalContextState } from 'entities/personal-context';
 
 
 
 export interface StateSchema {
   // Entities
-  ui            : StateSchemaUI
-  article       : StateSchemaArticle
-  userProgress  : StateSchemaUserProgress
-  journey       : StateSchemaJourney
-  gamification  : GamificationState
+  ui              : StateSchemaUI
+  article         : StateSchemaArticle
+  userProgress    : StateSchemaUserProgress
+  journey         : StateSchemaJourney
+  gamification    : GamificationState
+  personalContext : PersonalContextState
 
   // Async reducer
   // dashboardData?      : StateSchemaDashboardData

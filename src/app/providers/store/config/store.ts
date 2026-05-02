@@ -7,6 +7,7 @@ import { articleReducer } from 'entities/article';
 import { userProgressReducer } from 'entities/user-progress';
 import { journeyReducer } from 'entities/journey';
 import { gamificationReducer } from 'entities/gamification';
+import { personalContextReducer } from 'entities/personal-context';
 
 
 export function createReduxStore(
@@ -18,11 +19,12 @@ export function createReduxStore(
       ...asyncReducers,
 
       // Entities
-      ui            : uiReducer,
-      article       : articleReducer,
-      userProgress  : userProgressReducer,
-      journey       : journeyReducer,
-      gamification  : gamificationReducer,
+      ui              : uiReducer,
+      article         : articleReducer,
+      userProgress    : userProgressReducer,
+      journey         : journeyReducer,
+      gamification    : gamificationReducer,
+      personalContext : personalContextReducer,
     },
     reducerManager = createReducerManager(rootReducers),
     extraArg = {
