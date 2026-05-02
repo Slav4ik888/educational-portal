@@ -58,7 +58,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
 
   const handleSubmit = () => {
-    let correctCount = 0;
+    let earnedPoints = 0;
     questions.forEach(question => {
       const userAnswer = answers[question.id];
 
@@ -66,7 +66,7 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
       if (TEST_AI_EVALUATED_TYPES.has(question.type)) {
         const aiAnswer = userAnswer as { aiScore?: number; isEvaluated?: boolean } | undefined;
         if (aiAnswer?.isEvaluated) {
-          correctCount += Math.round(((aiAnswer.aiScore ?? 0) / 100) * question.points);
+          earnedPoints += Math.round(((aiAnswer.aiScore ?? 0) / 100) * question.points);
         }
         return;
       }
@@ -76,22 +76,19 @@ export const TestBlock: FC<Props> = ({ type, questions, isCompleted, savedScore,
 
       if (isCorrect) {
         cfg.IS_DEV && console.log('✅ Правильно!');
-        correctCount += question.points;
+        earnedPoints += question.points;
       } else if (details.details?.partiallyCorrect) {
         const d = details.details;
         cfg.IS_DEV && console.log(`⚠️ Частично правильно: ${d.correctCount} из ${d.totalCount}`);
-        correctCount += d.correctCount || 0;
+        earnedPoints += Math.round((question.points * (d.correctCount || 0)) / (d.totalCount || 1));
       } else {
         cfg.IS_DEV && console.log('❌ Неправильно');
       }
     });
 
-    let allScores = 0;
-    questions.forEach(question => {
-      allScores += question.points;
-    });
+    const allScores = questions.reduce((sum, question) => sum + question.points, 0);
 
-    const calculatedScore = (correctCount * 100) / allScores;
+    const calculatedScore = allScores > 0 ? (earnedPoints * 100) / allScores : 0;
     setScore(calculatedScore);
     setSubmitted(true);
     onComplete(calculatedScore);
