@@ -108,6 +108,10 @@ const gamificationSlice = createSlice({
     resetSessionXP(state) {
       state.sessionXP = 0
     },
+
+    subtractSessionXP(state, action: PayloadAction<number>) {
+      state.sessionXP = Math.max(0, state.sessionXP - action.payload)
+    },
   },
 })
 

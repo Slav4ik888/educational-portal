@@ -276,9 +276,10 @@ export const JourneyPage: FC = () => {
   const timerTotal    = cpTimerSeconds(checkpoint?.explanation ?? '', cpActivities)
 
   // Refs to access current values inside the timer callback without re-creating it
-  const timerExpiredRef  = useRef(false)
-  const submittedRef     = useRef(false)   // mirrors `submitted` state for use in callbacks
-  const xpAwardedRef     = useRef(false)   // ensures XP is awarded only once per attempt
+  const timerExpiredRef        = useRef(false)
+  const submittedRef           = useRef(false)   // mirrors `submitted` state for use in callbacks
+  const xpAwardedRef           = useRef(false)   // ensures XP is awarded only once per attempt
+  const lastCheckpointBaseXPRef = useRef(0)       // base XP awarded for the current attempt
 
   const checkpointRef    = useRef(checkpoint)
   const answersRef       = useRef(answers)
@@ -297,6 +298,7 @@ export const JourneyPage: FC = () => {
     if (!cp) return
     if (xpAwardedRef.current) return
     xpAwardedRef.current = true
+    lastCheckpointBaseXPRef.current = 0
 
     const speedBonus = speedMultiplier < 1
       ? speedMultiplier                                         // timeout: flat 0.5
@@ -318,6 +320,7 @@ export const JourneyPage: FC = () => {
 
       if (correct) {
         dispatch(gamificationActions.addXP({ base: activity.points, speedBonus }))
+        lastCheckpointBaseXPRef.current += activity.points
       } else {
         // Any wrong answer means streak must reset
         allAnsweredCorrect = false
@@ -498,7 +501,8 @@ export const JourneyPage: FC = () => {
     const activityIds = checkpoint.activities.map(a => a.id)
     dispatch(journeyActions.clearCheckpointAnswers(activityIds))
     dispatch(journeyActions.unmarkCheckpointSubmitted(checkpoint.id))
-    dispatch(gamificationActions.resetSessionXP())
+    dispatch(gamificationActions.subtractSessionXP(lastCheckpointBaseXPRef.current))
+    lastCheckpointBaseXPRef.current = 0
     setSubmitted(false)
     submittedRef.current = false
     xpAwardedRef.current = false
