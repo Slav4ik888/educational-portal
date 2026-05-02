@@ -1,12 +1,16 @@
-const express = require('express');
-const cors    = require('cors');
-const https   = require('https');
+// server.js
 
-const app  = express();
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const https = require('https');
+
+const app = express();
 const PORT = 7575;
 
 // Allow requests only from the same machine (Vite proxy + local dev)
 const ALLOWED_ORIGINS = [
+  'http://localhost:5050',
   'http://localhost:5000',
   'http://localhost:3000',
   `https://${process.env.REPLIT_DEV_DOMAIN}`,
@@ -26,12 +30,12 @@ app.use(cors({
 app.use(express.json({ limit: '100kb' }));
 
 // --- Simple in-memory rate limiter ---
-const rateLimitMap  = new Map();
+const rateLimitMap = new Map();
 const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_REQ   = 10;
+const RATE_MAX_REQ = 10;
 
 function rateLimit(req, res, next) {
-  const ip  = req.ip || req.socket.remoteAddress || 'unknown';
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   const rec = rateLimitMap.get(ip) || { count: 0, start: now };
 
@@ -57,7 +61,7 @@ setInterval(() => {
 }, RATE_WINDOW_MS);
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const MODEL            = 'deepseek-chat';
+const MODEL = 'deepseek-chat';
 const MIN_CHECKPOINTS = 3;
 const MAX_CHECKPOINTS = 7;
 
@@ -94,11 +98,11 @@ function normalizeActivities(rawActs, checkpointIdx) {
     .filter(a => typeof a.text === 'string' && a.text.trim())
     .map((act, aIdx) => {
       const base = {
-        id     : `cp${checkpointIdx + 1}_act${aIdx + 1}`,
-        type   : act.type,
-        text   : String(act.text).trim(),
-        points : Number.isFinite(act.points) && act.points > 0 ? act.points : defaultPoints(act.type),
-        hint   : typeof act.hint === 'string' ? act.hint : null,
+        id: `cp${checkpointIdx + 1}_act${aIdx + 1}`,
+        type: act.type,
+        text: String(act.text).trim(),
+        points: Number.isFinite(act.points) && act.points > 0 ? act.points : defaultPoints(act.type),
+        hint: typeof act.hint === 'string' ? act.hint : null,
       };
 
       if (act.type === 'multiple-choice') {
@@ -112,7 +116,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
           options,
           correctAnswers,
           allowMultiple: Boolean(act.allowMultiple),
-          explanation  : String(act.explanation || ''),
+          explanation: String(act.explanation || ''),
         };
       }
 
@@ -130,7 +134,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
           ...base,
           textWithBlanks: String(act.textWithBlanks || act.text),
           blanks,
-          caseSensitive : Boolean(act.caseSensitive),
+          caseSensitive: Boolean(act.caseSensitive),
         };
       }
 
@@ -138,7 +142,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
         return {
           ...base,
           evaluationCriteria: String(act.evaluationCriteria || 'понимание концепции'),
-          exampleAnswer     : String(act.exampleAnswer || ''),
+          exampleAnswer: String(act.exampleAnswer || ''),
         };
       }
 
@@ -146,7 +150,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
         return {
           ...base,
           evaluationCriteria: String(act.evaluationCriteria || 'объяснение без терминов, понятно новичку'),
-          targetAudience    : String(act.targetAudience || 'ребёнку 10 лет'),
+          targetAudience: String(act.targetAudience || 'ребёнку 10 лет'),
         };
       }
 
@@ -154,7 +158,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
         return {
           ...base,
           evaluationCriteria: String(act.evaluationCriteria || 'полнота, правильность, понятность объяснения'),
-          forbiddenTerms    : Array.isArray(act.forbiddenTerms) ? act.forbiddenTerms.map(String) : [],
+          forbiddenTerms: Array.isArray(act.forbiddenTerms) ? act.forbiddenTerms.map(String) : [],
         };
       }
 
@@ -162,7 +166,7 @@ function normalizeActivities(rawActs, checkpointIdx) {
         return {
           ...base,
           evaluationCriteria: String(act.evaluationCriteria || 'пример релевантен, конкретный, правильно иллюстрирует концепцию'),
-          domain            : String(act.domain || 'из повседневной жизни или практики'),
+          domain: String(act.domain || 'из повседневной жизни или практики'),
         };
       }
 
@@ -170,9 +174,9 @@ function normalizeActivities(rawActs, checkpointIdx) {
         if (!act.reasoning || typeof act.reasoning !== 'string') return null;
         return {
           ...base,
-          reasoning          : String(act.reasoning).trim(),
-          errorLocation      : String(act.errorLocation || ''),
-          evaluationCriteria : String(act.evaluationCriteria || 'точное определение ошибки и объяснение почему это неверно'),
+          reasoning: String(act.reasoning).trim(),
+          errorLocation: String(act.errorLocation || ''),
+          evaluationCriteria: String(act.evaluationCriteria || 'точное определение ошибки и объяснение почему это неверно'),
         };
       }
 
@@ -191,30 +195,30 @@ function normalizeCheckpoints(raw) {
     throw new Error(`AI returned only ${valid.length} checkpoints (minimum ${MIN_CHECKPOINTS})`);
   }
   return valid.slice(0, MAX_CHECKPOINTS).map((cp, i) => ({
-    id          : cp.id || `cp${i + 1}`,
-    concept     : String(cp.concept).trim(),
-    explanation : String(cp.explanation || '').trim(),
-    order       : i + 1,
+    id: cp.id || `cp${i + 1}`,
+    concept: String(cp.concept).trim(),
+    explanation: String(cp.explanation || '').trim(),
+    order: i + 1,
   }));
 }
 
 function callOpenRouter(messages, temperature = 0.7, maxTokens = 4096) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model          : MODEL,
+      model: MODEL,
       messages,
       temperature,
-      max_tokens     : maxTokens,
+      max_tokens: maxTokens,
       response_format: { type: 'json_object' }
     });
 
     const options = {
-      hostname : 'api.deepseek.com',
-      path     : '/v1/chat/completions',
-      method   : 'POST',
-      headers  : {
-        'Content-Type'  : 'application/json',
-        'Authorization' : `Bearer ${DEEPSEEK_API_KEY}`,
+      hostname: 'api.deepseek.com',
+      path: '/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
       }
     };
 
@@ -347,19 +351,19 @@ app.post('/api/ai/generate-journey', rateLimit, async (req, res) => {
       return {
         ...cp,
         activities: acts,
-        timeLimit : 240 + acts.length * 30
+        timeLimit: 240 + acts.length * 30
       };
     });
 
     const resolvedCheckpoints = await Promise.all(activitiesPromises);
 
     const journey = {
-      id          : `journey_${Date.now()}`,
-      title       : decompositionResult.title || topic || 'Knowledge Journey',
-      description : decompositionResult.description || '',
-      topic       : topic || 'Custom text',
-      checkpoints : resolvedCheckpoints,
-      createdAt   : new Date().toISOString()
+      id: `journey_${Date.now()}`,
+      title: decompositionResult.title || topic || 'Knowledge Journey',
+      description: decompositionResult.description || '',
+      topic: topic || 'Custom text',
+      checkpoints: resolvedCheckpoints,
+      createdAt: new Date().toISOString()
     };
 
     return res.json({ journey });
@@ -506,15 +510,15 @@ app.post('/api/ai/evaluate-answer', rateLimit, async (req, res) => {
 
     const result = await callOpenRouter([
       { role: 'system', content: systemPrompt },
-      { role: 'user',   content: userContent }
+      { role: 'user', content: userContent }
     ], 0.3);
 
     // Normalize result
-    const score       = Math.max(0, Math.min(100, Number(result.score) || 0));
-    const isCorrect   = typeof result.isCorrect === 'boolean' ? result.isCorrect : score >= 60;
-    const feedback    = String(result.feedback    || '').trim();
-    const strengths   = String(result.strengths   || '').trim();
-    const improvements= String(result.improvements|| '').trim();
+    const score = Math.max(0, Math.min(100, Number(result.score) || 0));
+    const isCorrect = typeof result.isCorrect === 'boolean' ? result.isCorrect : score >= 60;
+    const feedback = String(result.feedback || '').trim();
+    const strengths = String(result.strengths || '').trim();
+    const improvements = String(result.improvements || '').trim();
 
     return res.json({ score, isCorrect, feedback, strengths, improvements });
   } catch (err) {

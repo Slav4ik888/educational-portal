@@ -125,3 +125,13 @@ export const mockArticles: Article[] = [
 
  
 Вот код текущего ArticleReader:
+------------------------------------------------------------------------------------
+git stash
+git pull
+git stash pop (и если есть конфликт, уладить)
+git add .
+git commit -m "Merge: resolve conflicts"
+git push -u origin main
+----
+
+git add . && git commit -m "add draft-specs" && git push

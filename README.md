@@ -108,7 +108,7 @@ echo "OPENAI_API_KEY=sk-..." > .env
 node server.js
 
 # Терминал 2 — Vite dev-сервер (порт 5000)
-npx vite --host 0.0.0.0 --port 5000
+npx vite --host 0.0.0.0 --port 5050
 ```
 
 **Вариант B — Webpack** (канонические скрипты из `package.json`):
