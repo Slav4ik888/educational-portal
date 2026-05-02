@@ -3,22 +3,42 @@
   background: #f5f7fa;
 }
 
-.backButton {
+.topNav {
   position: fixed;
   top: 1rem;
   left: 1rem;
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.backButton {
   padding: 0.5rem 1rem;
   background: white;
   color: #3a3a3a;
   border: 1px solid #ddd;
   border-radius: 6px;
   cursor: pointer;
-  z-index: 100;
   transition: all 0.2s;
 
   &:hover {
     background: #f0f0f0;
     transform: translateX(-2px);
+  }
+}
+
+.searchButton {
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #0e7490;
+  border: 1px solid #0e7490;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+
+  &:hover {
+    background: #ecfeff;
   }
 }
 

@@ -52,13 +52,22 @@ export const ArticlePage: FC = () => {
 
   return (
     <div className={styles.container}>
-      <button
-        type      = 'button'
-        className = {styles.backButton}
-        onClick   = {handleBack}
-      >
-        ← Назад к статьям
-      </button>
+      <div className={styles.topNav}>
+        <button
+          type      = 'button'
+          className = {styles.backButton}
+          onClick   = {handleBack}
+        >
+          ← Назад к статьям
+        </button>
+        <button
+          type      = 'button'
+          className = {styles.searchButton}
+          onClick   = {() => navigate('/search')}
+        >
+          🔍 AI-поиск
+        </button>
+      </div>
 
       <article className={styles.article}>
         <header className={styles.header}>

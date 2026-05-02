@@ -412,6 +412,12 @@ export const JourneyReportPage: FC = () => {
         </button>
         <button
           className={styles.secondaryBtn}
+          onClick={() => navigate('/search')}
+        >
+          🔍 AI-поиск
+        </button>
+        <button
+          className={styles.secondaryBtn}
           onClick={() => navigate('/')}
         >
           К статьям

@@ -141,6 +141,9 @@ export const ProgressPage: FC = () => {
           <button className={styles.btnOutline} onClick={() => navigate('/journey/new')}>
             ✨ Новое путешествие
           </button>
+          <button className={styles.btnOutline} onClick={() => navigate('/search')}>
+            🔍 AI-поиск
+          </button>
           {history.length > 0 && (
             <button className={styles.btnDanger} onClick={() => setConfirmClear(true)}>
               🗑 Очистить данные
