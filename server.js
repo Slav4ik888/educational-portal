@@ -610,10 +610,23 @@ function allJourneyChunks() {
 }
 
 /** POST /api/rag/index-journey — called from client after generating a journey */
-app.post('/api/rag/index-journey', (req, res) => {
+app.post('/api/rag/index-journey', rateLimit, (req, res) => {
   const { journey } = req.body;
   if (!journey || !journey.id || !Array.isArray(journey.checkpoints)) {
     return res.status(400).json({ error: 'journey with checkpoints required' });
+  }
+  // Validate: journey must have at least 1 checkpoint with concept string
+  if (journey.checkpoints.length === 0) {
+    return res.status(400).json({ error: 'journey must have at least one checkpoint' });
+  }
+  // Guard against oversized payloads abusing memory
+  if (journey.checkpoints.length > 50) {
+    return res.status(400).json({ error: 'too many checkpoints (max 50)' });
+  }
+  for (const cp of journey.checkpoints) {
+    if (typeof cp.concept !== 'string') {
+      return res.status(400).json({ error: 'each checkpoint must have a concept string' });
+    }
   }
   indexJourney(journey);
   return res.json({ ok: true, chunks: (journeyIndex.get(journey.id) || []).length });

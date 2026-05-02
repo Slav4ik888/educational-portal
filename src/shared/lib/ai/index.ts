@@ -88,10 +88,45 @@ export async function ragSearch(params: {
   }
 }
 
+const RAG_JOURNEY_STORE_KEY = 'ragIndexedJourneys'
+
+function saveJourneyToRagStore(journey: Journey): void {
+  try {
+    const raw  = localStorage.getItem(RAG_JOURNEY_STORE_KEY)
+    const store: Record<string, Journey> = raw ? JSON.parse(raw) : {}
+    store[journey.id] = journey
+    // Keep at most 20 journeys to avoid localStorage bloat
+    const ids = Object.keys(store)
+    if (ids.length > 20) {
+      delete store[ids[0]]
+    }
+    localStorage.setItem(RAG_JOURNEY_STORE_KEY, JSON.stringify(store))
+  } catch {
+    // quota exceeded or private mode — silently skip
+  }
+}
+
 export async function ragIndexJourney(journey: Journey): Promise<void> {
+  saveJourneyToRagStore(journey)
   try {
     await ragApi.post('/index-journey', { journey })
   } catch {
     // Non-critical: silently ignore indexing failures
+  }
+}
+
+/** Call once on app startup to re-index all locally persisted journeys */
+export async function ragRehydrateJourneys(): Promise<void> {
+  try {
+    const raw = localStorage.getItem(RAG_JOURNEY_STORE_KEY)
+    if (!raw) return
+    const store = JSON.parse(raw) as Record<string, Journey>
+    const journeys = Object.values(store)
+    // Fire-and-forget all rehydration calls; ignore individual failures
+    await Promise.allSettled(
+      journeys.map(j => ragApi.post('/index-journey', { journey: j }))
+    )
+  } catch {
+    // silently ignore
   }
 }

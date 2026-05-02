@@ -4,6 +4,7 @@ import { ErrorBoundary } from 'app/providers/error-boundary';
 import { App } from './app';
 import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
+import { ragRehydrateJourneys } from 'shared/lib/ai';
 import './index.module.scss';
 import './tailwind.css';
 
@@ -31,6 +32,4 @@ root.render(
   </StoreProvider>
 );
 
-
-
-// git add . && git commit -m "refacted RichTextRenderer & added 2 articles" && git push -u origin main
+ragRehydrateJourneys();
