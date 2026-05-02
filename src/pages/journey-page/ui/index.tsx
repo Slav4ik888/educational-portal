@@ -367,7 +367,6 @@ export const JourneyPage: FC = () => {
     xpAwardedRef.current    = false
     const alreadySubmitted  = submittedCheckpointIds.includes(checkpoint?.id ?? '')
     submittedRef.current    = alreadySubmitted
-    dispatch(gamificationActions.resetSessionXP())
     if (!alreadySubmitted) timer.reset(timerTotal)
     setSubmitted(alreadySubmitted)
     setTimedOut(false)
