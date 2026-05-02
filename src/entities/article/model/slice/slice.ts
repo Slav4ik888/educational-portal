@@ -3,13 +3,14 @@ import { StateSchemaArticle } from './state-schema';
 import { getPayloadError as getError } from 'shared/lib/errors';
 import { Errors } from 'shared/lib/validators';
 import { Article } from '../../types';
+import { mockArticles } from 'shared/mocks/article/mock-articles';
 
 
 
 const initialState: StateSchemaArticle = {
   loading        : false,
   errors         : {},
-  articles       : [],
+  articles       : mockArticles,
   currentArticle : null,
   isLoading      : false
 };
