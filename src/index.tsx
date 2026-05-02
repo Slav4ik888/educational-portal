@@ -1,3 +1,5 @@
+// src/index.tsx
+
 import { createRoot } from 'react-dom/client';
 import { StoreProvider } from 'app/providers/store';
 import { ErrorBoundary } from 'app/providers/error-boundary';
@@ -5,6 +7,7 @@ import { App } from './app';
 import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
 import './index.module.scss';
+// @ts-ignore
 import './tailwind.css';
 
 

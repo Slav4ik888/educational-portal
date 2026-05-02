@@ -7,7 +7,7 @@ const https = require('https');
 const { jsonrepair } = require('jsonrepair');
 
 const app = express();
-const PORT = 7575;
+const PORT = 7580;
 
 // Allow requests only from the same machine (Vite proxy + local dev)
 const ALLOWED_ORIGINS = [
