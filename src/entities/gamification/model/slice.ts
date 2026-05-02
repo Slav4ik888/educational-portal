@@ -101,6 +101,10 @@ const gamificationSlice = createSlice({
       state.streak    = 0
       saveToLocalStorage(state)
     },
+
+    resetSessionXP(state) {
+      state.sessionXP = 0
+    },
   },
 })
 
