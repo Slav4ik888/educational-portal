@@ -12,6 +12,7 @@ import {
   checkActivityCorrect,
 } from 'entities/journey'
 import { gamificationActions } from 'entities/gamification'
+import { personalContextActions, JourneyRecord, CheckpointRecord } from 'entities/personal-context'
 import { evaluateAnswer } from 'shared/lib/ai'
 import { useCheckpointTimer } from 'shared/lib/hooks/use-checkpoint-timer'
 import styles from './journey-page.module.scss'
@@ -259,7 +260,7 @@ const CheckpointProgress: FC<ProgressBarProps> = ({ checkpoints, completedIds, c
 export const JourneyPage: FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { current: journey, answers, progress, submittedCheckpointIds } = useSelector((s: StateSchema) => s.journey)
+  const { current: journey, answers, progress, submittedCheckpointIds, checkpointDurations, journeyStartedAt } = useSelector((s: StateSchema) => s.journey)
   const gamification = useSelector((s: StateSchema) => s.gamification)
 
   const checkpoint   = journey?.checkpoints[progress.currentCheckpointIdx]
@@ -482,19 +483,93 @@ export const JourneyPage: FC = () => {
     }
 
     // Record checkpoint duration
+    const thisElapsed = Math.max(1, timerTotal - timer.remaining)
     if (checkpoint) {
-      const elapsed = timerTotal - timer.remaining
       dispatch(journeyActions.recordCheckpointDuration({
         checkpointId: checkpoint.id,
-        durationSec : Math.max(1, elapsed),
+        durationSec : thisElapsed,
       }))
     }
 
     const completeAction = timedOut
       ? journeyActions.completeCheckpointTimedOut
       : journeyActions.completeCheckpoint
-    if (finish) {
+
+    if (finish && journey) {
+      // ── Build final journey record at the verified completion moment ──────
+      const completedAt      = new Date().toISOString()
+      const completionId     = `${journey.id}_${completedAt}`
+
+      // Accumulate durations: all previously recorded + this final checkpoint
+      const durationsWithThis: Record<string, number> = {
+        ...checkpointDurations,
+        ...(checkpoint ? { [checkpoint.id]: thisElapsed } : {}),
+      }
+      const totalDurationSec = journeyStartedAt
+        ? Math.round((Date.now() - new Date(journeyStartedAt).getTime()) / 1000)
+        : Object.values(durationsWithThis).reduce((s, d) => s + d, 0)
+
+      const timedSet = new Set([
+        ...(progress.timedOutCheckpoints ?? []),
+        ...(timedOut && checkpoint ? [checkpoint.id] : []),
+      ])
+
+      const allActs  = journey.checkpoints.flatMap(cp => cp.activities)
+      const totalPts = allActs.reduce((s, a) => s + a.points, 0)
+      const earnedPts = allActs.reduce((sum, a) => {
+        const ans = answers[a.id]
+        if (!ans || ans.value === undefined || ans.value === '') return sum
+        if (AI_EVALUATED_TYPES.has(a.type)) {
+          return sum + Math.round(((ans.aiScore ?? 0) / 100) * a.points)
+        }
+        return sum + (checkActivityCorrect(a, ans) ? a.points : 0)
+      }, 0)
+      const overallAcc = totalPts > 0 ? Math.round((earnedPts / totalPts) * 100) : 0
+
+      const checkpointResults: CheckpointRecord[] = journey.checkpoints.map(cp => {
+        const { earned, total } = cp.activities.reduce(
+          (acc, a) => {
+            const ans = answers[a.id]
+            if (!ans || ans.value === undefined || ans.value === '') return acc
+            if (AI_EVALUATED_TYPES.has(a.type)) {
+              return { earned: acc.earned + Math.round(((ans.aiScore ?? 0) / 100) * a.points), total: acc.total + a.points }
+            }
+            return { earned: acc.earned + (checkActivityCorrect(a, ans) ? a.points : 0), total: acc.total + a.points }
+          },
+          { earned: 0, total: 0 },
+        )
+        const acc      = total > 0 ? Math.round((earned / total) * 100) : 0
+        const mistakes = cp.activities
+          .filter(a => {
+            const ans = answers[a.id]
+            if (!ans || ans.value === undefined || ans.value === '') return false
+            if (AI_EVALUATED_TYPES.has(a.type)) return (ans.aiScore ?? 0) < 50
+            return !checkActivityCorrect(a, ans)
+          })
+          .map(a => a.type)
+        return {
+          concept     : cp.concept,
+          accuracy    : acc,
+          mistakeTypes: mistakes,
+          durationSec : durationsWithThis[cp.id] ?? 0,
+          timedOut    : timedSet.has(cp.id),
+        }
+      })
+
+      const record: JourneyRecord = {
+        completionId,
+        id               : journey.id,
+        title            : journey.title,
+        topic            : journey.topic,
+        completedAt,
+        accuracy         : overallAcc,
+        xpEarned         : gamification?.sessionXP ?? 0,
+        durationSec      : totalDurationSec,
+        checkpointResults,
+      }
+
       dispatch(completeAction(checkpoint!.id))
+      dispatch(personalContextActions.addJourneyRecord(record))
       navigate(`/journey/${journey.id}/report`)
     } else {
       setTransitioning(true)

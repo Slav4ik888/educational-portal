@@ -33,12 +33,10 @@ const personalContextSlice = createSlice({
   initialState,
   reducers: {
     addJourneyRecord(state, action: PayloadAction<JourneyRecord>) {
-      const idx = state.journeyHistory.findIndex(r => r.id === action.payload.id)
-      if (idx !== -1) {
-        state.journeyHistory[idx] = action.payload
-      } else {
-        state.journeyHistory.unshift(action.payload)
-      }
+      // Always prepend as a new immutable completion event.
+      // completionId is unique per completion attempt, so repeated runs
+      // of the same journey each create their own history entry.
+      state.journeyHistory.unshift(action.payload)
       saveToLocalStorage(state)
     },
 

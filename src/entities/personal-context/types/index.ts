@@ -9,6 +9,7 @@ export interface CheckpointRecord {
 }
 
 export interface JourneyRecord {
+  completionId      : string
   id                : string
   title             : string
   topic             : string
