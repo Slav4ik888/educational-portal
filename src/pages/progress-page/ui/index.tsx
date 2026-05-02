@@ -15,6 +15,7 @@ import {
   ProgressAnalysis,
   RecommendNextResult,
 } from 'shared/lib/ai'
+import { AiLoadingDots, AiError, AiEmptyHint } from 'shared/ui/ai-block'
 import styles from './progress-page.module.scss'
 
 
@@ -198,16 +199,9 @@ export const ProgressPage: FC = () => {
               </button>
             </div>
 
-            {analyzing && (
-              <div className={styles.aiLoading}>
-                <div className={styles.loadingDots}><span /><span /><span /></div>
-                <span>AI анализирует ваш прогресс...</span>
-              </div>
-            )}
+            {analyzing && <AiLoadingDots text="AI анализирует ваш прогресс..." />}
 
-            {analyzeErr && !analyzing && (
-              <div className={styles.aiError}>⚠️ {analyzeErr}</div>
-            )}
+            {analyzeErr && !analyzing && <AiError message={analyzeErr} />}
 
             {analysis && !analyzing && (
               <div className={styles.aiCard}>
@@ -242,9 +236,9 @@ export const ProgressPage: FC = () => {
             )}
 
             {!analysis && !analyzing && !analyzeErr && (
-              <div className={styles.aiHint}>
+              <AiEmptyHint>
                 Нажмите «Проанализировать» — AI изучит ваши результаты и найдёт конкретные пробелы в знаниях.
-              </div>
+              </AiEmptyHint>
             )}
           </section>
 
@@ -261,16 +255,9 @@ export const ProgressPage: FC = () => {
               </button>
             </div>
 
-            {recommending && (
-              <div className={styles.aiLoading}>
-                <div className={styles.loadingDots}><span /><span /><span /></div>
-                <span>AI подбирает темы для вас...</span>
-              </div>
-            )}
+            {recommending && <AiLoadingDots text="AI подбирает темы для вас..." />}
 
-            {recommendErr && !recommending && (
-              <div className={styles.aiError}>⚠️ {recommendErr}</div>
-            )}
+            {recommendErr && !recommending && <AiError message={recommendErr} />}
 
             {recommend && !recommending && (
               <div className={styles.aiCard}>
@@ -304,9 +291,9 @@ export const ProgressPage: FC = () => {
             )}
 
             {!recommend && !recommending && !recommendErr && (
-              <div className={styles.aiHint}>
+              <AiEmptyHint>
                 Нажмите «Получить рекомендации» — AI предложит 3 темы, которые логично продолжат ваш прогресс.
-              </div>
+              </AiEmptyHint>
             )}
           </section>
 

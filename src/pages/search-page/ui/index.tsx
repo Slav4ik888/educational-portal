@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
 import { ragSearch, RagSearchResult } from 'shared/lib/ai'
+import { AiLoadingDots, AiError } from 'shared/ui/ai-block'
 import styles from './search-page.module.scss'
 
 const EXAMPLE_QUERIES = [
@@ -107,19 +108,10 @@ export const SearchPage: FC = () => {
       </div>
 
       {/* ── Loading ── */}
-      {loading && (
-        <div className={styles.loading}>
-          <div className={styles.loadingDots}>
-            <span /><span /><span />
-          </div>
-          <div className={styles.loadingText}>Ищу ответ в базе знаний...</div>
-        </div>
-      )}
+      {loading && <AiLoadingDots text="Ищу ответ в базе знаний..." />}
 
       {/* ── Error ── */}
-      {error && !loading && (
-        <div className={styles.errorCard}>⚠️ {error}</div>
-      )}
+      {error && !loading && <AiError message={error} />}
 
       {/* ── Result ── */}
       {result && !loading && (

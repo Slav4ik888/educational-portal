@@ -7,8 +7,8 @@
 ## 1. Генерация учебного маршрута (Journey)
 
 **Файл:** `ai-prompts.cjs` → `JOURNEY_GENERATION_PROMPT`
-**Эндпоинт:** `POST /api/journey/generate`
-**Модель:** `openai/gpt-4o-mini`
+**Эндпоинт:** `POST /api/ai/generate-journey`
+**Модель:** `deepseek-chat`
 
 **Назначение:** Генерирует структурированную учебную статью по заданной теме или тексту. Возвращает JSON с заголовком, описанием и массивом чекпоинтов с объяснениями.
 
@@ -22,8 +22,8 @@
 ## 2. Генерация заданий (Activities)
 
 **Файл:** `ai-prompts.cjs` → `ACTIVITIES_GENERATION_PROMPT`
-**Эндпоинт:** `POST /api/journey/generate` (отдельный вызов на каждый чекпоинт)
-**Модель:** `openai/gpt-4o-mini`
+**Эндпоинт:** `POST /api/ai/generate-journey` (отдельный вызов на каждый чекпоинт)
+**Модель:** `deepseek-chat`
 
 **Назначение:** Создаёт 4–5 разнообразных заданий для каждого чекпоинта. Поддерживает 8 типов:
 - `multiple-choice` — выбор ответа
@@ -45,8 +45,8 @@
 ## 3. AI-оценка ответов (Evaluation)
 
 **Файл:** `ai-prompts.cjs` → `EVAL_SYSTEM_PROMPTS`
-**Эндпоинт:** `POST /api/evaluate`
-**Модель:** `openai/gpt-4o-mini` (SSE-стриминг)
+**Эндпоинт:** `POST /api/ai/evaluate-answer`
+**Модель:** `deepseek-chat` (SSE-стриминг)
 
 Отдельный системный промпт для каждого AI-оцениваемого типа:
 
@@ -71,7 +71,7 @@
 
 **Файл:** `ai-prompts.cjs` → `RAG_SEARCH_PROMPT`
 **Эндпоинт:** `POST /api/rag/search`
-**Модель:** `openai/gpt-4o-mini`
+**Модель:** `deepseek-chat`
 
 **Назначение:** Отвечает на вопрос пользователя, опираясь ТОЛЬКО на предоставленные фрагменты из базы знаний. Честно сообщает, если информации недостаточно.
 
@@ -86,7 +86,7 @@
 
 **Файл:** `ai-prompts.cjs` → `ANALYZE_PROGRESS_PROMPT`
 **Эндпоинт:** `POST /api/ai/analyze-progress`
-**Модель:** `openai/gpt-4o-mini`
+**Модель:** `deepseek-chat`
 
 **Назначение:** Анализирует историю прохождений студента и выявляет конкретные слабые места. Возвращает `summary`, `weakAreas[]` (тема + проблема + совет), `strengths`, `nextFocus`.
 
@@ -101,7 +101,7 @@
 
 **Файл:** `ai-prompts.cjs` → `RECOMMEND_NEXT_PROMPT`
 **Эндпоинт:** `POST /api/ai/recommend-next`
-**Модель:** `openai/gpt-4o-mini`
+**Модель:** `deepseek-chat`
 
 **Назначение:** Предлагает 3 конкретные темы для следующего изучения на основе пройденных тем и слабых мест. Возвращает `recommendations[]` (название + обоснование + сложность + время) и `advice`.
 
@@ -116,7 +116,7 @@
 
 **Файл:** `ai-prompts.cjs` → `EXPLAIN_SIMPLER_PROMPT`
 **Эндпоинт:** `POST /api/ai/explain`
-**Модель:** `openai/gpt-4o-mini`
+**Модель:** `deepseek-chat`
 
 **Назначение:** Переписывает сложный текст (чекпоинт или теоретический блок) доступным языком. Возвращает `explanation`, `keyPoints[]` и `analogy`.
 

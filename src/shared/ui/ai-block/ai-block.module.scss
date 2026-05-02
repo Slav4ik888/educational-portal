@@ -1,7 +1,28 @@
+.loadingRow {
+  display    : flex;
+  align-items: center;
+  gap        : 10px;
+  margin-top : 12px;
+}
+
+.loadingText {
+  font-size : 13px;
+  color     : #64748b;
+}
+
+.emptyHint {
+  background    : rgba(99, 102, 241, 0.06);
+  border        : 1px dashed #334155;
+  border-radius : 12px;
+  padding       : 16px 20px;
+  color         : #64748b;
+  font-size     : 13px;
+  line-height   : 1.6;
+}
+
 .loading {
   display    : flex;
   gap        : 6px;
-  margin-top : 12px;
 
   span {
     width            : 8px;

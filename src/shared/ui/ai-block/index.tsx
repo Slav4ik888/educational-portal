@@ -1,8 +1,25 @@
-import { FC } from 'react'
+import { FC, ReactNode } from 'react'
 import { ExplainResult } from 'shared/lib/ai'
 import styles from './ai-block.module.scss'
 
 
+
+export const AiLoadingDots: FC<{ text?: string }> = ({ text }) => (
+  <div className={styles.loadingRow}>
+    <div className={styles.loading}>
+      <span /><span /><span />
+    </div>
+    {text && <span className={styles.loadingText}>{text}</span>}
+  </div>
+)
+
+export const AiError: FC<{ message: string }> = ({ message }) => (
+  <div className={styles.error}>⚠️ {message}</div>
+)
+
+export const AiEmptyHint: FC<{ children: ReactNode }> = ({ children }) => (
+  <div className={styles.emptyHint}>{children}</div>
+)
 
 interface AiBlockProps {
   loading  : boolean
