@@ -1,6 +1,6 @@
-import { FC } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { StateSchema } from 'app/providers/store';
 import {
   AI_EVALUATED_TYPES,
@@ -10,6 +10,7 @@ import {
   checkActivityCorrect,
 } from 'entities/journey';
 import { ACHIEVEMENTS } from 'entities/gamification';
+import { personalContextActions, JourneyRecord, CheckpointRecord } from 'entities/personal-context';
 import styles from './journey-report-page.module.scss';
 
 
@@ -250,9 +251,54 @@ const CheckpointSection: FC<CheckpointSectionProps> = ({ cp, index, answers, tim
 /* ─── Main page ───────────────────────────────────────────────────────────── */
 
 export const JourneyReportPage: FC = () => {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
+  const dispatch    = useDispatch();
   const { current: journey, answers, progress } = useSelector((s: StateSchema) => s.journey);
   const gamification = useSelector((s: StateSchema) => s.gamification);
+  const savedRef    = useRef(false);
+
+  // ─── Record completed journey to personal context ──────────────────────────
+  useEffect(() => {
+    if (!journey || savedRef.current) return
+    savedRef.current = true
+
+    const allActs   = journey.checkpoints.flatMap(cp => cp.activities)
+    const totalPts  = allActs.reduce((s, a) => s + a.points, 0)
+    const earnedPts = allActs.reduce((sum, a) => {
+      const ans = answers[a.id]
+      if (!ans || ans.value === undefined || ans.value === '') return sum
+      if (AI_EVALUATED_TYPES.has(a.type)) {
+        return sum + Math.round(((ans.aiScore ?? 0) / 100) * a.points)
+      }
+      return sum + (checkActivityCorrect(a, ans) ? a.points : 0)
+    }, 0)
+    const overallAcc = totalPts > 0 ? Math.round((earnedPts / totalPts) * 100) : 0
+
+    const checkpointResults: CheckpointRecord[] = journey.checkpoints.map(cp => {
+      const acc = cpAccuracy(cp, answers)
+      const mistakes = cp.activities
+        .filter(a => {
+          const ans = answers[a.id]
+          if (!ans || ans.value === undefined || ans.value === '') return false
+          if (AI_EVALUATED_TYPES.has(a.type)) return (ans.aiScore ?? 0) < 50
+          return !checkActivityCorrect(a, ans)
+        })
+        .map(a => a.type)
+      return { concept: cp.concept, accuracy: acc, mistakeTypes: mistakes }
+    })
+
+    const record: JourneyRecord = {
+      id                : journey.id,
+      title             : journey.title,
+      topic             : journey.topic,
+      completedAt       : new Date().toISOString(),
+      accuracy          : overallAcc,
+      xpEarned          : gamification?.sessionXP ?? 0,
+      checkpointResults,
+    }
+
+    dispatch(personalContextActions.addJourneyRecord(record))
+  }, [journey, answers, gamification, dispatch])
 
   if (!journey) {
     return (
@@ -403,6 +449,12 @@ export const JourneyReportPage: FC = () => {
           onClick={() => navigate('/journey/new')}
         >
           Начать новое путешествие →
+        </button>
+        <button
+          className={styles.secondaryBtn}
+          onClick={() => navigate('/progress')}
+        >
+          📊 Мой прогресс
         </button>
         <button
           className={styles.secondaryBtn}

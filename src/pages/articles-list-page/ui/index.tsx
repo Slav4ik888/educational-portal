@@ -51,24 +51,42 @@ export const ArticlesListPage: FC = () => {
       <header className={styles.header}>
         <h1>Образовательный портал</h1>
         <p>Выберите статью для изучения</p>
-        <button
-          type    = 'button'
-          onClick = {() => navigate('/journey/new')}
-          style   = {{
-            marginTop     : 16,
-            padding       : '12px 28px',
-            background    : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            border        : 'none',
-            borderRadius  : 12,
-            color         : '#fff',
-            fontSize      : 15,
-            fontWeight    : 700,
-            cursor        : 'pointer',
-            letterSpacing : '0.3px',
-          }}
-        >
-          ✨ Создать Knowledge Journey
-        </button>
+        <div style={{ display: 'flex', gap: 12, marginTop: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            type    = 'button'
+            onClick = {() => navigate('/journey/new')}
+            style   = {{
+              padding       : '12px 28px',
+              background    : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              border        : 'none',
+              borderRadius  : 12,
+              color         : '#fff',
+              fontSize      : 15,
+              fontWeight    : 700,
+              cursor        : 'pointer',
+              letterSpacing : '0.3px',
+            }}
+          >
+            ✨ Создать Knowledge Journey
+          </button>
+          <button
+            type    = 'button'
+            onClick = {() => navigate('/progress')}
+            style   = {{
+              padding       : '12px 28px',
+              background    : 'transparent',
+              border        : '1px solid #6366f1',
+              borderRadius  : 12,
+              color         : '#a5b4fc',
+              fontSize      : 15,
+              fontWeight    : 700,
+              cursor        : 'pointer',
+              letterSpacing : '0.3px',
+            }}
+          >
+            📊 Мой прогресс
+          </button>
+        </div>
       </header>
 
       <div className={styles.stats}>
