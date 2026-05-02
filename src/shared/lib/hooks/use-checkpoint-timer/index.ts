@@ -19,12 +19,14 @@ export function useCheckpointTimer(
   const [paused,    setPaused]    = useState(false)
 
   const initialRef = useRef(initialSeconds)
+  const remainingRef = useRef(initialSeconds)
   const onExpireRef = useRef(onExpire)
   onExpireRef.current = onExpire
 
   const reset = useCallback((seconds?: number) => {
     const s = seconds ?? initialRef.current
     initialRef.current = s
+    remainingRef.current = s
     setRemaining(s)
     setPaused(false)
   }, [])
@@ -36,14 +38,13 @@ export function useCheckpointTimer(
     if (paused || remaining <= 0) return
 
     const id = setInterval(() => {
-      setRemaining(prev => {
-        if (prev <= 1) {
-          clearInterval(id)
-          onExpireRef.current?.()
-          return 0
-        }
-        return prev - 1
-      })
+      const next = Math.max(remainingRef.current - 1, 0)
+      remainingRef.current = next
+      setRemaining(next)
+      if (next <= 0) {
+        clearInterval(id)
+        onExpireRef.current?.()
+      }
     }, 1000)
 
     return () => clearInterval(id)
