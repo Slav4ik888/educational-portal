@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
+const { jsonrepair } = require('jsonrepair');
 
 const app = express();
 const PORT = 7575;
@@ -231,9 +232,19 @@ function callOpenRouter(messages, temperature = 0.7, maxTokens = 4096) {
           if (parsed.error) return reject(new Error(parsed.error.message));
           const content = parsed.choices?.[0]?.message?.content;
           if (!content) return reject(new Error('Empty response from AI'));
-          resolve(JSON.parse(content));
+          try {
+            resolve(JSON.parse(content));
+          } catch {
+            // AI occasionally returns malformed JSON (unescaped newlines / quotes
+            // inside long string values). Try to repair before giving up.
+            try {
+              resolve(JSON.parse(jsonrepair(content)));
+            } catch (repairErr) {
+              reject(new Error('Failed to parse AI response: ' + repairErr.message));
+            }
+          }
         } catch (e) {
-          reject(new Error('Failed to parse AI response: ' + e.message));
+          reject(new Error('Failed to parse API envelope: ' + e.message));
         }
       });
     });
