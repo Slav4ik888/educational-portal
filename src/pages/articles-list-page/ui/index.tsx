@@ -86,6 +86,23 @@ export const ArticlesListPage: FC = () => {
           >
             📊 Мой прогресс
           </button>
+          <button
+            type    = 'button'
+            onClick = {() => navigate('/search')}
+            style   = {{
+              padding       : '12px 28px',
+              background    : 'transparent',
+              border        : '1px solid #0e7490',
+              borderRadius  : 12,
+              color         : '#67e8f9',
+              fontSize      : 15,
+              fontWeight    : 700,
+              cursor        : 'pointer',
+              letterSpacing : '0.3px',
+            }}
+          >
+            🔍 Спроси платформу
+          </button>
         </div>
       </header>
 

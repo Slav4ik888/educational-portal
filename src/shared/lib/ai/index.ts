@@ -6,6 +6,29 @@ const aiApi = axios.create({
   timeout : 1000 * 90,
 })
 
+const ragApi = axios.create({
+  baseURL : '/api/rag',
+  timeout : 1000 * 60,
+})
+
+export interface RagSource {
+  articleId    : string
+  articleTitle : string
+  heading      : string
+  url          : string
+}
+
+export interface RagSearchResult {
+  answer  : string
+  sources : RagSource[]
+}
+
+export interface RagJourneyChunk {
+  title    : string
+  topic    : string
+  concepts : string[]
+}
+
 export interface GenerateJourneyParams {
   topic? : string
   text?  : string
@@ -56,5 +79,17 @@ export async function evaluateAnswer(params: {
     return data
   } catch (err) {
     throw new Error(extractErrorMessage(err, 'Ошибка оценки ответа'))
+  }
+}
+
+export async function ragSearch(params: {
+  query         : string
+  journeyChunks?: RagJourneyChunk[]
+}): Promise<RagSearchResult> {
+  try {
+    const { data } = await ragApi.post<RagSearchResult>('/search', params)
+    return data
+  } catch (err) {
+    throw new Error(extractErrorMessage(err, 'Ошибка поиска'))
   }
 }

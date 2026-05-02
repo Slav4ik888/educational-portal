@@ -539,6 +539,132 @@ app.post('/api/ai/evaluate-answer', rateLimit, async (req, res) => {
 });
 
 
+// ─── RAG Search ────────────────────────────────────────────────────────────
+const { chunks: ARTICLE_CHUNKS } = require('./rag-content.cjs');
+
+/** Normalize text for keyword matching */
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^а-яёa-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Tokenize into unique terms, filtering short/stop words */
+const STOP_WORDS = new Set(['и','в','на','с','по','для','из','это','что','как','не','а','но','от','до','при','за','по','к','о','об','или','то','же','он','она','они','мы','вы','я','его','её','их','нет','да','есть','так','уже','всё','все','был','была','было','были','быть','can','the','and','for','are','is','in','on','of','to','a','an','be','not','have','it','this','that','with','as','at','by']);
+
+function tokenize(text) {
+  return [...new Set(
+    normalizeText(text).split(' ').filter(t => t.length > 2 && !STOP_WORDS.has(t))
+  )];
+}
+
+/** TF-IDF-style score: count query term hits in chunk text */
+function scoreChunk(queryTokens, chunk) {
+  const chunkText = normalizeText(chunk.heading + ' ' + chunk.text + ' ' + chunk.articleTitle);
+  const chunkTokens = chunkText.split(' ');
+  let score = 0;
+  for (const qt of queryTokens) {
+    for (const ct of chunkTokens) {
+      if (ct === qt) { score += 2; break; }
+      if (ct.includes(qt) || qt.includes(ct)) { score += 1; break; }
+    }
+    // Bonus: heading match
+    if (normalizeText(chunk.heading).includes(qt)) score += 3;
+    // Bonus: article title match
+    if (normalizeText(chunk.articleTitle).includes(qt)) score += 1;
+  }
+  return score;
+}
+
+app.post('/api/rag/search', rateLimit, async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) {
+      return res.status(500).json({ error: 'DEEPSEEK_API_KEY not configured' });
+    }
+
+    const { query, journeyChunks = [] } = req.body;
+    if (!query || typeof query !== 'string' || !query.trim()) {
+      return res.status(400).json({ error: 'query is required' });
+    }
+
+    const cleanQuery = String(query).slice(0, 500).trim();
+    const queryTokens = tokenize(cleanQuery);
+
+    // ── Score article chunks ────────────────────────────────────────────────
+    const scoredChunks = ARTICLE_CHUNKS
+      .map(chunk => ({ chunk, score: scoreChunk(queryTokens, chunk) }))
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    // ── Include user's journey chunks (sent from client) ───────────────────
+    const journeyContext = Array.isArray(journeyChunks)
+      ? journeyChunks.slice(0, 5).map(jc => ({
+          text: `Journey: "${jc.title}" (тема: ${jc.topic}). Концепции: ${(jc.concepts || []).join(', ')}.`,
+          source: { articleId: 'journey', articleTitle: jc.title, heading: jc.topic, url: '/journey/new' },
+        }))
+      : [];
+
+    // ── Build context for AI prompt ────────────────────────────────────────
+    const contextBlocks = [
+      ...scoredChunks.map(({ chunk }) =>
+        `[Статья: "${chunk.articleTitle}" / Раздел: "${chunk.heading}"]\n${chunk.text}`
+      ),
+      ...journeyContext.map(jc => `[${jc.text}]`),
+    ];
+
+    if (contextBlocks.length === 0) {
+      return res.json({
+        answer : 'К сожалению, по вашему запросу не найдено релевантных материалов в базе платформы. Попробуйте переформулировать вопрос или воспользуйтесь статьями.',
+        sources: [],
+      });
+    }
+
+    const contextText = contextBlocks.join('\n\n');
+
+    const aiAnswer = await callOpenRouter([
+      {
+        role: 'system',
+        content: `Ты — умный помощник образовательной платформы. Тебе дан вопрос пользователя и релевантные фрагменты из базы знаний платформы.
+
+Задача: дать точный, полезный ответ на вопрос, опираясь ТОЛЬКО на предоставленные фрагменты. Если в материалах нет достаточной информации — честно скажи об этом.
+
+Стиль ответа:
+- Ясный и конкретный, 3-7 предложений
+- Ссылайся на концепции из материалов
+- Если полезно — используй структуру (короткий список)
+- Отвечай на русском языке
+
+Верни JSON:
+{
+  "answer": "Развёрнутый ответ на вопрос (3-7 предложений)"
+}`
+      },
+      {
+        role: 'user',
+        content: `Вопрос: ${cleanQuery}\n\nМатериалы из базы знаний:\n${contextText.slice(0, 6000)}`
+      }
+    ], 0.4, 1024);
+
+    const answer = String(aiAnswer.answer || '').trim() || 'Ответ не сформирован.';
+
+    const sources = scoredChunks.map(({ chunk }) => ({
+      articleId    : chunk.articleId,
+      articleTitle : chunk.articleTitle,
+      heading      : chunk.heading,
+      url          : chunk.url,
+    }));
+
+    return res.json({ answer, sources });
+  } catch (err) {
+    console.error('[rag/search] error:', err.message);
+    return res.status(500).json({ error: err.message || 'RAG search failed' });
+  }
+});
+
+
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, '127.0.0.1', () => {
