@@ -125,13 +125,79 @@
       color: #334155;
     }
     
-    // Чередование строк для улучшения читаемости
     tbody tr:nth-child(even) {
       background: #fafcff;
     }
     
     tbody tr:hover {
       background: #f1f5f9;
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .richTextRenderer {
+    color: #cbd5e1;
+
+    h1, h2, h3, h4 {
+      color: #e2e8f0;
+    }
+
+    h2 {
+      border-bottom-color: #334155;
+    }
+
+    p {
+      color: #94a3b8;
+    }
+
+    blockquote {
+      background: rgba(99, 102, 241, 0.08);
+      color: #94a3b8;
+    }
+
+    li {
+      color: #94a3b8;
+    }
+
+    strong {
+      color: #e2e8f0;
+    }
+
+    .codeBlock {
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+
+    .tableWrapper {
+      .table {
+        background: #1e293b;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+
+        th,
+        td {
+          border-color: #334155;
+        }
+
+        th {
+          background: #0f172a;
+          color: #e2e8f0;
+          border-bottom-color: #475569;
+        }
+
+        td {
+          color: #94a3b8;
+        }
+
+        tbody tr:nth-child(even) {
+          background: #162032;
+        }
+
+        tbody tr:hover {
+          background: rgba(99, 102, 241, 0.08);
+        }
+      }
     }
   }
 }
