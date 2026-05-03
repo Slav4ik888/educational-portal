@@ -134,4 +134,4 @@ git commit -m "Merge: resolve conflicts"
 git push -u origin main
 ----
 
-git add . && git commit -m "edu-journey.service" && git push
+git add . && git commit -m "fixed base url" && git push
