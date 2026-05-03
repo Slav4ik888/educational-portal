@@ -1,6 +1,8 @@
+// src/entities/journey/model/slice/slice.ts
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { StateSchemaJourney } from './state-schema'
-import { Journey, ActivityAnswer } from '../../types'
+import { Journey, ActivityAnswer, ActivityAnswers } from '../../types'
 
 const LS_KEY = 'journeyState'
 

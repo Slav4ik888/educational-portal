@@ -1,3 +1,5 @@
+// src/index.tsx
+
 import { createRoot } from 'react-dom/client';
 import { StoreProvider } from 'app/providers/store';
 import { ErrorBoundary } from 'app/providers/error-boundary';
@@ -6,7 +8,7 @@ import { cfg } from 'app/config';
 import { __devLog } from 'shared/lib/tests/__dev-log';
 import { ragRehydrateJourneys } from 'shared/lib/ai';
 import './index.module.scss';
-import './tailwind.css';
+import './tailwind.scss';
 
 
 

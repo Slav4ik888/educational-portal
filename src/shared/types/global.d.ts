@@ -1,3 +1,5 @@
+// src/shared/types/global.d.ts
+
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { SvgIconTypeMap } from '@mui/material/SvgIcon';
 
@@ -9,6 +11,7 @@ declare global {
     const classNames: IClassNames
     export = classNames
   }
+  declare module '*.css';
   declare module '*.module.scss' {
     const classes: { [key: string]: string };
     export default classes;

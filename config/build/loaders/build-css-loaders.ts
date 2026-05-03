@@ -1,3 +1,5 @@
+// config/build/loaders/build-css-loaders.ts
+
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 
@@ -45,6 +47,9 @@ export const buildCssLoaders = (isDev: boolean) => ({
             sourceMap: isDev,
           },
         },
+        {
+          loader: 'postcss-loader'  // нужен для Tailwind CSS
+        }
       ],
     },
   ],
