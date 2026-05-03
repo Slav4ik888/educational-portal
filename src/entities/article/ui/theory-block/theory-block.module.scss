@@ -279,3 +279,62 @@
     padding: 12px 20px;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .theoryContent {
+    color: #e2e8f0;
+
+    h1, h2, h3, h4, h5, h6 {
+      color: #f1f5f9;
+    }
+
+    code {
+      background: #0f172a;
+      color     : #f87171;
+    }
+
+    blockquote {
+      color       : #94a3b8;
+      border-color: #6366f1;
+    }
+  }
+
+  .completedIndicator {
+    background  : rgba(52, 211, 153, 0.1);
+    color       : #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+  }
+
+  .toggleBtn {
+    border-color: #334155;
+    color       : #64748b;
+
+    &:hover { border-color: #475569; }
+  }
+
+  .explainerCard {
+    background  : linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .explainerText {
+    color: #cbd5e1;
+  }
+
+  .keyPointsLabel {
+    color: #94a3b8;
+  }
+
+  .keyPointsList {
+    color: #94a3b8;
+  }
+
+  .analogy {
+    background  : rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.25);
+  }
+
+  .analogyText {
+    color: #fbbf24;
+  }
+}

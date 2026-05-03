@@ -189,3 +189,81 @@
     cursor: pointer;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+
+  .backButton {
+    background   : #1e293b;
+    color        : #e2e8f0;
+    border-color : #334155;
+
+    &:hover {
+      background: #334155;
+    }
+  }
+
+  .searchButton {
+    background   : #1e293b;
+    color        : #38bdf8;
+    border-color : #38bdf8;
+
+    &:hover {
+      background: #0f172a;
+    }
+  }
+
+  .header {
+    background  : #1e293b;
+    box-shadow  : 0 2px 8px rgba(0, 0, 0, 0.4);
+
+    h1 {
+      color: #e2e8f0;
+    }
+  }
+
+  .meta {
+    color: #64748b;
+  }
+
+  .difficulty {
+    background: #334155;
+
+    &[data-level="beginner"] {
+      background: rgba(52, 211, 153, 0.15);
+      color     : #34d399;
+    }
+
+    &[data-level="intermediate"] {
+      background: rgba(251, 191, 36, 0.15);
+      color     : #fbbf24;
+    }
+
+    &[data-level="advanced"] {
+      background: rgba(248, 113, 113, 0.15);
+      color     : #f87171;
+    }
+  }
+
+  .tag {
+    background: #0f172a;
+    color     : #94a3b8;
+  }
+
+  .finalTestSection,
+  .scoreCard {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+    h2 { color: #e2e8f0; }
+  }
+
+  .retakeTest {
+    background: #334155;
+    color     : #e2e8f0;
+
+    &:hover { background: #475569; }
+  }
+}

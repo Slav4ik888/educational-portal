@@ -287,3 +287,82 @@
   border: 2px solid #ff9800;
   background: #fff8e1;
 }
+
+@media (prefers-color-scheme: dark) {
+  .progressHeader {
+    border-bottom-color: #334155;
+
+    h2 { color: #e2e8f0; }
+  }
+
+  .progressStats {
+    color: #94a3b8;
+
+    span {
+      background: #1e293b;
+      color     : #94a3b8;
+    }
+
+    .completed {
+      background: rgba(52, 211, 153, 0.1);
+      color     : #34d399;
+    }
+
+    .pending {
+      background: rgba(251, 191, 36, 0.1);
+      color     : #fbbf24;
+    }
+  }
+
+  .block {
+    background  : #1e293b;
+    border-color: #334155;
+
+    &.completed {
+      border-left-color: #34d399;
+    }
+  }
+
+  .blockHeader {
+    background  : #0f172a;
+    border-bottom-color: #334155;
+  }
+
+  .blockNumber {
+    background: rgba(74, 144, 226, 0.15);
+    color     : #60a5fa;
+  }
+
+  .blockType {
+    color: #94a3b8;
+  }
+
+  .completedBadge {
+    background: rgba(52, 211, 153, 0.1);
+    color     : #34d399;
+  }
+
+  .question {
+    background: #0f172a;
+  }
+
+  .questionText {
+    color: #e2e8f0;
+  }
+
+  .option {
+    color: #94a3b8;
+
+    &:hover { background: #1e293b; }
+  }
+
+  .finalTestBlock {
+    background  : rgba(255, 152, 0, 0.05);
+    border-color: rgba(255, 152, 0, 0.4);
+  }
+
+  .finalTest .testDescription {
+    background: rgba(21, 101, 192, 0.15);
+    color     : #60a5fa;
+  }
+}
