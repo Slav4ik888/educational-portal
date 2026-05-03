@@ -14,6 +14,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5050',
   'http://localhost:5000',
   'http://localhost:3000',
+  'https://edu-journey.thm.su',
   `https://${process.env.REPLIT_DEV_DOMAIN}`,
 ].filter(Boolean);
 

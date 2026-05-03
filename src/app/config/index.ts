@@ -1,8 +1,10 @@
+// src/app/config/index.ts
+
 import { sec } from 'shared/helpers/dates'
 
 export const cfg = {
-  VERSION                 : '1.0.0',
-  ASSEMBLY_DATE           : '2026-04-14',
+  VERSION                 : '2.0.0',
+  ASSEMBLY_DATE           : '2026-05-03',
 
   COOKIE_NAME             : 'education-portal',
   DEFAULT_MESSAGE_TIMEOUT : sec(6),
