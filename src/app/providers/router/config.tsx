@@ -18,8 +18,5 @@ export const router = createBrowserRouter(
     { path: '/journey/:id/report',       element: <JourneyReportPage /> },
     { path: '/progress',                 element: <ProgressPage /> },
     { path: '/search',                   element: <SearchPage /> },
-  ],
-  {
-    basename: __IS_DEV__ ? '/' : '/educational-portal' // Название репозитория должно быть таким же, как в publicPath
-  }
+  ]
 );

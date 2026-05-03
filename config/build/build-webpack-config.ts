@@ -21,7 +21,7 @@ export function buildWebpackConfig(options: BuildOptions): Configuration {
       chunkFilename : '[name].[contenthash].js',
       path          : paths.build,
       clean         : true,
-      publicPath    : isDev ? '/' : '/educational-portal/'
+      publicPath    : '/'
     },
     plugins   : buildPlugins(options),
     devtool   : isDev ? 'inline-source-map' : undefined,
