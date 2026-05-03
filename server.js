@@ -16,7 +16,7 @@ const {
 } = require('./ai-prompts.cjs');
 
 const app = express();
-const PORT = 7575;
+const PORT = 7585;
 
 // Allow requests only from the same machine (Vite proxy + local dev)
 const ALLOWED_ORIGINS = [
