@@ -414,6 +414,13 @@ function tokenize(text) {
   )];
 }
 
+/** Returns the length of the common prefix between two strings */
+function commonPrefixLen(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+}
+
 /** TF-IDF-style score for any chunk with { heading, text, articleTitle } */
 function scoreChunk(queryTokens, chunk) {
   const chunkText  = normalizeText((chunk.heading || '') + ' ' + (chunk.text || '') + ' ' + (chunk.articleTitle || ''));
@@ -422,10 +429,20 @@ function scoreChunk(queryTokens, chunk) {
   for (const qt of queryTokens) {
     for (const ct of chunkWords) {
       if (ct === qt) { score += 2; break; }
-      if (ct.length > 3 && qt.length > 3 && (ct.includes(qt) || qt.includes(ct))) { score += 1; break; }
+      if (ct.length > 3 && qt.length > 3 && (ct.includes(qt) || qt.includes(ct) || commonPrefixLen(ct, qt) >= 5)) { score += 1; break; }
     }
-    if (normalizeText(chunk.heading || '').includes(qt)) score += 3;
-    if (normalizeText(chunk.articleTitle || '').includes(qt)) score += 1;
+    const headingNorm = normalizeText(chunk.heading || '');
+    const titleNorm   = normalizeText(chunk.articleTitle || '');
+    if (headingNorm.includes(qt)) score += 3;
+    else {
+      const headingWords = headingNorm.split(' ');
+      if (headingWords.some(hw => hw.length > 3 && qt.length > 3 && commonPrefixLen(hw, qt) >= 5)) score += 2;
+    }
+    if (titleNorm.includes(qt)) score += 1;
+    else {
+      const titleWords = titleNorm.split(' ');
+      if (titleWords.some(tw => tw.length > 3 && qt.length > 3 && commonPrefixLen(tw, qt) >= 5)) score += 1;
+    }
   }
   return score;
 }
