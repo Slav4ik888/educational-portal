@@ -2,6 +2,7 @@ import { FC, useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { explainSimpler, ExplainResult } from 'shared/lib/ai'
 import { AiBlock } from 'shared/ui/ai-block'
+import { RichTextRenderer } from 'shared/ui/rich-text-render'
 import { useDispatch, useSelector } from 'react-redux'
 import { StateSchema } from 'app/providers/store'
 import {
@@ -175,9 +176,7 @@ const CheckpointExplainer: FC<CheckpointExplainerProps> = ({ explanation, concep
       </div>
       <h2 className={styles.cpTitle}>{concept}</h2>
       <div className={styles.cpExplanation}>
-        {explanation.split(/\n\n+/).map((para, i) => (
-          <p key={i} className={styles.cpParagraph}>{para.trim()}</p>
-        ))}
+        <RichTextRenderer text={explanation} />
       </div>
 
       <div className={styles.cpExplainerRow}>
