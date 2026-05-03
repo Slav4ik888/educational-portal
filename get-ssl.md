@@ -25,7 +25,7 @@ cat > /etc/nginx/sites-available/edu-extended.thm.su << 'EOF'
 server {
     listen 80;
     server_name edu-extended.thm.su;
-    root /var/www/vtempe/data/edu-extended.thm.su; # путь до вашего сайта
+    root /var/www/vtempe/data/edu-extended; # путь до вашего сайта
 }
 EOF
 ```

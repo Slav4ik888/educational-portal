@@ -23,6 +23,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5050',
   'http://localhost:5000',
   'http://localhost:3000',
+  'https://edu-extended.thm.su',
   `https://${process.env.REPLIT_DEV_DOMAIN}`,
 ].filter(Boolean);
 
@@ -401,11 +402,11 @@ function normalizeText(text) {
 }
 
 const STOP_WORDS = new Set([
-  'и','в','на','с','по','для','из','это','что','как','не','а','но','от','до',
-  'при','за','к','о','об','или','то','же','он','она','они','мы','вы','я','его',
-  'её','их','нет','да','есть','так','уже','всё','все','был','была','было','были',
-  'быть','can','the','and','for','are','is','in','on','of','to','a','an','be',
-  'not','have','it','this','that','with','as','at','by',
+  'и', 'в', 'на', 'с', 'по', 'для', 'из', 'это', 'что', 'как', 'не', 'а', 'но', 'от', 'до',
+  'при', 'за', 'к', 'о', 'об', 'или', 'то', 'же', 'он', 'она', 'они', 'мы', 'вы', 'я', 'его',
+  'её', 'их', 'нет', 'да', 'есть', 'так', 'уже', 'всё', 'все', 'был', 'была', 'было', 'были',
+  'быть', 'can', 'the', 'and', 'for', 'are', 'is', 'in', 'on', 'of', 'to', 'a', 'an', 'be',
+  'not', 'have', 'it', 'this', 'that', 'with', 'as', 'at', 'by',
 ]);
 
 function tokenize(text) {
@@ -423,7 +424,7 @@ function commonPrefixLen(a, b) {
 
 /** TF-IDF-style score for any chunk with { heading, text, articleTitle } */
 function scoreChunk(queryTokens, chunk) {
-  const chunkText  = normalizeText((chunk.heading || '') + ' ' + (chunk.text || '') + ' ' + (chunk.articleTitle || ''));
+  const chunkText = normalizeText((chunk.heading || '') + ' ' + (chunk.text || '') + ' ' + (chunk.articleTitle || ''));
   const chunkWords = chunkText.split(' ');
   let score = 0;
   for (const qt of queryTokens) {
@@ -432,7 +433,7 @@ function scoreChunk(queryTokens, chunk) {
       if (ct.length > 3 && qt.length > 3 && (ct.includes(qt) || qt.includes(ct) || commonPrefixLen(ct, qt) >= 5)) { score += 1; break; }
     }
     const headingNorm = normalizeText(chunk.heading || '');
-    const titleNorm   = normalizeText(chunk.articleTitle || '');
+    const titleNorm = normalizeText(chunk.articleTitle || '');
     if (headingNorm.includes(qt)) score += 3;
     else {
       const headingWords = headingNorm.split(' ');
@@ -455,15 +456,15 @@ const journeyIndex = new Map(); // journeyId → chunk[]
 function indexJourney(journey) {
   if (!journey || !journey.id) return;
   const chunks = journey.checkpoints.map((cp, i) => ({
-    id           : `${journey.id}_cp${i}`,
-    journeyId    : journey.id,
-    journeyTitle : journey.title,
-    topic        : journey.topic,
-    heading      : cp.concept || `Checkpoint ${i + 1}`,
-    text         : (cp.explanation || '').slice(0, 800),
-    articleTitle : journey.title,   // used by scorer
-    url          : `/journey/${journey.id}`,
-    type         : 'journey',
+    id: `${journey.id}_cp${i}`,
+    journeyId: journey.id,
+    journeyTitle: journey.title,
+    topic: journey.topic,
+    heading: cp.concept || `Checkpoint ${i + 1}`,
+    text: (cp.explanation || '').slice(0, 800),
+    articleTitle: journey.title,   // used by scorer
+    url: `/journey/${journey.id}`,
+    type: 'journey',
   }));
   journeyIndex.set(journey.id, chunks);
 }
@@ -509,7 +510,7 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
       return res.status(400).json({ error: 'query is required' });
     }
 
-    const cleanQuery  = String(query).slice(0, 500).trim();
+    const cleanQuery = String(query).slice(0, 500).trim();
     const queryTokens = tokenize(cleanQuery);
 
     // ── Score article chunks ─────────────────────────────────────────────────
@@ -533,7 +534,7 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
 
     if (allScored.length === 0) {
       return res.json({
-        answer : 'К сожалению, по вашему запросу не найдено релевантных материалов в базе платформы. Попробуйте переформулировать вопрос.',
+        answer: 'К сожалению, по вашему запросу не найдено релевантных материалов в базе платформы. Попробуйте переформулировать вопрос.',
         sources: [],
       });
     }
@@ -560,19 +561,19 @@ app.post('/api/rag/search', rateLimit, async (req, res) => {
     const sources = allScored.map(({ chunk, type }) => {
       if (type === 'article') {
         return {
-          articleId    : chunk.articleId,
-          articleTitle : chunk.articleTitle,
-          heading      : chunk.heading,
-          url          : chunk.url,
-          type         : 'article',
+          articleId: chunk.articleId,
+          articleTitle: chunk.articleTitle,
+          heading: chunk.heading,
+          url: chunk.url,
+          type: 'article',
         };
       }
       return {
-        articleId    : chunk.journeyId,
-        articleTitle : chunk.journeyTitle,
-        heading      : chunk.heading,
-        url          : chunk.url,
-        type         : 'journey',
+        articleId: chunk.journeyId,
+        articleTitle: chunk.journeyTitle,
+        heading: chunk.heading,
+        url: chunk.url,
+        type: 'journey',
       };
     });
 
@@ -609,10 +610,10 @@ app.post('/api/ai/analyze-progress', rateLimit, async (req, res) => {
     ], 0.5, 1024);
 
     return res.json({
-      summary   : String(result.summary   || '').trim(),
-      weakAreas : Array.isArray(result.weakAreas) ? result.weakAreas.slice(0, 4) : [],
-      strengths : String(result.strengths  || '').trim(),
-      nextFocus : String(result.nextFocus  || '').trim(),
+      summary: String(result.summary || '').trim(),
+      weakAreas: Array.isArray(result.weakAreas) ? result.weakAreas.slice(0, 4) : [],
+      strengths: String(result.strengths || '').trim(),
+      nextFocus: String(result.nextFocus || '').trim(),
     });
   } catch (err) {
     console.error('[analyze-progress] error:', err.message);
@@ -638,11 +639,11 @@ app.post('/api/ai/recommend-next', rateLimit, async (req, res) => {
 
     const recs = Array.isArray(result.recommendations)
       ? result.recommendations.slice(0, 3).map(r => ({
-          title            : String(r.title || '').trim(),
-          reason           : String(r.reason || '').trim(),
-          difficulty       : ['beginner','intermediate','advanced'].includes(r.difficulty) ? r.difficulty : 'intermediate',
-          estimatedMinutes : Math.max(10, Math.min(90, Number(r.estimatedMinutes) || 25)),
-        }))
+        title: String(r.title || '').trim(),
+        reason: String(r.reason || '').trim(),
+        difficulty: ['beginner', 'intermediate', 'advanced'].includes(r.difficulty) ? r.difficulty : 'intermediate',
+        estimatedMinutes: Math.max(10, Math.min(90, Number(r.estimatedMinutes) || 25)),
+      }))
       : [];
 
     return res.json({
@@ -672,9 +673,9 @@ app.post('/api/ai/explain', rateLimit, async (req, res) => {
     ], 0.5, 1024);
 
     return res.json({
-      explanation : String(result.explanation || '').trim(),
-      keyPoints   : Array.isArray(result.keyPoints) ? result.keyPoints.slice(0, 3).map(String) : [],
-      analogy     : String(result.analogy || '').trim(),
+      explanation: String(result.explanation || '').trim(),
+      keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints.slice(0, 3).map(String) : [],
+      analogy: String(result.analogy || '').trim(),
     });
   } catch (err) {
     console.error('[explain] error:', err.message);
