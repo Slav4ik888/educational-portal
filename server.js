@@ -29,6 +29,11 @@ const ALLOWED_ORIGINS = [
 
 app.use(cors({
   origin: (origin, cb) => {
+    console.log('=== CORS DEBUG ===');
+    console.log('Origin received:', origin);
+    console.log('ALLOWED_ORIGINS:', ALLOWED_ORIGINS);
+    console.log('Match result:', ALLOWED_ORIGINS.some(o => origin && origin.startsWith(o)));
+
     if (!origin || ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
       cb(null, true);
     } else {
@@ -37,6 +42,17 @@ app.use(cors({
   },
   methods: ['GET', 'POST'],
 }));
+
+// app.use(cors({
+//   origin: (origin, cb) => {
+//     if (!origin || ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
+//       cb(null, true);
+//     } else {
+//       cb(new Error('CORS: origin not allowed'));
+//     }
+//   },
+//   methods: ['GET', 'POST'],
+// }));
 
 app.use(express.json({ limit: '100kb' }));
 
